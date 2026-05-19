@@ -23,7 +23,6 @@
         }
 
         body {
-            /* Adapt to our color palette. Using a soft gradient to replace the solid pink */
             background: linear-gradient(135deg, #e8ecef 0%, var(--concrete) 100%);
             height: 100vh;
             display: flex;
@@ -46,10 +45,10 @@
         /* CARD STYLE */
         .login-card {
             width: 440px;
-            background-color: #ffffff; /* Pure white to stand out like the image */
+            background-color: #ffffff;
             border-radius: 28px;
             padding: 45px;
-            box-shadow: 0 24px 48px rgba(32, 57, 74, 0.08); /* soft denim shadow */
+            box-shadow: 0 24px 48px rgba(32, 57, 74, 0.08);
             position: relative;
         }
 
@@ -161,7 +160,7 @@
         .btn-submit {
             width: 130px;
             padding: 14px;
-            background-color: var(--noir); /* Black button like the image */
+            background-color: var(--noir);
             color: var(--bone);
             border: none;
             border-radius: 12px;
@@ -178,7 +177,6 @@
             box-shadow: 0 8px 16px rgba(3, 7, 6, 0.15);
         }
 
-        /* RIGHT PANEL (ILLUSTRATION) */
         .illustration-container {
             flex: 1;
             display: flex;
@@ -189,7 +187,6 @@
             padding-left: 60px;
         }
 
-        /* Using floating elements with our palette to mimic the 3D aesthetic */
         .illustration-container .main-svg {
             width: 100%;
             height: auto;
@@ -343,10 +340,21 @@
 
             <h2 class="title">Sign in</h2>
 
-            <form action="#" method="POST">
+            @if ($errors->any())
+                <div style="background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
+                    <ul style="margin-left: 20px;">
+                        @foreach ($errors->all() as $error)
+                            <li>{{ $error }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+
+            <form action="{{ route('login') }}" method="POST">
+                @csrf
                 <div class="form-group">
                     <div class="form-labels">
-                        <label for="username">Username</label>
+                        <label for="username">Username / Email</label>
                     </div>
                     <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" required>
                 </div>
