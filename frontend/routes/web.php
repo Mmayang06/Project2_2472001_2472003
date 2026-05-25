@@ -21,3 +21,9 @@ Route::get('/stafadmin/dashboard', function () {
 Route::get('/stafadmin', function () {
     return view('stafadmin.dashboard');
 });
+Route::get('/stafadmin/inventory/list', function () {
+    return view('stafadmin.inventory_list');
+});
+Route::get('/stafadmin/inventory/detail/{id}', function ($id) {
+    return view('stafadmin.inventory_update');
+});
