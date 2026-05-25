@@ -13,3 +13,8 @@ Route::post('/login', [AuthController::class, 'login']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+
+// Rute langsung ke dashboard staf admin untuk keperluan testing (tanpa login)
+Route::get('/stafadmin/dashboard', function () {
+    return view('stafadmin.dashboard');
+});
