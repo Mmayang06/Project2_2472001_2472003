@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kelola Stok BHP - Labventory</title>
+    <!-- Outfit Font -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS v4 via CDN & Vite Asset Loading -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        noir: '#030706',
+                        denim: '#20394a',
+                        bone: '#f9f5ed',
+                        steel: '#6196aa',
+                        concrete: '#c9ccc3',
+                    },
+                    fontFamily: {
+                        sans: ['Outfit', 'sans-serif'],
+                    }
+                }
+            }
+        }
+    </script>
+    
+    @if(file_exists(public_path('build/manifest.json')) || file_exists(public_path('hot')))
+        @vite(['resources/css/app.css', 'resources/js/app.js'])
+    @endif
+
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #c9ccc3;
+            border-radius: 8px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #6196aa;
+        }
+    </style>
+</head>
+<body class="bg-[#f9f5ed] text-[#030706] font-sans antialiased h-screen flex flex-col md:flex-row overflow-hidden">
+
+    <!-- Toast Notification (Success/Info Feedback) -->
+    <div id="toast" class="fixed top-5 right-5 z-50 transform translate-y-[-100px] opacity-0 transition-all duration-300 ease-out bg-[#20394a] text-[#f9f5ed] px-6 py-4 rounded-xl shadow-2xl flex items-center gap-3 border border-[#6196aa]/30">
+        <span class="p-1 bg-[#6196aa] rounded-full text-white text-xs">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor">
+                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd" />
+            </svg>
+        </span>
+        <span id="toast-message" class="font-medium text-sm">Aksi berhasil dilakukan!</span>
+    </div>
+
+    <!-- Sidebar -->
+    <aside class="w-full md:w-80 h-full bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20 overflow-hidden">
+        <!-- Brand Logo & App Name -->
+        <div class="p-6 border-b border-[#6196aa]/20 flex items-center justify-between flex-shrink-0">
+            <a href="/" class="flex items-center gap-3 group">
+                <div class="p-2 bg-[#6196aa] rounded-xl text-[#f9f5ed] shadow-md group-hover:scale-105 transition-transform duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                </div>
+                <div>
+                    <h1 class="text-xl font-bold tracking-tight">Lab<span class="text-[#6196aa]">ventory</span></h1>
+                    <span class="text-xs text-[#c9ccc3] tracking-wide block">Lab Komputer Kampus</span>
+                </div>
+            </a>
+        </div>
+
+        <!-- User profile section -->
+        <div class="p-6 border-b border-[#6196aa]/20 flex items-center gap-4 flex-shrink-0">
+            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#6196aa] to-[#c9ccc3] flex items-center justify-center font-bold text-lg text-[#20394a] shadow-inner">
+                SK
+            </div>
+            <div class="overflow-hidden">
+                <h4 class="font-semibold text-sm truncate text-[#f9f5ed]">Staf Lab - Budi W.</h4>
+            </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="flex-grow p-4 space-y-2 mt-4 overflow-y-auto">
+            <a href="{{ url('/staf-lab/home') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
+                </svg>
+                Dashboard Overview
+            </a>
+            <a href="{{ url('/staf-lab/bhp') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 bg-[#6196aa] text-white shadow-lg">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+                </svg>
+                Kelola Stok BHP
+            </a>
+        </nav>
+
+        <!-- Sidebar Footer -->
+        <div class="p-4 border-t border-[#6196aa]/20 flex-shrink-0">
+            <a href="/" class="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-[#c9ccc3]/20 hover:bg-[#c9ccc3]/10 text-xs font-semibold text-[#c9ccc3] hover:text-[#f9f5ed] transition-all duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3 3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                </svg>
+                Keluar
+            </a>
+        </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <main class="flex-grow flex flex-col min-w-0 h-full overflow-hidden">
+        <!-- Top Navbar -->
+        <header class="bg-white/80 backdrop-blur-md border-b border-[#c9ccc3]/40 h-20 px-6 md:px-8 flex items-center justify-between sticky top-0 z-30 flex-shrink-0">
+            <div>
+                <h2 class="text-xl font-bold text-[#20394a]">Manajemen Stok BHP</h2>
+                <p class="text-xs text-gray-500">Pantau persediaan bahan habis pakai, kurangi stok terpakai, dan ajukan restok</p>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <!-- Current Time Indicator -->
+                <div class="hidden sm:flex flex-col text-right">
+                    <span class="text-xs font-semibold text-[#20394a]" id="current-date">Senin, 25 Mei 2026</span>
+                    <span class="text-[10px] text-gray-400" id="current-time">15:10:00 WIB</span>
+                </div>
+                <!-- Profile Indicator -->
+                <div class="h-10 w-10 rounded-xl bg-[#20394a]/5 border border-[#20394a]/10 flex items-center justify-center text-[#20394a] relative">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <!-- Notification dot -->
+                    <span class="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-rose-500 border border-white"></span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dynamic Section Content Wrapper -->
+        <div class="p-6 md:p-8 flex-grow overflow-y-auto max-w-7xl w-full mx-auto pb-16">
+            
+            <div class="space-y-6">
+                <!-- Search and Action Header -->
+                <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 p-6 shadow-sm flex flex-col md:flex-row items-center justify-between gap-4">
+                    <div class="relative w-full md:w-96">
+                        <span class="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none text-gray-400">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                        </span>
+                        <input type="text" id="search-bhp" onkeyup="filterBhpTable()" class="pl-10 pr-4 py-2.5 w-full bg-[#f9f5ed]/30 border border-[#c9ccc3]/60 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] focus:ring-1 focus:ring-[#6196aa] transition-all" placeholder="Cari BHP lab komputer...">
+                    </div>
+                    
+                    <div class="flex gap-3 w-full md:w-auto">
+                        <button onclick="openRestockModal()" class="flex-grow md:flex-grow-0 px-5 py-2.5 bg-[#20394a] hover:bg-[#6196aa] text-white rounded-xl text-sm font-semibold shadow-md transition-all duration-200 flex items-center justify-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                            </svg>
+                            Restok / Tambah BHP
+                        </button>
+                    </div>
+                </div>
+
+                <!-- BHP Table Card -->
+                <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left border-collapse">
+                            <thead>
+                                <tr class="bg-[#20394a]/5 text-[#20394a] border-b border-[#c9ccc3]/30 text-xs font-bold uppercase tracking-wider">
+                                    <th class="px-6 py-4">Nama Barang</th>
+                                    <th class="px-6 py-4">Kategori</th>
+                                    <th class="px-6 py-4">Lokasi Rak</th>
+                                    <th class="px-6 py-4">Jumlah Stok / Status</th>
+                                    <th class="px-6 py-4 text-center">Batas Minimum</th>
+                                    <th class="px-6 py-4 text-right">Aksi Cepat</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-100 text-sm" id="bhp-table-body">
+                                <!-- Loaded via JS -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </main>
+
+    <!-- MODAL: RESTOK BHP -->
+    <div id="modal-restock" class="fixed inset-0 z-50 bg-[#030706]/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl border border-[#c9ccc3]/40 shadow-2xl p-6 relative transform scale-95 transition-transform duration-300">
+            <button onclick="closeRestockModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <h3 class="text-lg font-bold text-[#20394a] mb-4">Form Tambah Stok BHP</h3>
+            
+            <form onsubmit="handleRestockSubmit(event)" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Pilih Barang BHP</label>
+                    <select id="restock-item-select" required class="w-full bg-[#f9f5ed]/30 border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#6196aa] transition-all">
+                        <!-- Filled via JS -->
+                    </select>
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Jumlah Ditambahkan</label>
+                    <input type="number" id="restock-amount" min="1" required class="w-full bg-[#f9f5ed]/30 border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#6196aa] transition-all" placeholder="Misal: 10">
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeRestockModal()" class="flex-1 py-3 bg-[#c9ccc3]/30 hover:bg-[#c9ccc3]/50 text-gray-700 rounded-xl text-sm font-semibold transition-all duration-200">
+                        Batal
+                    </button>
+                    <button type="submit" class="flex-1 py-3 bg-[#20394a] hover:bg-[#6196aa] text-white rounded-xl text-sm font-semibold transition-all duration-200">
+                        Simpan Stok
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- SCRIPTS -->
+    <script>
+        // Mock State Data
+        let bhpData = [
+            { id: 1, name: 'Mouse Optik USB Logitech', category: 'Aksesori PC', rack: 'Rak A-1', stock: 12, minStock: 5, unit: 'Pcs' },
+            { id: 2, name: 'Keyboard USB Standar', category: 'Aksesori PC', rack: 'Rak A-2', stock: 8, minStock: 6, unit: 'Pcs' },
+            { id: 3, name: 'Konektor RJ-45 Cat6', category: 'Kabel & Jaringan', rack: 'Rak B-1', stock: 75, minStock: 25, unit: 'Pcs' },
+            { id: 4, name: 'Kabel LAN UTP Cat6', category: 'Kabel & Jaringan', rack: 'Rak B-2', stock: 150, minStock: 50, unit: 'Meter' },
+            { id: 5, name: 'Flashdisk Sandisk 32GB', category: 'Penyimpanan', rack: 'Laci C-1', stock: 6, minStock: 3, unit: 'Pcs' },
+            { id: 6, name: 'Thermal Paste Arctic MX-4', category: 'Perawatan CPU', rack: 'Laci C-2', stock: 4, minStock: 2, unit: 'Tube' },
+            { id: 7, name: 'Cable Ties 15cm', category: 'Kabel & Jaringan', rack: 'Rak B-3', stock: 2, minStock: 1, unit: 'Pack' },
+            { id: 8, name: 'Tisu Pembersih Layar LCD', category: 'Perawatan CPU', rack: 'Rak D-1', stock: 5, minStock: 2, unit: 'Pack' },
+        ];
+
+        const holidays = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+        const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+
+        // Format dates and time
+        function updateDateTime() {
+            const now = new Date();
+            document.getElementById('current-date').textContent = `${holidays[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+            document.getElementById('current-time').textContent = now.toLocaleTimeString('id-ID') + ' WIB';
+        }
+        setInterval(updateDateTime, 1000);
+        updateDateTime();
+
+        // Render Table
+        function renderBhpTable() {
+            const tableBody = document.getElementById('bhp-table-body');
+            tableBody.innerHTML = '';
+            
+            bhpData.forEach(item => {
+                const isLow = item.stock <= item.minStock;
+                const isZero = item.stock === 0;
+                
+                let pct = Math.round((item.stock / (item.minStock * 3)) * 100);
+                if (pct > 100) pct = 100;
+                
+                let progressColor = 'bg-emerald-500';
+                let badge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-100 text-emerald-800">Aman</span>';
+                
+                if (isZero) {
+                    progressColor = 'bg-rose-500';
+                    badge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-rose-100 text-rose-800">Habis</span>';
+                } else if (isLow) {
+                    progressColor = 'bg-amber-500';
+                    badge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Menipis</span>';
+                }
+
+                tableBody.innerHTML += `
+                    <tr class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-semibold text-[#20394a]">${item.name}</div>
+                            <div class="text-xs text-gray-400">ID: BHP-0${item.id}</div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600">${item.category}</td>
+                        <td class="px-6 py-4 text-gray-600 font-medium">${item.rack}</td>
+                        <td class="px-6 py-4">
+                            <div class="flex items-center gap-2">
+                                <span class="font-bold text-[#20394a]">${item.stock} ${item.unit}</span>
+                                ${badge}
+                            </div>
+                            <div class="w-28 bg-gray-100 h-1.5 rounded-full mt-2 overflow-hidden">
+                                <div class="h-full ${progressColor} rounded-full" style="width: ${pct}%"></div>
+                            </div>
+                        </td>
+                        <td class="px-6 py-4 text-center text-gray-500 font-medium">${item.minStock} ${item.unit}</td>
+                        <td class="px-6 py-4 text-right space-x-2">
+                            <button onclick="consumeBhp(${item.id})" class="px-2.5 py-1.5 border border-[#20394a]/30 text-[#20394a] hover:bg-[#20394a]/10 rounded-lg text-xs font-bold transition-all duration-200">
+                                Pakai 1
+                            </button>
+                            <button onclick="openRestockModal('${item.name}')" class="px-2.5 py-1.5 bg-[#20394a]/10 text-[#20394a] hover:bg-[#20394a] hover:text-white rounded-lg text-xs font-bold transition-all duration-200">
+                                Tambah
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+        }
+
+        function consumeBhp(id) {
+            const item = bhpData.find(b => b.id === id);
+            if (item) {
+                if (item.stock > 0) {
+                    item.stock -= 1;
+                    showToast(`BHP ${item.name} digunakan 1 ${item.unit}.`);
+                    renderBhpTable();
+                } else {
+                    alert(`Stok ${item.name} sudah habis! Silakan lakukan restok.`);
+                }
+            }
+        }
+
+        function filterBhpTable() {
+            const searchVal = document.getElementById('search-bhp').value.toLowerCase();
+            const rows = document.querySelectorAll('#bhp-table-body tr');
+            
+            rows.forEach(row => {
+                const nameText = row.querySelector('td:first-child').innerText.toLowerCase();
+                const categoryText = row.querySelector('td:nth-child(2)').innerText.toLowerCase();
+                
+                if (nameText.includes(searchVal) || categoryText.includes(searchVal)) {
+                    row.classList.remove('hidden');
+                } else {
+                    row.classList.add('hidden');
+                }
+            });
+        }
+
+        // Restock Modal
+        function openRestockModal(selectedName = '') {
+            const selectEl = document.getElementById('restock-item-select');
+            selectEl.innerHTML = '';
+            
+            bhpData.forEach(item => {
+                const isSelected = item.name === selectedName ? 'selected' : '';
+                selectEl.innerHTML += `<option value="${item.id}" ${isSelected}>${item.name} (${item.unit})</option>`;
+            });
+
+            document.getElementById('restock-amount').value = '';
+
+            const modal = document.getElementById('modal-restock');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.querySelector('div').classList.remove('scale-95');
+                modal.querySelector('div').classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeRestockModal() {
+            const modal = document.getElementById('modal-restock');
+            modal.querySelector('div').classList.remove('scale-100');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 150);
+        }
+
+        function handleRestockSubmit(e) {
+            e.preventDefault();
+            const itemId = parseInt(document.getElementById('restock-item-select').value);
+            const amount = parseInt(document.getElementById('restock-amount').value);
+
+            const item = bhpData.find(b => b.id === itemId);
+            if (item) {
+                item.stock += amount;
+                showToast(`Stok ${item.name} berhasil ditambah sebanyak ${amount} ${item.unit}.`);
+                closeRestockModal();
+                renderBhpTable();
+            }
+        }
+
+        function showToast(message) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            msgEl.textContent = message;
+            
+            toast.classList.remove('translate-y-[-100px]', 'opacity-0');
+            
+            setTimeout(() => {
+                toast.classList.add('translate-y-[-100px]', 'opacity-0');
+            }, 3500);
+        }
+
+        window.onload = function() {
+            renderBhpTable();
+        };
+    </script>
+</body>
+</html>
