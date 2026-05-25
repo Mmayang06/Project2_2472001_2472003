@@ -4,6 +4,15 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
 
+Route::get('/staf-lab/home', function () {
+    return view('staf-lab.home');
+});
+
+Route::get('/staf_lab/home', function () {
+    return view('staf-lab.home');
+});
+
+
 Route::get('/', function () {
     return view('landing');
 });
@@ -14,7 +23,7 @@ Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
 
-Route::get('/staf-lab/home', function () {
-    return view('staf-lab.home');
+// Rute langsung ke dashboard staf admin untuk keperluan testing (tanpa login)
+Route::get('/stafadmin/dashboard', function () {
+    return view('stafadmin.dashboard');
 });
-
