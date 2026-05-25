@@ -18,3 +18,6 @@ Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard'
 Route::get('/stafadmin/dashboard', function () {
     return view('stafadmin.dashboard');
 });
+Route::get('/stafadmin', function () {
+    return view('stafadmin.dashboard');
+});
