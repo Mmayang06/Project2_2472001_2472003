@@ -38,7 +38,7 @@
                 <div class="text-xs text-gray-500 flex items-center gap-2">
                     <a href="/stafadmin" class="hover:text-[#6196aa]">Dashboard</a>
                     <span>/</span>
-                    <a href="#" class="hover:text-[#6196aa]">Daftar Inventaris</a>
+                    <a href="/stafadmin/daftar-inventaris" class="hover:text-[#6196aa]">Daftar Inventaris</a>
                     <span>/</span>
                     <span class="font-medium text-[#20394a]">Detail Barang</span>
                 </div>

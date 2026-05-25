@@ -31,7 +31,7 @@
         ::-webkit-scrollbar-thumb:hover { background: #6196aa; }
     </style>
 </head>
-<body class="bg-white text-[#030706] font-sans antialiased min-h-screen flex flex-col md:flex-row overflow-x-hidden">
+<body class="bg-[#f9f5ed] text-[#030706] font-sans antialiased min-h-screen flex flex-col md:flex-row overflow-x-hidden">
 
     <!-- Sidebar -->
     <aside class="w-full md:w-80 bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20 min-h-screen">
@@ -68,17 +68,17 @@
                 Dashboard
             </a>
 
-            <a href="/stafadmin/inventory/list" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 bg-[#6196aa] text-white shadow-lg cursor-pointer">
+            <a href="/stafadmin/daftar-inventaris" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 bg-[#6196aa] text-white shadow-lg cursor-pointer">
                 <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H5v-2h6v2zm0-4H5v-2h6v2zm8-4H5V7h14v2z"/></svg>
                 Daftar Inventaris
             </a>
 
-            <a href="#" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
+            <a href="/stafadmin/draf-pengadaan" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
                 <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
                 Draf Pengadaan
             </a>
 
-            <a href="#" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
+            <a href="/stafadmin/penerimaan-barang" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
                 <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
                 Penerimaan Barang
             </a>
@@ -95,9 +95,9 @@
     </aside>
 
     <!-- Main Content Area -->
-    <main class="flex-grow flex flex-col min-w-0 bg-white">
-        <!-- Top Navbar (Optional to match other pages, but image doesn't strictly have one except for breadcrumbs. We will keep a very simple one) -->
-        <header class="h-20 px-6 md:px-8 flex items-center justify-between sticky top-0 z-30 bg-white">
+    <main class="flex-grow flex flex-col min-w-0">
+        <!-- Top Navbar -->
+        <header class="bg-[#f9f5ed]/80 backdrop-blur-md border-b border-[#c9ccc3]/40 h-20 px-6 md:px-8 flex items-center justify-between sticky top-0 z-30">
             <h2 class="text-2xl font-bold text-[#20394a] uppercase tracking-wider">Daftar Inventaris</h2>
             <div class="flex items-center gap-4">
                 <button class="px-5 py-2 text-sm font-semibold text-white bg-[#20394a] rounded-lg hover:bg-[#6196aa] transition-colors shadow-sm">
@@ -137,9 +137,9 @@
             </div>
 
             <!-- Group 1: Laboratorium Dasar (Warehouse A equivalent) -->
-            <div class="border border-gray-200 rounded-xl overflow-hidden bg-gray-50/50">
+            <div class="border border-white/40 rounded-xl overflow-hidden bg-white/20 backdrop-blur-lg shadow-sm">
                 <!-- Group Header -->
-                <div class="bg-gray-50 px-6 py-4 flex items-center justify-between border-b border-gray-200 cursor-pointer group">
+                <div class="bg-gradient-to-r from-white/40 to-white/10 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-white/40 cursor-pointer group shadow-sm">
                     <div class="flex items-center gap-4">
                         <svg class="w-6 h-6 text-[#20394a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         <h3 class="font-bold text-lg text-[#20394a]">Laboratorium Dasar</h3>
@@ -156,13 +156,13 @@
                 <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
                     
                     <!-- Card 1 -->
-                    <a href="/stafadmin/inventory/detail/1" class="block bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-[#6196aa] hover:shadow-lg transition-all duration-200 group">
-                        <div class="aspect-square bg-gray-100 w-full flex items-center justify-center p-6 relative">
+                    <a href="/stafadmin/update-inventaris/1" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group">
+                        <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6 relative">
                             <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
                         </div>
                         <div class="p-4">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: MKB-001</span>
+                                <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: MKB-001</span>
                                 <span class="text-xs font-semibold text-gray-500">Alat Optik</span>
                             </div>
                             <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate">Mikroskop Binokuler</h4>
@@ -173,17 +173,17 @@
                     </a>
 
                     <!-- Card 2 -->
-                    <a href="/stafadmin/inventory/detail/2" class="block bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-[#6196aa] hover:shadow-lg transition-all duration-200 group relative">
+                    <a href="/stafadmin/update-inventaris/2" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
                         <!-- Low Stock Badge -->
                         <div class="absolute top-3 right-3 z-10 bg-[#20394a] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
                             Low-Stock Alerts
                         </div>
-                        <div class="aspect-square bg-gray-100 w-full flex items-center justify-center p-6">
+                        <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6">
                             <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
                         </div>
                         <div class="p-4">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: TBG-045</span>
+                                <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: TBG-045</span>
                                 <span class="text-xs font-semibold text-gray-500">Alat Kaca</span>
                             </div>
                             <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate">Tabung Reaksi Kaca</h4>
@@ -194,13 +194,13 @@
                     </a>
 
                     <!-- Card 3 -->
-                    <a href="/stafadmin/inventory/detail/3" class="block bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-[#6196aa] hover:shadow-lg transition-all duration-200 group">
-                        <div class="aspect-square bg-gray-100 w-full flex items-center justify-center p-6">
+                    <a href="/stafadmin/update-inventaris/3" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group">
+                        <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6">
                             <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
                         </div>
                         <div class="p-4">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: CFG-012</span>
+                                <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: CFG-012</span>
                                 <span class="text-xs font-semibold text-gray-500">Alat Mesin</span>
                             </div>
                             <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate">Centrifuge 4000 RPM</h4>
@@ -211,13 +211,13 @@
                     </a>
 
                     <!-- Card 4 -->
-                    <a href="/stafadmin/inventory/detail/4" class="block bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-[#6196aa] hover:shadow-lg transition-all duration-200 group">
-                        <div class="aspect-square bg-gray-100 w-full flex items-center justify-center p-6">
+                    <a href="/stafadmin/update-inventaris/4" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group">
+                        <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6">
                             <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
                         </div>
                         <div class="p-4">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: TMB-003</span>
+                                <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: TMB-003</span>
                                 <span class="text-xs font-semibold text-gray-500">Alat Ukur</span>
                             </div>
                             <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate">Timbangan Analitik</h4>
@@ -228,17 +228,17 @@
                     </a>
 
                     <!-- Card 5 -->
-                    <a href="/stafadmin/inventory/detail/5" class="block bg-white border border-gray-200 rounded-xl overflow-hidden hover:border-[#6196aa] hover:shadow-lg transition-all duration-200 group relative">
+                    <a href="/stafadmin/update-inventaris/5" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
                         <!-- Low Stock Badge -->
                         <div class="absolute top-3 right-3 z-10 bg-[#20394a] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
                             Low-Stock Alerts
                         </div>
-                        <div class="aspect-square bg-gray-100 w-full flex items-center justify-center p-6">
+                        <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6">
                             <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
                         </div>
                         <div class="p-4">
                             <div class="flex justify-between items-center mb-2">
-                                <span class="bg-gray-100 text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: GGL-021</span>
+                                <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: GGL-021</span>
                                 <span class="text-xs font-semibold text-gray-500">APD</span>
                             </div>
                             <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate">Kacamata Pelindung (Goggles)</h4>
@@ -263,9 +263,9 @@
             </div>
 
             <!-- Group 2: Laboratorium Analitik (Warehouse B equivalent) -->
-            <div class="border border-gray-200 rounded-xl overflow-hidden bg-gray-50/50">
+            <div class="border border-white/40 rounded-xl overflow-hidden bg-white/20 backdrop-blur-lg shadow-sm">
                 <!-- Group Header (Collapsed state) -->
-                <div class="bg-gray-50 px-6 py-4 flex items-center justify-between cursor-pointer group">
+                <div class="bg-gradient-to-r from-white/40 to-white/10 backdrop-blur-md px-6 py-4 flex items-center justify-between cursor-pointer group shadow-sm">
                     <div class="flex items-center gap-4">
                         <svg class="w-6 h-6 text-[#20394a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                         <h3 class="font-bold text-lg text-[#20394a]">Laboratorium Analitik</h3>

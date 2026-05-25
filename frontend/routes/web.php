@@ -39,9 +39,15 @@ Route::get('/stafadmin/dashboard', function () {
 Route::get('/stafadmin', function () {
     return view('stafadmin.dashboard');
 });
-Route::get('/stafadmin/inventory/list', function () {
-    return view('stafadmin.inventory_list');
+Route::get('/stafadmin/daftar-inventaris', function () {
+    return view('stafadmin.daftar_inventaris');
 });
-Route::get('/stafadmin/inventory/detail/{id}', function ($id) {
-    return view('stafadmin.inventory_update');
+Route::get('/stafadmin/update-inventaris/{id}', function ($id) {
+    return view('stafadmin.update_inventaris');
+});
+Route::get('/stafadmin/penerimaan-barang', function () {
+    return view('stafadmin.penerimaan_barang');
+});
+Route::get('/stafadmin/draf-pengadaan', function () {
+    return view('stafadmin.draf_pengadaan');
 });
