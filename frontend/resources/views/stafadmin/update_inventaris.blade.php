@@ -55,8 +55,8 @@
         <!-- Header Section -->
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
             <div class="flex items-center gap-4">
-                <h1 class="text-3xl font-bold text-[#20394a] uppercase tracking-wide">Mikroskop Binokuler</h1>
-                <span class="px-3 py-1 bg-white border border-[#c9ccc3] rounded-full text-sm font-semibold text-gray-600">Kode: MKB-001</span>
+                <h1 id="item-name-header" class="text-3xl font-bold text-[#20394a] uppercase tracking-wide">Memuat...</h1>
+                <span id="item-code-header" class="px-3 py-1 bg-white border border-[#c9ccc3] rounded-full text-sm font-semibold text-gray-600">Kode: ...</span>
             </div>
             
             <div class="flex items-center gap-3">
@@ -120,7 +120,7 @@
                             <rect x="86" y="0" width="10" height="30"/>
                             <rect x="98" y="0" width="2" height="30"/>
                         </svg>
-                        <p class="mt-2 text-xl font-mono tracking-widest text-black group-hover:opacity-50 transition-opacity">40181 700982</p>
+                        <p id="item-barcode-text" class="mt-2 text-xl font-mono tracking-widest text-black group-hover:opacity-50 transition-opacity">...</p>
                         
                         <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                             <button class="bg-[#20394a] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
@@ -139,15 +139,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div class="border border-gray-100 rounded-lg p-5 bg-gray-50">
                         <span class="text-sm font-semibold text-gray-500 block mb-1">Tersedia (Ready)</span>
-                        <span class="text-3xl font-bold text-[#20394a]">20</span>
+                        <span id="count-ready" class="text-3xl font-bold text-[#20394a]">0</span>
                     </div>
                     <div class="border border-gray-100 rounded-lg p-5 bg-gray-50">
                         <span class="text-sm font-semibold text-gray-500 block mb-1">Sedang Dipinjam</span>
-                        <span class="text-3xl font-bold text-[#20394a]">5</span>
+                        <span id="count-borrowed" class="text-3xl font-bold text-[#20394a]">0</span>
                     </div>
                     <div class="border border-gray-100 rounded-lg p-5 bg-gray-50">
                         <span class="text-sm font-semibold text-gray-500 block mb-1">Rusak / Servis</span>
-                        <span class="text-3xl font-bold text-[#20394a]">2</span>
+                        <span id="count-broken" class="text-3xl font-bold text-[#20394a]">0</span>
                     </div>
                 </div>
 
@@ -160,27 +160,27 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm">
                         <div class="grid grid-cols-2">
                             <span class="font-semibold text-gray-800">Nama Barang</span>
-                            <span class="text-gray-600">Mikroskop Binokuler</span>
+                            <span id="info-nama" class="text-gray-600">...</span>
                         </div>
                         <div class="grid grid-cols-2">
                             <span class="font-semibold text-gray-800">Lokasi Simpan</span>
-                            <span class="text-gray-600">Lemari Kaca B - Rak 2</span>
+                            <span id="info-lokasi" class="text-gray-600">...</span>
                         </div>
                         <div class="grid grid-cols-2">
                             <span class="font-semibold text-gray-800">Merk / Vendor</span>
-                            <span class="text-gray-600">Olympus Corp.</span>
+                            <span id="info-merk" class="text-gray-600">-</span>
                         </div>
                         <div class="grid grid-cols-2">
                             <span class="font-semibold text-gray-800">Kode Lab</span>
-                            <span class="text-gray-600">MKB-001</span>
+                            <span id="info-kode" class="text-gray-600">...</span>
                         </div>
                         <div class="grid grid-cols-2">
                             <span class="font-semibold text-gray-800">Nomor Seri</span>
-                            <span class="text-gray-600">-</span>
+                            <span id="info-seri" class="text-gray-600">-</span>
                         </div>
                         <div class="grid grid-cols-2">
                             <span class="font-semibold text-gray-800">Barcode ID</span>
-                            <span class="text-gray-600">40181700082</span>
+                            <span id="info-barcode" class="text-gray-600">...</span>
                         </div>
                     </div>
                 </div>
@@ -196,11 +196,11 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm">
                         <div class="grid grid-cols-2">
                             <span class="font-semibold text-gray-800">Harga Satuan</span>
-                            <span class="text-gray-600">Rp 5.500.000</span>
+                            <span id="info-harga" class="text-gray-600">...</span>
                         </div>
                         <div class="grid grid-cols-2 flex items-center">
                             <span class="font-semibold text-gray-800">Sumber Dana</span>
-                            <span class="text-gray-600 flex items-center gap-2">Hibah Penelitian <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500">Tahun: 2024</span></span>
+                            <span id="info-sumber-dana" class="text-gray-600 flex items-center gap-2">...</span>
                         </div>
                     </div>
                 </div>
@@ -222,7 +222,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm">
                         <div class="grid grid-cols-2">
                             <span class="font-semibold text-gray-800">Jumlah Keseluruhan</span>
-                            <span class="text-gray-600 font-bold text-lg text-[#20394a]">27</span>
+                            <span id="info-total" class="text-gray-600 font-bold text-lg text-[#20394a]">0</span>
                         </div>
                         <div class="grid grid-cols-2">
                             <span class="font-semibold text-gray-800">Satuan</span>
@@ -300,5 +300,47 @@
         </div>
     </main>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const itemId = "{{ $id }}";
+            
+            try {
+                const response = await fetch(`http://localhost:3000/api/staf_admin/inventaris/${itemId}`);
+                const result = await response.json();
+                
+                if (result.success && result.data) {
+                    const data = result.data;
+                    
+                    document.getElementById('item-name-header').textContent = data.nama_barang || 'Tanpa Nama';
+                    document.getElementById('item-code-header').textContent = `Kode: ${data.contoh_kode || 'N/A'}`;
+                    document.getElementById('item-barcode-text').textContent = data.contoh_qr || data.contoh_kode || 'N/A';
+                    
+                    document.getElementById('count-ready').textContent = data.stok_baik || 0;
+                    document.getElementById('count-borrowed').textContent = 0; // Not available in db currently
+                    document.getElementById('count-broken').textContent = data.stok_rusak || 0;
+                    
+                    document.getElementById('info-nama').textContent = data.nama_barang || '-';
+                    document.getElementById('info-lokasi').textContent = data.lokasi_ruangan ? `${data.lokasi_ruangan} (${data.lokasi_detail})` : '-';
+                    document.getElementById('info-kode').textContent = data.contoh_kode || '-';
+                    document.getElementById('info-barcode').textContent = data.contoh_qr || data.contoh_kode || '-';
+                    
+                    const formatter = new Intl.NumberFormat('id-ID', {
+                        style: 'currency',
+                        currency: 'IDR',
+                        minimumFractionDigits: 0
+                    });
+                    
+                    document.getElementById('info-harga').textContent = data.harga ? formatter.format(data.harga) : '-';
+                    document.getElementById('info-sumber-dana').innerHTML = data.tahun_pengadaan ? 
+                        `Pengadaan <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500">Tahun: ${data.tahun_pengadaan}</span>` : '-';
+                    
+                    document.getElementById('info-total').textContent = data.total_stok || 0;
+                }
+            } catch (error) {
+                console.error('Error fetching inventory detail:', error);
+                alert('Gagal memuat detail barang');
+            }
+        });
+    </script>
 </body>
 </html>

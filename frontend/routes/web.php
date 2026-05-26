@@ -43,7 +43,7 @@ Route::get('/stafadmin/daftar-inventaris', function () {
     return view('stafadmin.daftar_inventaris');
 });
 Route::get('/stafadmin/update-inventaris/{id}', function ($id) {
-    return view('stafadmin.update_inventaris');
+    return view('stafadmin.update_inventaris', ['id' => $id]);
 });
 Route::get('/stafadmin/penerimaan-barang', function () {
     return view('stafadmin.penerimaan_barang');
