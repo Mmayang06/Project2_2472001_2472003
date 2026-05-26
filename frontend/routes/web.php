@@ -20,6 +20,14 @@ Route::get('/staf_lab/bhp', function () {
     return view('staf-lab.bhp');
 });
 
+Route::get('/staf-lab/maintenance', function () {
+    return view('staf-lab.maintenance');
+});
+
+Route::get('/staf_lab/maintenance', function () {
+    return view('staf-lab.maintenance');
+});
+
 
 
 Route::get('/', function () {
