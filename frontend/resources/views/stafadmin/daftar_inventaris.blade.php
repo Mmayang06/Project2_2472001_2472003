@@ -146,72 +146,136 @@
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const container = document.getElementById('inventory-container');
-            
+            let inventoryData = [];
+            let labPagination = {};
+
+            const renderPagination = (totalItems, itemsPerPage, currentPage, roomIndex) => {
+                const totalPages = Math.ceil(totalItems / itemsPerPage);
+                if (totalPages <= 1) return '';
+
+                let pagesHtml = '';
+                
+                // Prev button
+                pagesHtml += `<button onclick="changePage(${roomIndex}, ${currentPage - 1})" class="px-3 py-1.5 rounded-lg border ${currentPage === 1 ? 'border-gray-200 text-gray-400 cursor-not-allowed' : 'border-[#c9ccc3] text-[#20394a] hover:bg-[#6196aa]/10'}" ${currentPage === 1 ? 'disabled' : ''}>&lt;</button>`;
+                
+                for (let i = 1; i <= totalPages; i++) {
+                    if (i === currentPage) {
+                        pagesHtml += `<button class="px-3 py-1.5 rounded-lg bg-[#20394a] text-[#f9f5ed] font-medium shadow-sm">${i}</button>`;
+                    } else {
+                        // Show first, last, and pages around current page
+                        if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                            pagesHtml += `<button onclick="changePage(${roomIndex}, ${i})" class="px-3 py-1.5 rounded-lg border border-[#c9ccc3] text-[#20394a] hover:bg-[#6196aa]/10">${i}</button>`;
+                        } else if (i === currentPage - 2 || i === currentPage + 2) {
+                            let isEllipsis = true;
+                            // only show ellipsis once
+                            pagesHtml += `<span class="px-1 text-gray-500">...</span>`;
+                        }
+                    }
+                }
+                
+                // Next button
+                pagesHtml += `<button onclick="changePage(${roomIndex}, ${currentPage + 1})" class="px-3 py-1.5 rounded-lg border ${currentPage === totalPages ? 'border-gray-200 text-gray-400 cursor-not-allowed' : 'border-[#c9ccc3] text-[#20394a] hover:bg-[#6196aa]/10'}" ${currentPage === totalPages ? 'disabled' : ''}>&gt;</button>`;
+                
+                return `<div class="flex items-center justify-end mt-4 gap-1 px-6 pb-6">${pagesHtml}</div>`;
+            };
+
+            window.changePage = (roomIndex, newPage) => {
+                labPagination[roomIndex] = newPage;
+                renderData();
+            };
+
+            window.toggleRoom = (roomIndex) => {
+                const content = document.getElementById(`room-content-${roomIndex}`);
+                const icon = document.getElementById(`room-icon-${roomIndex}`);
+                if (content.classList.contains('hidden')) {
+                    content.classList.remove('hidden');
+                    icon.classList.add('rotate-180');
+                } else {
+                    content.classList.add('hidden');
+                    icon.classList.remove('rotate-180');
+                }
+            };
+
+            const renderData = () => {
+                container.innerHTML = '';
+                
+                inventoryData.forEach((room, index) => {
+                    if (!labPagination[index]) labPagination[index] = 1;
+                    
+                    const itemsPerPage = 4; // 1 row on xl screens
+                    const currentPage = labPagination[index];
+                    const start = (currentPage - 1) * itemsPerPage;
+                    const end = start + itemsPerPage;
+                    const currentItems = room.barang.slice(start, end);
+                    
+                    let cardsHtml = '';
+                    currentItems.forEach(item => {
+                        const lowStockBadge = item.stok <= 5 ? `
+                            <div class="absolute top-3 right-3 z-10 bg-[#20394a] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+                                Low-Stock Alerts
+                            </div>
+                        ` : '';
+                        
+                        const stockClass = item.stok <= 5 ? 'text-amber-600' : 'text-gray-800';
+                        const urlUpdate = '/stafadmin/update-inventaris/' + item.id_detail;
+                        
+                        cardsHtml += `
+                        <a href="${urlUpdate}" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
+                            ${lowStockBadge}
+                            <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6 relative">
+                                <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                            </div>
+                            <div class="p-4">
+                                <div class="flex justify-between items-center mb-2">
+                                    <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: ${item.contoh_kode || 'N/A'}</span>
+                                    <span class="text-xs font-semibold text-gray-500">${item.jenis_barang || 'Barang'}</span>
+                                </div>
+                                <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate" title="${item.nama_barang}">${item.nama_barang}</h4>
+                                <div class="flex justify-between items-end">
+                                    <span class="text-xs text-gray-500">Stok Tersedia: <strong class="${stockClass}">${item.stok} Unit</strong></span>
+                                </div>
+                            </div>
+                        </a>
+                        `;
+                    });
+
+                    const paginationHtml = renderPagination(room.barang.length, itemsPerPage, currentPage, index);
+
+                    const groupHtml = `
+                    <div class="border border-white/40 rounded-xl overflow-hidden bg-white/20 backdrop-blur-lg shadow-sm">
+                        <div onclick="toggleRoom(${index})" class="bg-gradient-to-r from-white/40 to-white/10 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-white/40 cursor-pointer group shadow-sm transition-colors hover:bg-white/30">
+                            <div class="flex items-center gap-4">
+                                <svg class="w-6 h-6 text-[#20394a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                <h3 class="font-bold text-lg text-[#20394a]">${room.nama}</h3>
+                                <div class="flex gap-2 ml-2 hidden md:flex">
+                                    <span class="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-full">${room.total_alat} alat</span>
+                                    <span class="text-xs text-gray-400 self-center">|</span>
+                                    <span class="text-xs text-gray-500 self-center">${room.lokasi}</span>
+                                </div>
+                            </div>
+                            <svg id="room-icon-${index}" class="w-5 h-5 text-gray-400 group-hover:text-[#20394a] transform transition-transform duration-300 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                        </div>
+                        
+                        <div id="room-content-${index}" class="transition-all duration-300 origin-top">
+                            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                ${cardsHtml}
+                            </div>
+                            ${paginationHtml}
+                        </div>
+                    </div>
+                    `;
+                    
+                    container.insertAdjacentHTML('beforeend', groupHtml);
+                });
+            };
+
             try {
-                // Fetch data from Node.js backend API
                 const response = await fetch('http://localhost:3000/api/staf_admin/inventaris');
                 const result = await response.json();
                 
                 if (result.success && result.data.length > 0) {
-                    container.innerHTML = ''; // Clear loading text
-                    
-                    result.data.forEach(room => {
-                        let cardsHtml = '';
-                        
-                        room.barang.forEach(item => {
-                            // Check if low stock
-                            const lowStockBadge = item.stok <= 5 ? `
-                                <div class="absolute top-3 right-3 z-10 bg-[#20394a] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
-                                    Low-Stock Alerts
-                                </div>
-                            ` : '';
-                            
-                            const stockClass = item.stok <= 5 ? 'text-amber-600' : 'text-gray-800';
-                            const urlUpdate = '/stafadmin/update-inventaris/' + item.id_detail;
-                            
-                            cardsHtml += `
-                            <a href="${urlUpdate}" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
-                                ${lowStockBadge}
-                                <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6 relative">
-                                    <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                                </div>
-                                <div class="p-4">
-                                    <div class="flex justify-between items-center mb-2">
-                                        <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: ${item.contoh_kode || 'N/A'}</span>
-                                        <span class="text-xs font-semibold text-gray-500">${item.jenis_barang || 'Barang'}</span>
-                                    </div>
-                                    <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate" title="${item.nama_barang}">${item.nama_barang}</h4>
-                                    <div class="flex justify-between items-end">
-                                        <span class="text-xs text-gray-500">Stok Tersedia: <strong class="${stockClass}">${item.stok} Unit</strong></span>
-                                    </div>
-                                </div>
-                            </a>
-                            `;
-                        });
-
-                        const groupHtml = `
-                        <div class="border border-white/40 rounded-xl overflow-hidden bg-white/20 backdrop-blur-lg shadow-sm">
-                            <div class="bg-gradient-to-r from-white/40 to-white/10 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-white/40 cursor-pointer group shadow-sm">
-                                <div class="flex items-center gap-4">
-                                    <svg class="w-6 h-6 text-[#20394a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                                    <h3 class="font-bold text-lg text-[#20394a]">${room.nama}</h3>
-                                    <div class="flex gap-2 ml-2 hidden md:flex">
-                                        <span class="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-full">${room.total_alat} alat</span>
-                                        <span class="text-xs text-gray-400 self-center">|</span>
-                                        <span class="text-xs text-gray-500 self-center">${room.lokasi}</span>
-                                    </div>
-                                </div>
-                                <svg class="w-5 h-5 text-gray-400 group-hover:text-[#20394a] transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-                            </div>
-                            
-                            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                                ${cardsHtml}
-                            </div>
-                        </div>
-                        `;
-                        
-                        container.insertAdjacentHTML('beforeend', groupHtml);
-                    });
+                    inventoryData = result.data;
+                    renderData();
                 } else {
                     container.innerHTML = '<div class="text-center py-10 text-gray-500">Tidak ada data inventaris.</div>';
                 }
