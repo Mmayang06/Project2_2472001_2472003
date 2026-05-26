@@ -136,150 +136,91 @@
                 </div>
             </div>
 
-            <!-- Group 1: Laboratorium Dasar (Warehouse A equivalent) -->
-            <div class="border border-white/40 rounded-xl overflow-hidden bg-white/20 backdrop-blur-lg shadow-sm">
-                <!-- Group Header -->
-                <div class="bg-gradient-to-r from-white/40 to-white/10 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-white/40 cursor-pointer group shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <svg class="w-6 h-6 text-[#20394a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        <h3 class="font-bold text-lg text-[#20394a]">Laboratorium Dasar</h3>
-                        <div class="flex gap-2 ml-2">
-                            <span class="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-full">50 alat</span>
-                            <span class="text-xs text-gray-400 self-center">|</span>
-                            <span class="text-xs text-gray-500 self-center">Gedung Fakultas Sains, Lantai 1</span>
-                        </div>
-                    </div>
-                    <svg class="w-5 h-5 text-gray-400 group-hover:text-[#20394a] transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-                </div>
-
-                <!-- Group Content (Cards Grid) -->
-                <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
-                    
-                    <!-- Card 1 -->
-                    <a href="/stafadmin/update-inventaris/1" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group">
-                        <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6 relative">
-                            <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: MKB-001</span>
-                                <span class="text-xs font-semibold text-gray-500">Alat Optik</span>
-                            </div>
-                            <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate">Mikroskop Binokuler</h4>
-                            <div class="flex justify-between items-end">
-                                <span class="text-xs text-gray-500">Stok Tersedia: <strong class="text-gray-800">27 Unit</strong></span>
-                            </div>
-                        </div>
-                    </a>
-
-                    <!-- Card 2 -->
-                    <a href="/stafadmin/update-inventaris/2" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
-                        <!-- Low Stock Badge -->
-                        <div class="absolute top-3 right-3 z-10 bg-[#20394a] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
-                            Low-Stock Alerts
-                        </div>
-                        <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6">
-                            <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: TBG-045</span>
-                                <span class="text-xs font-semibold text-gray-500">Alat Kaca</span>
-                            </div>
-                            <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate">Tabung Reaksi Kaca</h4>
-                            <div class="flex justify-between items-end">
-                                <span class="text-xs text-gray-500">Stok Tersedia: <strong class="text-amber-600">5 Pcs</strong></span>
-                            </div>
-                        </div>
-                    </a>
-
-                    <!-- Card 3 -->
-                    <a href="/stafadmin/update-inventaris/3" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group">
-                        <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6">
-                            <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: CFG-012</span>
-                                <span class="text-xs font-semibold text-gray-500">Alat Mesin</span>
-                            </div>
-                            <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate">Centrifuge 4000 RPM</h4>
-                            <div class="flex justify-between items-end">
-                                <span class="text-xs text-gray-500">Stok Tersedia: <strong class="text-gray-800">2 Unit</strong></span>
-                            </div>
-                        </div>
-                    </a>
-
-                    <!-- Card 4 -->
-                    <a href="/stafadmin/update-inventaris/4" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group">
-                        <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6">
-                            <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: TMB-003</span>
-                                <span class="text-xs font-semibold text-gray-500">Alat Ukur</span>
-                            </div>
-                            <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate">Timbangan Analitik</h4>
-                            <div class="flex justify-between items-end">
-                                <span class="text-xs text-gray-500">Stok Tersedia: <strong class="text-gray-800">5 Unit</strong></span>
-                            </div>
-                        </div>
-                    </a>
-
-                    <!-- Card 5 -->
-                    <a href="/stafadmin/update-inventaris/5" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
-                        <!-- Low Stock Badge -->
-                        <div class="absolute top-3 right-3 z-10 bg-[#20394a] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
-                            Low-Stock Alerts
-                        </div>
-                        <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6">
-                            <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
-                        </div>
-                        <div class="p-4">
-                            <div class="flex justify-between items-center mb-2">
-                                <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: GGL-021</span>
-                                <span class="text-xs font-semibold text-gray-500">APD</span>
-                            </div>
-                            <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate">Kacamata Pelindung (Goggles)</h4>
-                            <div class="flex justify-between items-end">
-                                <span class="text-xs text-gray-500">Stok Tersedia: <strong class="text-amber-600">3 Pcs</strong></span>
-                            </div>
-                        </div>
-                    </a>
-
-                </div>
-                
-                <!-- Pagination -->
-                <div class="px-6 py-4 border-t border-gray-200 flex justify-end">
-                    <div class="flex gap-1">
-                        <button class="px-3 py-1.5 border border-gray-300 text-gray-500 rounded text-sm hover:bg-gray-50">&lt;</button>
-                        <button class="px-3 py-1.5 bg-[#20394a] text-white rounded text-sm font-semibold">1</button>
-                        <button class="px-3 py-1.5 border border-gray-300 text-gray-600 rounded text-sm hover:bg-gray-50">2</button>
-                        <button class="px-3 py-1.5 border border-gray-300 text-gray-600 rounded text-sm hover:bg-gray-50">3</button>
-                        <button class="px-3 py-1.5 border border-gray-300 text-gray-600 rounded text-sm hover:bg-gray-50">&gt;</button>
-                    </div>
-                </div>
+            <div id="inventory-container" class="space-y-6">
+                <!-- Data will be loaded here dynamically -->
+                <div class="text-center py-10 text-gray-500">Memuat data dari server...</div>
             </div>
-
-            <!-- Group 2: Laboratorium Analitik (Warehouse B equivalent) -->
-            <div class="border border-white/40 rounded-xl overflow-hidden bg-white/20 backdrop-blur-lg shadow-sm">
-                <!-- Group Header (Collapsed state) -->
-                <div class="bg-gradient-to-r from-white/40 to-white/10 backdrop-blur-md px-6 py-4 flex items-center justify-between cursor-pointer group shadow-sm">
-                    <div class="flex items-center gap-4">
-                        <svg class="w-6 h-6 text-[#20394a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
-                        <h3 class="font-bold text-lg text-[#20394a]">Laboratorium Analitik</h3>
-                        <div class="flex gap-2 ml-2">
-                            <span class="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-full">40 alat</span>
-                            <span class="text-xs text-gray-400 self-center">|</span>
-                            <span class="text-xs text-gray-500 self-center">Gedung Fakultas Sains, Lantai 2</span>
-                        </div>
-                    </div>
-                    <svg class="w-5 h-5 text-gray-400 group-hover:text-[#20394a] transform transition-transform rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
-                </div>
-            </div>
-
         </div>
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', async () => {
+            const container = document.getElementById('inventory-container');
+            
+            try {
+                // Fetch data from Node.js backend API
+                const response = await fetch('http://localhost:3000/api/staf_admin/inventaris');
+                const result = await response.json();
+                
+                if (result.success && result.data.length > 0) {
+                    container.innerHTML = ''; // Clear loading text
+                    
+                    result.data.forEach(room => {
+                        let cardsHtml = '';
+                        
+                        room.barang.forEach(item => {
+                            // Check if low stock
+                            const lowStockBadge = item.stok <= 5 ? `
+                                <div class="absolute top-3 right-3 z-10 bg-[#20394a] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
+                                    Low-Stock Alerts
+                                </div>
+                            ` : '';
+                            
+                            const stockClass = item.stok <= 5 ? 'text-amber-600' : 'text-gray-800';
+                            const urlUpdate = '/stafadmin/update-inventaris/' + item.id_detail;
+                            
+                            cardsHtml += `
+                            <a href="${urlUpdate}" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
+                                ${lowStockBadge}
+                                <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6 relative">
+                                    <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                                </div>
+                                <div class="p-4">
+                                    <div class="flex justify-between items-center mb-2">
+                                        <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: ${item.contoh_kode || 'N/A'}</span>
+                                        <span class="text-xs font-semibold text-gray-500">${item.jenis_barang || 'Barang'}</span>
+                                    </div>
+                                    <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate" title="${item.nama_barang}">${item.nama_barang}</h4>
+                                    <div class="flex justify-between items-end">
+                                        <span class="text-xs text-gray-500">Stok Tersedia: <strong class="${stockClass}">${item.stok} Unit</strong></span>
+                                    </div>
+                                </div>
+                            </a>
+                            `;
+                        });
+
+                        const groupHtml = `
+                        <div class="border border-white/40 rounded-xl overflow-hidden bg-white/20 backdrop-blur-lg shadow-sm">
+                            <div class="bg-gradient-to-r from-white/40 to-white/10 backdrop-blur-md px-6 py-4 flex items-center justify-between border-b border-white/40 cursor-pointer group shadow-sm">
+                                <div class="flex items-center gap-4">
+                                    <svg class="w-6 h-6 text-[#20394a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
+                                    <h3 class="font-bold text-lg text-[#20394a]">${room.nama}</h3>
+                                    <div class="flex gap-2 ml-2 hidden md:flex">
+                                        <span class="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-full">${room.total_alat} alat</span>
+                                        <span class="text-xs text-gray-400 self-center">|</span>
+                                        <span class="text-xs text-gray-500 self-center">${room.lokasi}</span>
+                                    </div>
+                                </div>
+                                <svg class="w-5 h-5 text-gray-400 group-hover:text-[#20394a] transform transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+                            </div>
+                            
+                            <div class="p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                ${cardsHtml}
+                            </div>
+                        </div>
+                        `;
+                        
+                        container.insertAdjacentHTML('beforeend', groupHtml);
+                    });
+                } else {
+                    container.innerHTML = '<div class="text-center py-10 text-gray-500">Tidak ada data inventaris.</div>';
+                }
+            } catch (error) {
+                console.error('Error fetching inventory:', error);
+                container.innerHTML = '<div class="text-center py-10 text-red-500">Gagal memuat data dari server.</div>';
+            }
+        });
+    </script>
     </main>
 
 </body>
