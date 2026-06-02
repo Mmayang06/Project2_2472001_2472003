@@ -239,17 +239,17 @@
 
     <!-- SCRIPTS -->
     <script>
-        // Mock State Data
-        let bhpData = [
-            { id: 1, name: 'Mouse Optik USB Logitech', category: 'Aksesori PC', rack: 'Rak A-1', stock: 12, minStock: 5, unit: 'Pcs' },
-            { id: 2, name: 'Keyboard USB Standar', category: 'Aksesori PC', rack: 'Rak A-2', stock: 8, minStock: 6, unit: 'Pcs' },
-            { id: 3, name: 'Konektor RJ-45 Cat6', category: 'Kabel & Jaringan', rack: 'Rak B-1', stock: 75, minStock: 25, unit: 'Pcs' },
-            { id: 4, name: 'Kabel LAN UTP Cat6', category: 'Kabel & Jaringan', rack: 'Rak B-2', stock: 150, minStock: 50, unit: 'Meter' },
-            { id: 5, name: 'Flashdisk Sandisk 32GB', category: 'Penyimpanan', rack: 'Laci C-1', stock: 6, minStock: 3, unit: 'Pcs' },
-            { id: 6, name: 'Thermal Paste Arctic MX-4', category: 'Perawatan CPU', rack: 'Laci C-2', stock: 4, minStock: 2, unit: 'Tube' },
-            { id: 7, name: 'Cable Ties 15cm', category: 'Kabel & Jaringan', rack: 'Rak B-3', stock: 2, minStock: 1, unit: 'Pack' },
-            { id: 8, name: 'Tisu Pembersih Layar LCD', category: 'Perawatan CPU', rack: 'Rak D-1', stock: 5, minStock: 2, unit: 'Pack' },
-        ];
+        // ambil data barang lab dari backend (lewat controller laravel)
+        const rawBhpData = {!! json_encode($bhpData ?? []) !!};
+        let bhpData = rawBhpData.map(item => ({
+            id: item.id_bhp,
+            name: item.nama_bhp,
+            category: item.kategori || 'Tanpa Kategori',
+            rack: item.lokasi_rak || 'Belum Ditentukan',
+            stock: item.stok,
+            minStock: item.stok_minimal || 5,
+            unit: item.satuan || 'Pcs'
+        }));
 
         const holidays = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -317,13 +317,31 @@
             });
         }
 
-        function consumeBhp(id) {
+        async function consumeBhp(id) {
             const item = bhpData.find(b => b.id === id);
             if (item) {
                 if (item.stock > 0) {
-                    item.stock -= 1;
-                    showToast(`BHP ${item.name} digunakan 1 ${item.unit}.`);
-                    renderBhpTable();
+                    try {
+                        const response = await fetch('/staf-lab/bhp/consume', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                            },
+                            body: JSON.stringify({ id_bhp: id, jumlah: 1 })
+                        });
+                        const result = await response.json();
+                        
+                        if (result.success) {
+                            item.stock -= 1;
+                            showToast(`BHP ${item.name} digunakan 1 ${item.unit}.`);
+                            renderBhpTable();
+                        } else {
+                            alert('Gagal menggunakan BHP: ' + result.message);
+                        }
+                    } catch (error) {
+                        alert('Terjadi kesalahan koneksi.');
+                    }
                 } else {
                     alert(`Stok ${item.name} sudah habis! Silakan lakukan restok.`);
                 }
@@ -377,17 +395,35 @@
             }, 150);
         }
 
-        function handleRestockSubmit(e) {
+        async function handleRestockSubmit(e) {
             e.preventDefault();
             const itemId = parseInt(document.getElementById('restock-item-select').value);
             const amount = parseInt(document.getElementById('restock-amount').value);
 
             const item = bhpData.find(b => b.id === itemId);
             if (item) {
-                item.stock += amount;
-                showToast(`Stok ${item.name} berhasil ditambah sebanyak ${amount} ${item.unit}.`);
-                closeRestockModal();
-                renderBhpTable();
+                try {
+                    const response = await fetch('/staf-lab/bhp/restock', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                        },
+                        body: JSON.stringify({ id_bhp: itemId, jumlah: amount })
+                    });
+                    const result = await response.json();
+                    
+                    if (result.success) {
+                        item.stock += amount;
+                        showToast(`Stok ${item.name} berhasil ditambah sebanyak ${amount} ${item.unit}.`);
+                        closeRestockModal();
+                        renderBhpTable();
+                    } else {
+                        alert('Gagal menambah stok: ' + result.message);
+                    }
+                } catch (error) {
+                    alert('Terjadi kesalahan koneksi.');
+                }
             }
         }
 

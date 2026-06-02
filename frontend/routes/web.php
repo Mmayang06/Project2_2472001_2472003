@@ -4,30 +4,21 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
 
+use App\Http\Controllers\StafLabController;
+
 Route::middleware(['checkRole:staflab'])->group(function () {
-    Route::get('/staf-lab/home', function () {
-        return view('staf-lab.home');
-    });
+    Route::get('/staf-lab/home', [StafLabController::class, 'dashboard']);
+    Route::get('/staf_lab/home', [StafLabController::class, 'dashboard']);
 
-    Route::get('/staf_lab/home', function () {
-        return view('staf-lab.home');
-    });
+    Route::get('/staf-lab/bhp', [StafLabController::class, 'bhp']);
+    Route::get('/staf_lab/bhp', [StafLabController::class, 'bhp']);
+    
+    // API endpoints untuk aksi AJAX
+    Route::post('/staf-lab/bhp/consume', [StafLabController::class, 'consumeBhp']);
+    Route::post('/staf-lab/bhp/restock', [StafLabController::class, 'restockBhp']);
 
-    Route::get('/staf-lab/bhp', function () {
-        return view('staf-lab.bhp');
-    });
-
-    Route::get('/staf_lab/bhp', function () {
-        return view('staf-lab.bhp');
-    });
-
-    Route::get('/staf-lab/maintenance', function () {
-        return view('staf-lab.maintenance');
-    });
-
-    Route::get('/staf_lab/maintenance', function () {
-        return view('staf-lab.maintenance');
-    });
+    Route::get('/staf-lab/maintenance', [StafLabController::class, 'maintenance']);
+    Route::get('/staf_lab/maintenance', [StafLabController::class, 'maintenance']);
 });
 
 

@@ -223,7 +223,7 @@
                         </div>
                         <div>
                             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Total Jenis BHP</span>
-                            <span class="text-2xl font-bold text-[#20394a]">8 Jenis</span>
+                            <span class="text-2xl font-bold text-[#20394a]">{{ $data['totalJenisBhp'] ?? 0 }} Jenis</span>
                         </div>
                     </div>
 
@@ -237,7 +237,7 @@
                         </div>
                         <div>
                             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Maintenance Proses</span>
-                            <span class="text-2xl font-bold text-rose-500">1 Aset</span>
+                            <span class="text-2xl font-bold text-rose-500">{{ $data['maintenanceProses'] ?? 0 }} Aset</span>
                         </div>
                     </div>
 
@@ -250,7 +250,7 @@
                         </div>
                         <div>
                             <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Total Aset Komputer</span>
-                            <span class="text-2xl font-bold text-[#20394a]">6 Unit</span>
+                            <span class="text-2xl font-bold text-[#20394a]">{{ $data['totalAset'] ?? 0 }} Unit</span>
                         </div>
                     </div>
                 </div>
@@ -312,36 +312,33 @@
                             <div>
                                 <h3 class="font-bold text-lg text-[#20394a] mb-4">Aktivitas Terkini</h3>
                                 <div class="space-y-6">
-                                    <div class="flex gap-3 relative pb-4 border-l border-[#c9ccc3]/40 pl-4 last:pb-0 last:border-0">
-                                        <span class="absolute left-[-6px] top-1.5 w-3 h-3 rounded-full bg-emerald-500"></span>
-                                        <div>
-                                            <span class="text-[10px] text-gray-400 block">Baru saja</span>
-                                            <h5 class="text-sm font-semibold text-[#20394a]">Update Kondisi PC-02</h5>
-                                            <p class="text-xs text-gray-500">Status diupdate menjadi: <strong>Baik</strong></p>
+                                    @forelse($data['activities'] ?? [] as $activity)
+                                        <div class="flex gap-3 relative pb-4 border-l border-[#c9ccc3]/40 pl-4 last:pb-0 last:border-0">
+                                            @if($activity['tipe'] === 'bhp')
+                                                <span class="absolute left-[-6px] top-1.5 w-3 h-3 rounded-full bg-blue-500"></span>
+                                                <div>
+                                                    <span class="text-[10px] text-gray-400 block">{{ \Carbon\Carbon::parse($activity['tanggal'])->diffForHumans() }}</span>
+                                                    <h5 class="text-sm font-semibold text-[#20394a]">Penggunaan BHP: {{ $activity['nama_bhp'] }}</h5>
+                                                    <p class="text-xs text-gray-500">Sebanyak {{ $activity['jumlah_digunakan'] }} digunakan.</p>
+                                                </div>
+                                            @else
+                                                <span class="absolute left-[-6px] top-1.5 w-3 h-3 rounded-full bg-amber-500"></span>
+                                                <div>
+                                                    <span class="text-[10px] text-gray-400 block">{{ \Carbon\Carbon::parse($activity['tanggal'])->diffForHumans() }}</span>
+                                                    <h5 class="text-sm font-semibold text-[#20394a]">Maintenance: {{ $activity['nomor_label'] }}</h5>
+                                                    <p class="text-xs text-gray-500">{{ $activity['keterangan'] }} (Status: {{ $activity['kondisi_setelah'] }})</p>
+                                                </div>
+                                            @endif
                                         </div>
-                                    </div>
-                                    <div class="flex gap-3 relative pb-4 border-l border-[#c9ccc3]/40 pl-4 last:pb-0 last:border-0">
-                                        <span class="absolute left-[-6px] top-1.5 w-3 h-3 rounded-full bg-blue-500"></span>
-                                        <div>
-                                            <span class="text-[10px] text-gray-400 block">30 menit yang lalu</span>
-                                            <h5 class="text-sm font-semibold text-[#20394a]">Distribusi Konektor RJ45</h5>
-                                            <p class="text-xs text-gray-500">Stok RJ45 terpakai sebanyak 10 pcs untuk perbaikan jaringan</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex gap-3 relative pb-4 border-l border-[#c9ccc3]/40 pl-4 last:pb-0 last:border-0">
-                                        <span class="absolute left-[-6px] top-1.5 w-3 h-3 rounded-full bg-amber-500"></span>
-                                        <div>
-                                            <span class="text-[10px] text-gray-400 block">2 jam yang lalu</span>
-                                            <h5 class="text-sm font-semibold text-[#20394a]">Jadwal Maintenance Switch Cisco</h5>
-                                            <p class="text-xs text-gray-500">Pembaruan firmware switch manageable - Teknisi: Budi Santoso</p>
-                                        </div>
-                                    </div>
+                                    @empty
+                                        <div class="text-xs text-gray-500">Belum ada aktivitas.</div>
+                                    @endforelse
                                 </div>
                             </div>
                             
                             <div class="mt-6 pt-4 border-t border-gray-100 flex justify-between items-center text-xs text-gray-400">
                                 <span>Total Log Terpantau:</span>
-                                <span class="font-bold text-[#20394a]">3 Aksi Hari Ini</span>
+                                <span class="font-bold text-[#20394a]">{{ count($data['activities'] ?? []) }} Aksi Terbaru</span>
                             </div>
                         </div>
                     </div>
@@ -371,18 +368,18 @@
         updateDateTime();
 
         // ======================================================
-        // BHP Mock Data (same as bhp.blade.php)
+        // Tarik data BHP dari database (via controller)
         // ======================================================
-        const bhpData = [
-            { id: 1, name: 'Mouse Optik USB Logitech',   category: 'Aksesori PC',       rack: 'Rak A-1',  stock: 12,  minStock: 5,  unit: 'Pcs'   },
-            { id: 2, name: 'Keyboard USB Standar',        category: 'Aksesori PC',       rack: 'Rak A-2',  stock: 8,   minStock: 6,  unit: 'Pcs'   },
-            { id: 3, name: 'Konektor RJ-45 Cat6',         category: 'Kabel & Jaringan',  rack: 'Rak B-1',  stock: 75,  minStock: 25, unit: 'Pcs'   },
-            { id: 4, name: 'Kabel LAN UTP Cat6',          category: 'Kabel & Jaringan',  rack: 'Rak B-2',  stock: 150, minStock: 50, unit: 'Meter' },
-            { id: 5, name: 'Flashdisk Sandisk 32GB',      category: 'Penyimpanan',       rack: 'Laci C-1', stock: 6,   minStock: 3,  unit: 'Pcs'   },
-            { id: 6, name: 'Thermal Paste Arctic MX-4',   category: 'Perawatan CPU',     rack: 'Laci C-2', stock: 4,   minStock: 2,  unit: 'Tube'  },
-            { id: 7, name: 'Cable Ties 15cm',             category: 'Kabel & Jaringan',  rack: 'Rak B-3',  stock: 2,   minStock: 1,  unit: 'Pack'  },
-            { id: 8, name: 'Tisu Pembersih Layar LCD',    category: 'Perawatan CPU',     rack: 'Rak D-1',  stock: 5,   minStock: 2,  unit: 'Pack'  },
-        ];
+        const rawBhpData = {!! json_encode($data['bhpData'] ?? []) !!};
+        const bhpData = rawBhpData.map(item => ({
+            id: item.id_bhp,
+            name: item.nama_bhp,
+            category: item.kategori || 'Tanpa Kategori',
+            rack: item.lokasi_rak || 'Belum Ditentukan',
+            stock: item.stok,
+            minStock: item.stok_minimal || 5,
+            unit: item.satuan || 'Pcs'
+        }));
 
         // ======================================================
         // Low-stock Detection & Alert Rendering

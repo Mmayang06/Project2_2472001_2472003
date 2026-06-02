@@ -62,6 +62,16 @@ const drafPengadaanRoute = require('./routes/staf_admin/draf_pengadaan');
 app.use('/api/staf_admin/draf_pengadaan', drafPengadaanRoute);
 app.use('/api/staf_admin/dashboard', require('./routes/staf_admin/dashboard'));
 
+// Routes Staf Lab
+const stafLabDashboardRoute = require('./routes/staf_lab/dashboard');
+app.use('/api/staf_lab/dashboard', stafLabDashboardRoute);
+
+const stafLabBhpRoute = require('./routes/staf_lab/bhp');
+app.use('/api/staf_lab/bhp', stafLabBhpRoute);
+
+const stafLabMaintenanceRoute = require('./routes/staf_lab/maintenance');
+app.use('/api/staf_lab/maintenance', stafLabMaintenanceRoute);
+
 // Jalankan Server
 app.listen(PORT, () => {
     console.log(`Server backend telah berjalan di http://localhost:${PORT}`);

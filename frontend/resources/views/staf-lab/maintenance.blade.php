@@ -526,18 +526,18 @@
         document.getElementById('f-tanggal').value = new Date().toISOString().split('T')[0];
 
         // ======================================================
-        // BHP Mock Data (shared state)
+        // tarik data bahan habis pakai (BHP) dari backend
         // ======================================================
-        let bhpData = [
-            { id: 1, name: 'Mouse Optik USB Logitech',  category: 'Aksesori PC',      rack: 'Rak A-1',  stock: 12,  minStock: 5,  unit: 'Pcs'   },
-            { id: 2, name: 'Keyboard USB Standar',       category: 'Aksesori PC',      rack: 'Rak A-2',  stock: 8,   minStock: 6,  unit: 'Pcs'   },
-            { id: 3, name: 'Konektor RJ-45 Cat6',        category: 'Kabel & Jaringan', rack: 'Rak B-1',  stock: 75,  minStock: 25, unit: 'Pcs'   },
-            { id: 4, name: 'Kabel LAN UTP Cat6',         category: 'Kabel & Jaringan', rack: 'Rak B-2',  stock: 150, minStock: 50, unit: 'Meter' },
-            { id: 5, name: 'Flashdisk Sandisk 32GB',     category: 'Penyimpanan',      rack: 'Laci C-1', stock: 6,   minStock: 3,  unit: 'Pcs'   },
-            { id: 6, name: 'Thermal Paste Arctic MX-4',  category: 'Perawatan CPU',    rack: 'Laci C-2', stock: 4,   minStock: 2,  unit: 'Tube'  },
-            { id: 7, name: 'Cable Ties 15cm',            category: 'Kabel & Jaringan', rack: 'Rak B-3',  stock: 2,   minStock: 1,  unit: 'Pack'  },
-            { id: 8, name: 'Tisu Pembersih Layar LCD',   category: 'Perawatan CPU',    rack: 'Rak D-1',  stock: 5,   minStock: 2,  unit: 'Pack'  },
-        ];
+        const rawBhpData = {!! json_encode($bhpData ?? []) !!};
+        let bhpData = rawBhpData.map(item => ({
+            id: item.id_bhp,
+            name: item.nama_bhp,
+            category: item.kategori || 'Tanpa Kategori',
+            rack: item.lokasi_rak || 'Belum Ditentukan',
+            stock: item.stok,
+            minStock: item.stok_minimal || 5,
+            unit: item.satuan || 'Pcs'
+        }));
 
         // ======================================================
         // Asset Data
@@ -550,51 +550,21 @@
         };
 
         // ======================================================
-        // Log Data
+        // tarik data histori servis dari backend
         // ======================================================
-        let maintenanceLogs = [
-            {
-                id: 'MNT-001',
-                asset: 'PC-03',
-                teknisi: 'Budi Santoso',
-                jenis: 'Korektif',
-                tanggal: '2026-05-24',
-                kondisiSebelum: 'Rusak Ringan',
-                kondisiSesudah: 'Baik',
-                status: 'Selesai',
-                deskripsi: 'Penggantian thermal paste dan pembersihan heatsink CPU yang overheat.',
-                bhpUsed: [
-                    { bhpId: 6, name: 'Thermal Paste Arctic MX-4', qty: 1, unit: 'Tube' }
-                ]
-            },
-            {
-                id: 'MNT-002',
-                asset: 'Switch-01',
-                teknisi: 'Rudi Hartono',
-                jenis: 'Preventif',
-                tanggal: '2026-05-25',
-                kondisiSebelum: 'Baik',
-                kondisiSesudah: 'Baik',
-                status: 'Selesai',
-                deskripsi: 'Update firmware switch ke versi terbaru dan pembersihan debu pada fan.',
-                bhpUsed: []
-            },
-            {
-                id: 'MNT-003',
-                asset: 'PC-05',
-                teknisi: 'Budi Santoso',
-                jenis: 'Korektif',
-                tanggal: '2026-05-26',
-                kondisiSebelum: 'Rusak Berat',
-                kondisiSesudah: 'Rusak Ringan',
-                status: 'Proses',
-                deskripsi: 'Perbaikan koneksi jaringan, kabel LAN putus, mengganti konektor RJ45.',
-                bhpUsed: [
-                    { bhpId: 3, name: 'Konektor RJ-45 Cat6', qty: 4, unit: 'Pcs' },
-                    { bhpId: 4, name: 'Kabel LAN UTP Cat6',  qty: 2, unit: 'Meter' }
-                ]
-            },
-        ];
+        const rawMaintenanceLogs = {!! json_encode($maintenanceData ?? []) !!};
+        let maintenanceLogs = rawMaintenanceLogs.map(log => ({
+            id: 'MNT-' + log.id_pemeliharaan.toString().padStart(3, '0'),
+            asset: log.nomor_label,
+            teknisi: log.teknisi || 'Sistem',
+            jenis: 'Pemeliharaan',
+            tanggal: log.tanggal,
+            kondisiSebelum: log.kondisi_sekarang,
+            kondisiSesudah: log.kondisi_setelah,
+            status: log.kondisi_setelah === 'baik' ? 'Selesai' : 'Proses',
+            deskripsi: log.keterangan,
+            bhpUsed: [] // belum dihubungin ke tabel barang kepake (penggunaan_bhp)
+        }));
 
         // ======================================================
         // Render Functions
