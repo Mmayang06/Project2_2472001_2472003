@@ -45,7 +45,7 @@
 </head>
 <body class="bg-[#f9f5ed] text-[#030706] font-sans antialiased min-h-screen flex flex-col md:flex-row overflow-x-hidden">
 
-    <aside class="w-full md:w-80 bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20">
+    <aside class="w-full md:w-80 bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20 min-h-screen md:h-screen md:sticky md:top-0 md:overflow-y-auto">
         <div class="p-6 border-b border-[#6196aa]/20 flex items-center justify-between">
             <a href="/" class="flex items-center gap-3 group">
                 <div class="p-2 bg-[#6196aa] rounded-xl text-[#f9f5ed] shadow-md group-hover:scale-105 transition-transform duration-200">
@@ -65,7 +65,7 @@
                 SA
             </div>
             <div class="overflow-hidden">
-                <h4 class="font-semibold text-sm truncate text-[#f9f5ed]">Staf Admin - Sarah J.</h4>
+                <h4 class="font-semibold text-sm truncate text-[#f9f5ed]">Staf Admin</h4>
                 <p class="text-xs text-[#c9ccc3] flex items-center gap-1.5 mt-0.5">
                     <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
                     Online
@@ -74,12 +74,12 @@
         </div>
 
         <nav class="flex-grow p-4 space-y-2 mt-4">
-            <button class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 bg-[#6196aa] text-white shadow-lg">
+            <a href="/stafadmin" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 bg-[#6196aa] text-white shadow-lg cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
                 </svg>
                 Dashboard
-            </button>
+            </a>
 
             <a href="/stafadmin/daftar-inventaris" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
                 <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H5v-2h6v2zm0-4H5v-2h6v2zm8-4H5V7h14v2z"/></svg>
@@ -98,12 +98,15 @@
         </nav>
 
         <div class="p-4 border-t border-[#6196aa]/20">
-            <a href="/" class="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-[#c9ccc3]/20 hover:bg-[#c9ccc3]/10 text-xs font-semibold text-[#c9ccc3] hover:text-[#f9f5ed] transition-all duration-200">
+            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-[#c9ccc3]/20 hover:bg-[#c9ccc3]/10 text-xs font-semibold text-[#c9ccc3] hover:text-[#f9f5ed] transition-all duration-200">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
                 Logout
             </a>
+            <form id="logout-form" action="/logout" method="POST" class="hidden">
+                @csrf
+            </form>
         </div>
     </aside>
 
@@ -111,23 +114,18 @@
         <header class="bg-white/80 backdrop-blur-md border-b border-[#c9ccc3]/40 h-20 px-6 md:px-8 flex items-center justify-between sticky top-0 z-30">
             <div>
                 <h2 class="text-xl font-bold text-[#20394a]">Dashboard Administrasi</h2>
-                <p class="text-xs text-gray-500">Selamat datang, Sarah! Berikut ringkasan aktivitas hari ini.</p>
+                <p class="text-xs text-gray-500">Selamat datang! Berikut ringkasan aktivitas pengadaan dan inventaris hari ini.</p>
             </div>
             
             <div class="flex items-center gap-4">
-                <div class="hidden lg:flex items-center bg-gray-100 rounded-full px-4 py-2 border border-gray-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
-                    <input type="text" placeholder="Cari data..." class="bg-transparent border-none outline-none text-sm ml-2 w-48 text-[#20394a]">
-                </div>
                 <div class="hidden sm:flex flex-col text-right ml-4">
-                    <span class="text-xs font-semibold text-[#20394a]" id="current-date">Senin, 25 Mei 2026</span>
-                    <span class="text-[10px] text-gray-400" id="current-time">15:10:00 WIB</span>
+                    <span class="text-xs font-semibold text-[#20394a]" id="current-date"></span>
+                    <span class="text-[10px] text-gray-400" id="current-time"></span>
                 </div>
                 <div class="h-10 w-10 rounded-xl bg-[#20394a]/5 border border-[#20394a]/10 flex items-center justify-center text-[#20394a] relative">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
                     </svg>
-                    <span class="absolute top-1 right-1 w-2.5 h-2.5 rounded-full bg-rose-500 border border-white"></span>
                 </div>
             </div>
         </header>
@@ -135,97 +133,105 @@
         <div class="p-6 md:p-8 flex-grow overflow-y-auto max-w-7xl w-full mx-auto space-y-8">
             
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+                <!-- Total Pengajuan Disetujui -->
                 <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group">
                     <div class="p-3 bg-[#6196aa]/10 text-[#6196aa] rounded-xl group-hover:scale-105 transition-transform duration-200">
-                        <svg viewBox="0 0 24 24" class="h-7 w-7" fill="currentColor"><path d="M20 6h-4V4c0-1.1-.9-2-2-2h-4c-1.1 0-2 .9-2 2v2H4c-1.1 0-2 .9-2 2v12c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zM10 4h4v2h-4V4zm10 16H4V8h16v12z"/></svg>
+                        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
                     </div>
                     <div>
-                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Total Barang</span>
-                        <span class="text-2xl font-bold text-[#20394a]">1,248</span>
+                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Draf Disetujui</span>
+                        <span class="text-2xl font-bold text-[#20394a]">{{ number_format($data['total_draf_disetujui'] ?? 0) }}</span>
                     </div>
                 </div>
 
-                <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group">
-                    <div class="p-3 bg-indigo-500/10 text-indigo-600 rounded-xl group-hover:scale-105 transition-transform duration-200">
-                        <svg viewBox="0 0 24 24" class="h-7 w-7" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"/></svg>
-                    </div>
-                    <div>
-                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Peminjaman Aktif</span>
-                        <span class="text-2xl font-bold text-[#20394a]">42</span>
-                    </div>
-                </div>
-
+                <!-- Pesanan Menunggu Diterima -->
                 <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group">
                     <div class="p-3 bg-amber-500/10 text-amber-600 rounded-xl group-hover:scale-105 transition-transform duration-200">
-                        <svg viewBox="0 0 24 24" class="h-7 w-7" fill="currentColor"><path d="M1 21h22L12 2 1 21zm12-3h-2v-2h2v2zm0-4h-2v-4h2v4z"/></svg>
+                        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                     </div>
                     <div>
-                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Stok Menipis</span>
-                        <span class="text-2xl font-bold text-amber-500">15</span>
+                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Dlm Pengiriman</span>
+                        <span class="text-2xl font-bold text-[#20394a]">{{ number_format($data['pesanan_dikirim'] ?? 0) }}</span>
                     </div>
                 </div>
 
+                <!-- Total Inventaris -->
+                <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group">
+                    <div class="p-3 bg-indigo-500/10 text-indigo-600 rounded-xl group-hover:scale-105 transition-transform duration-200">
+                        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                    </div>
+                    <div>
+                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Total Inventaris</span>
+                        <span class="text-2xl font-bold text-[#20394a]">{{ number_format($data['total_inventaris'] ?? 0) }}</span>
+                    </div>
+                </div>
+
+                <!-- Barang Baru Bulan Ini -->
                 <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group">
                     <div class="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl group-hover:scale-105 transition-transform duration-200">
                         <svg viewBox="0 0 24 24" class="h-7 w-7" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6l4 4 4-4z"/></svg>
                     </div>
                     <div>
-                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Barang Masuk</span>
-                        <span class="text-2xl font-bold text-emerald-600">+128</span>
+                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Barang Baru</span>
+                        <span class="text-2xl font-bold text-emerald-600">+{{ number_format($data['barang_baru_bulan_ini'] ?? 0) }}</span>
                     </div>
                 </div>
             </div>
 
+            <!-- Tabel Aktivitas Terkini (Riwayat Penerimaan) -->
             <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-[#c9ccc3]/30 flex justify-between items-center">
-                    <h3 class="font-bold text-lg text-[#20394a]">Aktivitas Terkini</h3>
-                    <a href="#" class="text-sm font-semibold text-[#6196aa] hover:text-[#20394a] transition-colors">Lihat Semua</a>
+                <div class="p-6 border-b border-[#c9ccc3]/30 flex justify-between items-center bg-[#f9f5ed]/30">
+                    <div>
+                        <h3 class="font-bold text-lg text-[#20394a]">Riwayat Penerimaan Barang</h3>
+                        <p class="text-xs text-gray-500">5 barang inventaris terakhir yang berhasil didata</p>
+                    </div>
+                    <a href="/stafadmin/daftar-inventaris" class="text-sm font-semibold text-[#6196aa] hover:text-[#20394a] transition-colors flex items-center gap-1">
+                        Lihat Inventaris
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"></path></svg>
+                    </a>
                 </div>
                 <div class="overflow-x-auto">
                     <table class="w-full text-left border-collapse">
                         <thead>
-                            <tr class="bg-[#20394a]/5 text-[#20394a] border-b border-[#c9ccc3]/30 text-xs font-bold uppercase tracking-wider">
-                                <th class="px-6 py-4">ID Transaksi</th>
+                            <tr class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-200">
+                                <th class="px-6 py-4">Nomor Label</th>
                                 <th class="px-6 py-4">Nama Barang</th>
-                                <th class="px-6 py-4">Kategori</th>
-                                <th class="px-6 py-4">Tanggal</th>
-                                <th class="px-6 py-4">Status</th>
-                                <th class="px-6 py-4">Oleh</th>
+                                <th class="px-6 py-4">Ruangan (Lab)</th>
+                                <th class="px-6 py-4">Tanggal Terima</th>
+                                <th class="px-6 py-4">Kondisi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 text-sm">
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 font-medium text-[#20394a]">#TRX-0982</td>
-                                <td class="px-6 py-4">Mikroskop Binokuler</td>
-                                <td class="px-6 py-4 text-gray-500">Alat Optik</td>
-                                <td class="px-6 py-4 text-gray-500">25 Mei 2026</td>
-                                <td class="px-6 py-4"><span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-semibold">Dipinjam</span></td>
-                                <td class="px-6 py-4 text-[#20394a]">Budi Santoso</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 font-medium text-[#20394a]">#TRX-0981</td>
-                                <td class="px-6 py-4">Reagen Asam Sulfat</td>
-                                <td class="px-6 py-4 text-gray-500">Bahan Kimia</td>
-                                <td class="px-6 py-4 text-gray-500">24 Mei 2026</td>
-                                <td class="px-6 py-4"><span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-semibold">Masuk (+50 botol)</span></td>
-                                <td class="px-6 py-4 text-[#20394a]">Sarah Jenkins</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 font-medium text-[#20394a]">#TRX-0980</td>
-                                <td class="px-6 py-4">Pipet Ukur 10ml</td>
-                                <td class="px-6 py-4 text-gray-500">Alat Kaca</td>
-                                <td class="px-6 py-4 text-gray-500">24 Mei 2026</td>
-                                <td class="px-6 py-4"><span class="bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-xs font-semibold">Rusak (-2 buah)</span></td>
-                                <td class="px-6 py-4 text-[#20394a]">Dr. Ahmad</td>
-                            </tr>
-                            <tr class="hover:bg-gray-50 transition-colors">
-                                <td class="px-6 py-4 font-medium text-[#20394a]">#TRX-0979</td>
-                                <td class="px-6 py-4">Tabung Reaksi</td>
-                                <td class="px-6 py-4 text-gray-500">Alat Kaca</td>
-                                <td class="px-6 py-4 text-gray-500">23 Mei 2026</td>
-                                <td class="px-6 py-4"><span class="bg-amber-100 text-amber-700 px-3 py-1 rounded-full text-xs font-semibold">Dipinjam</span></td>
-                                <td class="px-6 py-4 text-[#20394a]">Kelompok 4</td>
-                            </tr>
+                            @if(isset($data['aktivitas_terkini']) && count($data['aktivitas_terkini']) > 0)
+                                @foreach($data['aktivitas_terkini'] as $act)
+                                <tr class="hover:bg-gray-50/50 transition-colors">
+                                    <td class="px-6 py-4 font-bold text-[#20394a]">{{ $act['nomor_label'] }}</td>
+                                    <td class="px-6 py-4">
+                                        <div class="font-semibold text-gray-800">{{ $act['nama_barang'] }}</div>
+                                        <div class="text-xs text-gray-500">{{ $act['jenis_barang'] }}</div>
+                                    </td>
+                                    <td class="px-6 py-4 text-gray-600">{{ $act['lab'] ?? 'Belum dialokasikan' }}</td>
+                                    <td class="px-6 py-4 text-gray-600">
+                                        {{ \Carbon\Carbon::parse($act['tanggal_penerimaan'])->format('d M Y') }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        @if(strtolower($act['kondisi']) == 'baik')
+                                        <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Baik</span>
+                                        @elseif(strtolower($act['kondisi']) == 'rusak')
+                                        <span class="bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-xs font-bold">Rusak</span>
+                                        @else
+                                        <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-bold">{{ ucfirst($act['kondisi']) }}</span>
+                                        @endif
+                                    </td>
+                                </tr>
+                                @endforeach
+                            @else
+                                <tr>
+                                    <td colspan="5" class="px-6 py-8 text-center text-gray-500">
+                                        Belum ada riwayat penerimaan barang.
+                                    </td>
+                                </tr>
+                            @endif
                         </tbody>
                     </table>
                 </div>
@@ -235,11 +241,21 @@
     </main>
 
     <script>
+        // Update Time Live
         setInterval(() => {
             const now = new Date();
             const timeString = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }) + ' WIB';
+            
+            // Format date nicely (e.g., Senin, 25 Mei 2026)
+            const days = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
+            const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
+            const dateString = `${days[now.getDay()]}, ${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+
             const timeEl = document.getElementById('current-time');
+            const dateEl = document.getElementById('current-date');
+            
             if(timeEl) timeEl.textContent = timeString;
+            if(dateEl) dateEl.textContent = dateString;
         }, 1000);
     </script>
 </body>
