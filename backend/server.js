@@ -18,6 +18,8 @@ app.get('/', (req, res) => {
 
 const db = require('./config/db');
 
+const jwt = require('jsonwebtoken');
+
 // Login API
 app.post('/api/login', async (req, res) => {
     const { username, password } = req.body;
@@ -28,7 +30,18 @@ app.post('/api/login', async (req, res) => {
         if (rows.length > 0) {
             const user = rows[0];
             if (user.password === password) {
-                return res.json({ success: true, user: { id: user.id_user, username: user.nama, role: user.role } });
+                // Generate JWT Token
+                const token = jwt.sign(
+                    { id: user.id_user, username: user.nama, role: user.role },
+                    process.env.JWT_SECRET || 'secret_key',
+                    { expiresIn: '1d' }
+                );
+                
+                return res.json({ 
+                    success: true, 
+                    token: token,
+                    user: { id: user.id_user, username: user.nama, role: user.role } 
+                });
             } else {
                 return res.status(401).json({ success: false, message: 'Password salah.' });
             }

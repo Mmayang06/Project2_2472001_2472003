@@ -27,8 +27,10 @@ class AuthController extends Controller
 
             if ($response->successful() && $response->json('success')) {
                 $userData = $response->json('user');
+                $token = $response->json('token');
                 
                 $request->session()->put('user', $userData);
+                $request->session()->put('jwt_token', $token);
                 $request->session()->regenerate();
                 
                 return redirect()->intended('/dashboard');
@@ -47,6 +49,7 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $request->session()->forget('user');
+        $request->session()->forget('jwt_token');
         $request->session()->invalidate();
         $request->session()->regenerateToken();
         
@@ -58,9 +61,11 @@ class AuthController extends Controller
         $user = $request->session()->get('user');
         
         if ($user && isset($user['role'])) {
-            return "halo, " . $user['role'];
-        } else if ($user) {
-            return "halo, user tanpa role";
+            if ($user['role'] === 'stafadmin' || $user['role'] === 'staf_admin') {
+                return redirect('/stafadmin/dashboard');
+            } else if ($user['role'] === 'staflab' || $user['role'] === 'staf_lab') {
+                return redirect('/staf-lab/home');
+            }
         }
         
         return redirect('/login');

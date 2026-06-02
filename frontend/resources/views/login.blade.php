@@ -32,14 +32,27 @@
             position: relative;
         }
 
-        .layout-container {
+        .page-wrapper {
             width: 100%;
-            max-width: 1100px;
+            max-width: 1200px;
+            display: flex;
+            align-items: center;
+            padding: 0 40px;
+            gap: 40px; /* gives space between button and form */
+            z-index: 10;
+        }
+
+        .sidebar {
+            height: 450px; /* align with card height roughly */
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .layout-container {
+            flex: 1;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            padding: 0 40px;
-            z-index: 10;
         }
 
         /* CARD STYLE */
@@ -262,10 +275,7 @@
         }
 
         .btn-back {
-            position: absolute;
-            top: 40px;
-            left: 40px;
-            display: flex;
+            display: inline-flex;
             align-items: center;
             gap: 8px;
             color: var(--denim);
@@ -273,7 +283,6 @@
             font-weight: 600;
             font-size: 14px;
             transition: all 0.3s;
-            z-index: 20;
             padding: 12px 18px;
             background-color: #ffffff;
             border-radius: 12px;
@@ -288,15 +297,25 @@
 
         @media (max-width: 960px) {
             .btn-back {
-                top: 20px;
-                left: 20px;
                 padding: 10px 14px;
                 font-size: 13px;
+            }
+            .page-wrapper {
+                flex-direction: column;
+                align-items: center;
+                padding: 20px;
+                gap: 20px;
+                overflow-y: auto;
+            }
+            .sidebar {
+                height: auto;
+                width: 100%;
+                justify-content: flex-start;
             }
             .layout-container {
                 flex-direction: column;
                 justify-content: center;
-                padding: 20px;
+                width: 100%;
             }
             .illustration-container {
                 display: none;
@@ -310,15 +329,18 @@
 </head>
 <body>
 
-    <a href="/" class="btn-back">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <line x1="19" y1="12" x2="5" y2="12"></line>
-            <polyline points="12 19 5 12 12 5"></polyline>
-        </svg>
-        Kembali
-    </a>
+    <div class="page-wrapper">
+        <div class="sidebar">
+            <a href="/" class="btn-back">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+                Kembali
+            </a>
+        </div>
 
-    <div class="layout-container">
+        <div class="layout-container">
         
         <!-- Left Panel: Login Card -->
         <div class="login-card">
@@ -383,7 +405,7 @@
             </svg>
         </div>
 
+        </div>
     </div>
-
 </body>
 </html>
