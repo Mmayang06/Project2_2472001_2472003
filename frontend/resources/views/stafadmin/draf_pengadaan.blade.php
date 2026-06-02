@@ -35,7 +35,7 @@
 <body class="bg-[#f9f5ed] text-[#030706] font-sans antialiased min-h-screen flex flex-col md:flex-row overflow-x-hidden">
 
     <!-- Sidebar -->
-    <aside class="w-full md:w-80 bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20 min-h-screen">
+    <aside class="w-full md:w-80 bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20 min-h-screen md:h-screen md:sticky md:top-0 md:overflow-y-auto">
         <div class="p-6 border-b border-[#6196aa]/20 flex items-center justify-between">
             <a href="/" class="flex items-center gap-3 group">
                 <div class="p-2 bg-[#6196aa] rounded-xl text-[#f9f5ed] shadow-md group-hover:scale-105 transition-transform duration-200">
@@ -146,80 +146,90 @@
                                 <th class="px-6 py-4">Tujuan Lab</th>
                                 <th class="px-6 py-4">Qty</th>
                                 <th class="px-6 py-4">Estimasi Harga</th>
-                                <th class="px-6 py-4 text-center">Status</th>
-                                <th class="px-6 py-4 text-right">Aksi</th>
+                                <th class="px-6 py-4 text-center">Persetujuan Kaprodi</th>
+                                <th class="px-6 py-4 text-center">Status Pengadaan</th>
+                                <th class="px-6 py-4 text-right">Link Pembelian & Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 text-sm">
-                            
-                            <!-- Item 1 -->
+                            @forelse ($drafts as $draft)
                             <tr class="hover:bg-gray-50/50 transition-colors">
-                                <td class="px-6 py-4 font-semibold text-[#20394a]">PO-2024-0801</td>
+                                <td class="px-6 py-4 font-semibold text-[#20394a]">PO-{{ $draft['tahun_pengadaan'] }}-{{ str_pad($draft['id_draft'], 4, '0', STR_PAD_LEFT) }}</td>
                                 <td class="px-6 py-4">
-                                    <div class="font-bold text-gray-800">Oscilloscope Digital 2-Channel</div>
-                                    <div class="text-xs text-gray-500 mt-1">Vendor: PT. Alat Ukur Teknik</div>
+                                    <div class="font-bold text-gray-800">{{ $draft['nama_barang'] }}</div>
+                                    <div class="text-xs text-gray-500 mt-1">Kategori: {{ $draft['jenis_barang'] }}</div>
                                 </td>
-                                <td class="px-6 py-4 text-gray-600">Lab Elektro</td>
-                                <td class="px-6 py-4 font-semibold">4 Unit</td>
-                                <td class="px-6 py-4 text-gray-600">Rp 12.000.000</td>
+                                <td class="px-6 py-4 text-gray-600">{{ $draft['tujuan_lab'] ?? 'Belum ditentukan' }}</td>
+                                <td class="px-6 py-4 font-semibold">{{ $draft['jumlah'] }} Unit</td>
+                                <td class="px-6 py-4 text-gray-600">Rp {{ number_format($draft['harga'], 0, ',', '.') }}</td>
                                 <td class="px-6 py-4 text-center">
+                                    @if($draft['status_persetujuan'] == 'disetujui')
                                     <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
                                         <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                         Disetujui
                                     </span>
+                                    @elseif($draft['status_persetujuan'] == 'ditolak')
+                                    <span class="inline-flex items-center gap-1.5 bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-bold border border-red-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                        Ditolak
+                                    </span>
+                                    @else
+                                    <span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">
+                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        Pending
+                                    </span>
+                                    @endif
                                 </td>
-                                <td class="px-6 py-4 text-right">
-                                    <a href="/stafadmin/receive" class="text-xs font-bold text-white bg-[#6196aa] hover:bg-[#20394a] transition-colors px-3 py-2 rounded-lg shadow-sm">
-                                        Proses Terima
+                                <td class="px-6 py-4 text-center">
+                                    @php
+                                        $statusColors = [
+                                            'menunggu_dipesan' => 'bg-gray-100 text-gray-700',
+                                            'dipesan' => 'bg-blue-100 text-blue-700',
+                                            'sedang_dikirim' => 'bg-amber-100 text-amber-700',
+                                            'penerimaan_sebagian' => 'bg-purple-100 text-purple-700',
+                                            'telah_diterima' => 'bg-emerald-100 text-emerald-700'
+                                        ];
+                                        $colorClass = $statusColors[$draft['status_pengadaan']] ?? 'bg-gray-100 text-gray-700';
+                                    @endphp
+                                    <select 
+                                        onchange="updateStatus({{ $draft['id_detail'] }}, this.value)" 
+                                        class="border border-gray-200 text-xs font-semibold rounded-lg focus:ring-[#6196aa] focus:border-[#6196aa] block w-full p-2 {{ $colorClass }}"
+                                        {{ ($draft['status_pengadaan'] == 'telah_diterima' || $draft['status_persetujuan'] != 'disetujui') ? 'disabled' : '' }}>
+                                        <option value="menunggu_dipesan" {{ $draft['status_pengadaan'] == 'menunggu_dipesan' ? 'selected' : '' }}>Menunggu Dipesan</option>
+                                        <option value="dipesan" {{ $draft['status_pengadaan'] == 'dipesan' ? 'selected' : '' }}>Dipesan</option>
+                                        <option value="sedang_dikirim" {{ $draft['status_pengadaan'] == 'sedang_dikirim' ? 'selected' : '' }}>Sedang Dikirim</option>
+                                        <option value="penerimaan_sebagian" {{ $draft['status_pengadaan'] == 'penerimaan_sebagian' ? 'selected' : '' }}>Penerimaan Sebagian</option>
+                                        <option value="telah_diterima" {{ $draft['status_pengadaan'] == 'telah_diterima' ? 'selected' : '' }}>Telah Diterima</option>
+                                    </select>
+                                </td>
+                                <td class="px-6 py-4 text-right flex flex-col gap-2 items-end justify-center">
+                                    @if(!empty($draft['link_pembelian']))
+                                    <a href="{{ $draft['link_pembelian'] }}" target="_blank" class="text-xs font-bold text-[#6196aa] border border-[#6196aa] hover:bg-[#6196aa] hover:text-white transition-colors px-3 py-1.5 rounded-lg shadow-sm w-full text-center">
+                                        Link Beli
                                     </a>
-                                </td>
-                            </tr>
+                                    @endif
 
-                            <!-- Item 2 -->
-                            <tr class="hover:bg-gray-50/50 transition-colors">
-                                <td class="px-6 py-4 font-semibold text-[#20394a]">PO-2024-0802</td>
-                                <td class="px-6 py-4">
-                                    <div class="font-bold text-gray-800">Cairan HCL 30%</div>
-                                    <div class="text-xs text-gray-500 mt-1">Vendor: Kimia Farma</div>
-                                </td>
-                                <td class="px-6 py-4 text-gray-600">Lab Kimia</td>
-                                <td class="px-6 py-4 font-semibold">10 Botol</td>
-                                <td class="px-6 py-4 text-gray-600">Rp 1.500.000</td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        Disetujui
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <a href="/stafadmin/receive" class="text-xs font-bold text-white bg-[#6196aa] hover:bg-[#20394a] transition-colors px-3 py-2 rounded-lg shadow-sm">
+                                    @if($draft['jumlah_diterima'] < $draft['jumlah'] && in_array($draft['status_pengadaan'], ['sedang_dikirim', 'penerimaan_sebagian']))
+                                    <button 
+                                        onclick="openReceiveModal({{ $draft['id_detail'] }}, '{{ $draft['nama_barang'] }}', {{ $draft['jumlah'] - $draft['jumlah_diterima'] }})"
+                                        class="text-xs font-bold text-white bg-[#6196aa] hover:bg-[#20394a] transition-colors px-3 py-2 rounded-lg shadow-sm w-full">
                                         Proses Terima
-                                    </a>
+                                    </button>
+                                    @elseif($draft['jumlah_diterima'] >= $draft['jumlah'])
+                                    <span class="text-xs text-emerald-600 font-bold flex items-center justify-end gap-1 w-full mt-1">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                        Selesai
+                                    </span>
+                                    @endif
                                 </td>
                             </tr>
-                            
-                            <!-- Item 3 -->
-                            <tr class="hover:bg-gray-50/50 transition-colors">
-                                <td class="px-6 py-4 font-semibold text-[#20394a]">PO-2024-0805</td>
-                                <td class="px-6 py-4">
-                                    <div class="font-bold text-gray-800">Arduino Uno R3 Starter Kit</div>
-                                    <div class="text-xs text-gray-500 mt-1">Vendor: Toko Elektronik Jaya</div>
-                                </td>
-                                <td class="px-6 py-4 text-gray-600">Lab Komputer</td>
-                                <td class="px-6 py-4 font-semibold">20 Set</td>
-                                <td class="px-6 py-4 text-gray-600">Rp 6.000.000</td>
-                                <td class="px-6 py-4 text-center">
-                                    <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        Disetujui
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4 text-right">
-                                    <a href="/stafadmin/penerimaan-barang" class="text-xs font-bold text-white bg-[#6196aa] hover:bg-[#20394a] transition-colors px-3 py-2 rounded-lg shadow-sm">
-                                        Proses Terima
-                                    </a>
+                            @empty
+                            <tr>
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                    Belum ada draf pengadaan yang disetujui.
                                 </td>
                             </tr>
+                            @endforelse
 
                         </tbody>
                     </table>
@@ -229,5 +239,225 @@
         </div>
     </main>
 
+    <!-- Receive Modal -->
+    <div id="receiveModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto pt-10 pb-10">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden flex flex-col max-h-full">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-[#f9f5ed]/50 shrink-0">
+                <h3 class="text-lg font-bold text-[#20394a]">Form Penerimaan Barang</h3>
+                <button onclick="closeReceiveModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow">
+                <form id="receiveForm" action="/stafadmin/draf-pengadaan/terima" method="POST" onsubmit="return handleReceiveSubmit(event)">
+                    @csrf
+                    <input type="hidden" name="id_detail" id="modal_id_detail">
+                    
+                    <div class="mb-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
+                        <span class="block text-xs text-blue-500 font-bold uppercase tracking-wider mb-1">Barang</span>
+                        <div id="modal_nama_barang" class="font-bold text-[#20394a] text-lg"></div>
+                        <div class="text-sm text-blue-600 mt-1">Maksimal bisa diterima: <span id="modal_max_qty" class="font-bold"></span> unit</div>
+                    </div>
+
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Penerimaan</label>
+                            <input type="date" name="tanggal_penerimaan" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
+                        </div>
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-1">Alokasi Ruangan (Tujuan Lab)</label>
+                            <select name="id_ruangan" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
+                                <option value="">-- Pilih Ruangan --</option>
+                                @foreach($ruangan as $r)
+                                <option value="{{ $r->id_ruangan }}">{{ $r->nama_ruangan }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Unit Diterima Saat Ini</label>
+                        <input type="number" id="input_qty" min="1" required class="w-full md:w-1/3 rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border" onchange="generateLabelInputs()">
+                    </div>
+
+                    <div class="border-t border-gray-100 pt-6">
+                        <div class="flex justify-between items-end mb-4">
+                            <div>
+                                <h4 class="font-bold text-[#20394a]">Input Nomor Label</h4>
+                                <p class="text-xs text-gray-500 mt-0.5">Masukkan nomor urut unik untuk tiap unit yang diterima. QR Code akan otomatis di-generate.</p>
+                            </div>
+                            <button type="button" onclick="checkLabels()" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded shadow-sm transition-colors border border-gray-300">
+                                Cek Ketersediaan Label
+                            </button>
+                        </div>
+                        
+                        <div id="label_inputs_container" class="space-y-3">
+                            <!-- Inputs will be generated here -->
+                            <div class="text-sm text-gray-400 italic">Silakan masukkan jumlah unit diterima terlebih dahulu.</div>
+                        </div>
+                        <div id="label_error_msg" class="text-red-500 text-xs font-medium mt-2 hidden"></div>
+                    </div>
+
+                    <div class="mt-8 flex justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button type="button" onclick="closeReceiveModal()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
+                        <button type="submit" id="btn_submit" class="px-5 py-2.5 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors flex items-center gap-2">
+                            Simpan Penerimaan
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- CSRF Token for fetch -->
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+
+    <script>
+        // Update Status Pengadaan
+        async function updateStatus(id, newStatus) {
+            try {
+                const response = await fetch(`/stafadmin/draf-pengadaan/${id}/status`, {
+                    method: 'PUT',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ status_pengadaan: newStatus })
+                });
+                
+                const result = await response.json();
+                if (result.success) {
+                    // Reload page to reflect UI changes (buttons etc)
+                    window.location.reload();
+                } else {
+                    alert('Gagal update status');
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Terjadi kesalahan jaringan');
+            }
+        }
+
+        // Modal Logic
+        let maxQtyAllowed = 0;
+
+        function openReceiveModal(id, name, maxQty) {
+            document.getElementById('modal_id_detail').value = id;
+            document.getElementById('modal_nama_barang').innerText = name;
+            document.getElementById('modal_max_qty').innerText = maxQty;
+            
+            const qtyInput = document.getElementById('input_qty');
+            qtyInput.max = maxQty;
+            qtyInput.value = 1; // default
+            maxQtyAllowed = maxQty;
+            
+            generateLabelInputs();
+            document.getElementById('label_error_msg').classList.add('hidden');
+            document.getElementById('receiveModal').classList.remove('hidden');
+            document.getElementById('receiveModal').classList.add('flex');
+        }
+
+        function closeReceiveModal() {
+            document.getElementById('receiveModal').classList.add('hidden');
+            document.getElementById('receiveModal').classList.remove('flex');
+        }
+
+        function generateLabelInputs() {
+            const qty = parseInt(document.getElementById('input_qty').value) || 0;
+            const container = document.getElementById('label_inputs_container');
+            container.innerHTML = '';
+            
+            if (qty > maxQtyAllowed) {
+                alert(`Maksimal unit yang bisa diterima adalah ${maxQtyAllowed}`);
+                document.getElementById('input_qty').value = maxQtyAllowed;
+                return generateLabelInputs();
+            }
+
+            if (qty <= 0) return;
+
+            for (let i = 0; i < qty; i++) {
+                container.innerHTML += `
+                    <div class="flex items-center gap-3">
+                        <span class="text-sm font-bold text-gray-400 w-8 text-right">#${i+1}</span>
+                        <input type="text" name="labels[]" required placeholder="Contoh: ELEK-00${i+1}" class="label-input flex-grow rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2 border">
+                    </div>
+                `;
+            }
+        }
+
+        async function checkLabels() {
+            const inputs = document.querySelectorAll('.label-input');
+            const labels = Array.from(inputs).map(inp => inp.value.trim()).filter(v => v !== '');
+            
+            if (labels.length === 0) {
+                alert('Silakan isi setidaknya satu label');
+                return false;
+            }
+
+            const hasDuplicatesLocally = new Set(labels).size !== labels.length;
+            if(hasDuplicatesLocally) {
+                const msg = document.getElementById('label_error_msg');
+                msg.innerText = "Terdapat nomor label yang sama pada form. Harap bedakan.";
+                msg.classList.remove('hidden');
+                return false;
+            }
+
+            try {
+                const response = await fetch(`/stafadmin/draf-pengadaan/cek-label`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
+                    },
+                    body: JSON.stringify({ labels: labels })
+                });
+                
+                const result = await response.json();
+                const msg = document.getElementById('label_error_msg');
+                
+                if (result.success) {
+                    if (!result.valid) {
+                        msg.innerText = `No label sudah ada: ${result.existing.join(', ')}. Silakan gunakan nomor lain.`;
+                        msg.classList.remove('hidden');
+                        return false;
+                    } else {
+                        msg.innerText = "Label tersedia dan bisa digunakan.";
+                        msg.classList.remove('text-red-500');
+                        msg.classList.add('text-emerald-500');
+                        msg.classList.remove('hidden');
+                        
+                        // revert color back to red for future errors
+                        setTimeout(() => {
+                            msg.classList.add('text-red-500');
+                            msg.classList.remove('text-emerald-500');
+                            msg.classList.add('hidden');
+                        }, 3000);
+                        return true;
+                    }
+                }
+            } catch (error) {
+                console.error(error);
+                alert('Gagal mengecek label ke server');
+            }
+            return false;
+        }
+
+        async function handleReceiveSubmit(e) {
+            e.preventDefault();
+            // Prevent double submission
+            document.getElementById('btn_submit').disabled = true;
+            document.getElementById('btn_submit').innerText = 'Memproses...';
+
+            const isValid = await checkLabels();
+            if (!isValid) {
+                document.getElementById('btn_submit').disabled = false;
+                document.getElementById('btn_submit').innerText = 'Simpan Penerimaan';
+                return false;
+            }
+
+            // If valid, submit the form normally
+            e.target.submit();
+        }
+    </script>
 </body>
 </html>

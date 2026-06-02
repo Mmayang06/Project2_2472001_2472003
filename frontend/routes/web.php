@@ -59,7 +59,8 @@ Route::middleware(['checkRole:stafadmin'])->group(function () {
     Route::get('/stafadmin/penerimaan-barang', function () {
         return view('stafadmin.penerimaan_barang');
     });
-    Route::get('/stafadmin/draf-pengadaan', function () {
-        return view('stafadmin.draf_pengadaan');
-    });
+    Route::get('/stafadmin/draf-pengadaan', [App\Http\Controllers\StafAdminController::class, 'drafPengadaan']);
+    Route::put('/stafadmin/draf-pengadaan/{id}/status', [App\Http\Controllers\StafAdminController::class, 'updateStatusPengadaan']);
+    Route::post('/stafadmin/draf-pengadaan/cek-label', [App\Http\Controllers\StafAdminController::class, 'cekLabel']);
+    Route::post('/stafadmin/draf-pengadaan/terima', [App\Http\Controllers\StafAdminController::class, 'prosesTerima']);
 });

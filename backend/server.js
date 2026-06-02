@@ -58,6 +58,9 @@ app.post('/api/login', async (req, res) => {
 const inventarisRoute = require('./routes/staf_admin/inventaris');
 app.use('/api/staf_admin/inventaris', inventarisRoute);
 
+const drafPengadaanRoute = require('./routes/staf_admin/draf_pengadaan');
+app.use('/api/staf_admin/draf_pengadaan', drafPengadaanRoute);
+
 // Jalankan Server
 app.listen(PORT, () => {
     console.log(`Server backend telah berjalan di http://localhost:${PORT}`);
