@@ -79,10 +79,6 @@
                 Draf Pengadaan
             </a>
 
-            <a href="/stafadmin/penerimaan-barang" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
-                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
-                Penerimaan Barang
-            </a>
         </nav>
     </aside>
 
@@ -192,7 +188,7 @@
                                         $colorClass = $statusColors[$draft['status_pengadaan']] ?? 'bg-gray-100 text-gray-700';
                                     @endphp
                                     <select 
-                                        onchange="updateStatus({{ $draft['id_detail'] }}, this.value)" 
+                                        onchange="handleStatusChange(this, {{ $draft['id_detail'] }}, '{{ $draft['nama_barang'] }}', {{ $draft['jumlah'] - $draft['jumlah_diterima'] }}, '{{ $draft['status_pengadaan'] }}')" 
                                         class="border border-gray-200 text-xs font-semibold rounded-lg focus:ring-[#6196aa] focus:border-[#6196aa] block w-full p-2 {{ $colorClass }}"
                                         {{ ($draft['status_pengadaan'] == 'telah_diterima' || $draft['status_persetujuan'] != 'disetujui') ? 'disabled' : '' }}>
                                         <option value="menunggu_dipesan" {{ $draft['status_pengadaan'] == 'menunggu_dipesan' ? 'selected' : '' }}>Menunggu Dipesan</option>
@@ -209,13 +205,7 @@
                                     </a>
                                     @endif
 
-                                    @if($draft['jumlah_diterima'] < $draft['jumlah'] && in_array($draft['status_pengadaan'], ['sedang_dikirim', 'penerimaan_sebagian']))
-                                    <button 
-                                        onclick="openReceiveModal({{ $draft['id_detail'] }}, '{{ $draft['nama_barang'] }}', {{ $draft['jumlah'] - $draft['jumlah_diterima'] }})"
-                                        class="text-xs font-bold text-white bg-[#6196aa] hover:bg-[#20394a] transition-colors px-3 py-2 rounded-lg shadow-sm w-full">
-                                        Proses Terima
-                                    </button>
-                                    @elseif($draft['jumlah_diterima'] >= $draft['jumlah'])
+                                    @if($draft['jumlah_diterima'] >= $draft['jumlah'])
                                     <span class="text-xs text-emerald-600 font-bold flex items-center justify-end gap-1 w-full mt-1">
                                         <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
                                         Selesai
@@ -277,25 +267,7 @@
 
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Unit Diterima Saat Ini</label>
-                        <input type="number" id="input_qty" min="1" required class="w-full md:w-1/3 rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border" onchange="generateLabelInputs()">
-                    </div>
-
-                    <div class="border-t border-gray-100 pt-6">
-                        <div class="flex justify-between items-end mb-4">
-                            <div>
-                                <h4 class="font-bold text-[#20394a]">Input Nomor Label</h4>
-                                <p class="text-xs text-gray-500 mt-0.5">Masukkan nomor urut unik untuk tiap unit yang diterima. QR Code akan otomatis di-generate.</p>
-                            </div>
-                            <button type="button" onclick="checkLabels()" class="px-3 py-1.5 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-semibold rounded shadow-sm transition-colors border border-gray-300">
-                                Cek Ketersediaan Label
-                            </button>
-                        </div>
-                        
-                        <div id="label_inputs_container" class="space-y-3">
-                            <!-- Inputs will be generated here -->
-                            <div class="text-sm text-gray-400 italic">Silakan masukkan jumlah unit diterima terlebih dahulu.</div>
-                        </div>
-                        <div id="label_error_msg" class="text-red-500 text-xs font-medium mt-2 hidden"></div>
+                        <input type="number" id="input_qty" name="input_qty" min="1" required class="w-full md:w-1/3 rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
                     </div>
 
                     <div class="mt-8 flex justify-end gap-3 pt-4 border-t border-gray-100">
@@ -313,7 +285,20 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <script>
-        // Update Status Pengadaan
+        let currentSelectElement = null;
+        let originalStatusValue = null;
+
+        function handleStatusChange(selectElement, id, name, maxQty, oldStatus) {
+            const newStatus = selectElement.value;
+            if (newStatus === 'telah_diterima') {
+                currentSelectElement = selectElement;
+                originalStatusValue = oldStatus;
+                openReceiveModal(id, name, maxQty);
+            } else {
+                updateStatus(id, newStatus);
+            }
+        }
+
         async function updateStatus(id, newStatus) {
             try {
                 const response = await fetch(`/stafadmin/draf-pengadaan/${id}/status`, {
@@ -327,7 +312,6 @@
                 
                 const result = await response.json();
                 if (result.success) {
-                    // Reload page to reflect UI changes (buttons etc)
                     window.location.reload();
                 } else {
                     alert('Gagal update status');
@@ -338,7 +322,6 @@
             }
         }
 
-        // Modal Logic
         let maxQtyAllowed = 0;
 
         function openReceiveModal(id, name, maxQty) {
@@ -348,114 +331,31 @@
             
             const qtyInput = document.getElementById('input_qty');
             qtyInput.max = maxQty;
-            qtyInput.value = 1; // default
+            qtyInput.value = maxQty; // auto fill max
             maxQtyAllowed = maxQty;
             
-            generateLabelInputs();
-            document.getElementById('label_error_msg').classList.add('hidden');
             document.getElementById('receiveModal').classList.remove('hidden');
             document.getElementById('receiveModal').classList.add('flex');
         }
 
         function closeReceiveModal() {
+            if (currentSelectElement && originalStatusValue) {
+                currentSelectElement.value = originalStatusValue; // reset select
+            }
             document.getElementById('receiveModal').classList.add('hidden');
             document.getElementById('receiveModal').classList.remove('flex');
         }
 
-        function generateLabelInputs() {
-            const qty = parseInt(document.getElementById('input_qty').value) || 0;
-            const container = document.getElementById('label_inputs_container');
-            container.innerHTML = '';
-            
-            if (qty > maxQtyAllowed) {
-                alert(`Maksimal unit yang bisa diterima adalah ${maxQtyAllowed}`);
-                document.getElementById('input_qty').value = maxQtyAllowed;
-                return generateLabelInputs();
-            }
-
-            if (qty <= 0) return;
-
-            for (let i = 0; i < qty; i++) {
-                container.innerHTML += `
-                    <div class="flex items-center gap-3">
-                        <span class="text-sm font-bold text-gray-400 w-8 text-right">#${i+1}</span>
-                        <input type="text" name="labels[]" required placeholder="Contoh: ELEK-00${i+1}" class="label-input flex-grow rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2 border">
-                    </div>
-                `;
-            }
-        }
-
-        async function checkLabels() {
-            const inputs = document.querySelectorAll('.label-input');
-            const labels = Array.from(inputs).map(inp => inp.value.trim()).filter(v => v !== '');
-            
-            if (labels.length === 0) {
-                alert('Silakan isi setidaknya satu label');
-                return false;
-            }
-
-            const hasDuplicatesLocally = new Set(labels).size !== labels.length;
-            if(hasDuplicatesLocally) {
-                const msg = document.getElementById('label_error_msg');
-                msg.innerText = "Terdapat nomor label yang sama pada form. Harap bedakan.";
-                msg.classList.remove('hidden');
-                return false;
-            }
-
-            try {
-                const response = await fetch(`/stafadmin/draf-pengadaan/cek-label`, {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content
-                    },
-                    body: JSON.stringify({ labels: labels })
-                });
-                
-                const result = await response.json();
-                const msg = document.getElementById('label_error_msg');
-                
-                if (result.success) {
-                    if (!result.valid) {
-                        msg.innerText = `No label sudah ada: ${result.existing.join(', ')}. Silakan gunakan nomor lain.`;
-                        msg.classList.remove('hidden');
-                        return false;
-                    } else {
-                        msg.innerText = "Label tersedia dan bisa digunakan.";
-                        msg.classList.remove('text-red-500');
-                        msg.classList.add('text-emerald-500');
-                        msg.classList.remove('hidden');
-                        
-                        // revert color back to red for future errors
-                        setTimeout(() => {
-                            msg.classList.add('text-red-500');
-                            msg.classList.remove('text-emerald-500');
-                            msg.classList.add('hidden');
-                        }, 3000);
-                        return true;
-                    }
-                }
-            } catch (error) {
-                console.error(error);
-                alert('Gagal mengecek label ke server');
-            }
-            return false;
-        }
-
         async function handleReceiveSubmit(e) {
             e.preventDefault();
-            // Prevent double submission
-            document.getElementById('btn_submit').disabled = true;
-            document.getElementById('btn_submit').innerText = 'Memproses...';
-
-            const isValid = await checkLabels();
-            if (!isValid) {
-                document.getElementById('btn_submit').disabled = false;
-                document.getElementById('btn_submit').innerText = 'Simpan Penerimaan';
+            const qty = parseInt(document.getElementById('input_qty').value);
+            if (qty > maxQtyAllowed) {
+                alert(`Maksimal unit yang bisa diterima adalah ${maxQtyAllowed}`);
                 return false;
             }
 
-            // If valid, submit the form normally
+            document.getElementById('btn_submit').disabled = true;
+            document.getElementById('btn_submit').innerText = 'Memproses...';
             e.target.submit();
         }
     </script>

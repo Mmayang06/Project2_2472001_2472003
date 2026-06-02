@@ -78,10 +78,6 @@
                 Draf Pengadaan
             </a>
 
-            <a href="/stafadmin/penerimaan-barang" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
-                <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm-2 14l-4-4 1.41-1.41L10 14.17l6.59-6.59L18 9l-8 8z"/></svg>
-                Penerimaan Barang
-            </a>
         </nav>
 
         <div class="p-4 border-t border-[#6196aa]/20">
@@ -109,29 +105,18 @@
         <div class="px-6 md:px-8 pb-8 flex-grow overflow-y-auto w-full mx-auto space-y-6 max-w-[1400px]">
             
             <!-- Filter & Search Bar -->
-            <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-2">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-2 border-b border-gray-200 pb-4">
+                <div class="flex gap-4">
+                    <button id="tab-all" onclick="switchTab('all')" class="px-4 py-2 font-bold text-[#20394a] border-b-2 border-[#20394a] transition-all">Semua Inventaris</button>
+                    <button id="tab-unlabeled" onclick="switchTab('unlabeled')" class="px-4 py-2 font-medium text-gray-500 border-b-2 border-transparent hover:text-[#20394a] transition-all flex items-center gap-2">
+                        Belum Dilabeli
+                        <span id="badge-unlabeled" class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
+                    </button>
+                </div>
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <div class="relative w-full md:w-64">
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                         <input type="text" placeholder="Cari barang..." class="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#6196aa] text-gray-700">
-                    </div>
-                    <button class="px-4 py-2 border border-gray-300 rounded-lg text-sm font-medium text-gray-600 hover:bg-gray-50 flex items-center gap-2">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-                        Filter
-                    </button>
-                </div>
-
-                <div class="flex items-center gap-4 text-sm text-gray-600">
-                    <div class="flex items-center gap-2">
-                        <span>Dikelompokkan berdasarkan:</span>
-                        <select class="border border-gray-300 rounded-lg px-3 py-1.5 focus:outline-none focus:border-[#6196aa] bg-white">
-                            <option>Lokasi Lab</option>
-                            <option>Kategori Alat</option>
-                        </select>
-                    </div>
-                    <div class="flex items-center gap-1 border border-gray-300 rounded-lg p-0.5 bg-gray-50">
-                        <button class="p-1.5 bg-white shadow-sm rounded text-[#20394a]"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 4h4v4H4V4zm6 0h4v4h-4V4zm6 0h4v4h-4V4zM4 10h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4zM4 16h4v4H4v-4zm6 0h4v4h-4v-4zm6 0h4v4h-4v-4z"/></svg></button>
-                        <button class="p-1.5 text-gray-400 hover:text-[#20394a]"><svg class="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><path d="M4 6h16v2H4V6zm0 5h16v2H4v-2zm0 5h16v2H4v-2z"/></svg></button>
                     </div>
                 </div>
             </div>
@@ -140,8 +125,91 @@
                 <!-- Data will be loaded here dynamically -->
                 <div class="text-center py-10 text-gray-500">Memuat data dari server...</div>
             </div>
+            
+            <div id="unlabeled-container" class="space-y-6 hidden">
+                <div class="overflow-x-auto bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-200">
+                                <th class="px-6 py-4">ID / Tgl Terima</th>
+                                <th class="px-6 py-4">Nama Barang</th>
+                                <th class="px-6 py-4">Ruangan</th>
+                                <th class="px-6 py-4 text-right">Aksi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="unlabeled-tbody" class="divide-y divide-gray-100 text-sm">
+                            <!-- Data -->
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </main>
+
+    <!-- Update Label Modal -->
+    <div id="updateLabelModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto pt-10 pb-10">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden flex flex-col max-h-full">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-[#f9f5ed]/50 shrink-0">
+                <h3 class="text-lg font-bold text-[#20394a]">Update Label Barang</h3>
+                <button onclick="closeUpdateModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow">
+                <form id="updateLabelForm" onsubmit="handleUpdateLabel(event)">
+                    <input type="hidden" id="modal_id_inventaris">
+                    <div class="mb-6">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Label</label>
+                        <input type="text" id="modal_nomor_label" required placeholder="Contoh: ELEK-001" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
+                        <p class="text-xs text-gray-500 mt-2">Sistem akan secara otomatis men-generate QR Code berdasarkan nomor label yang dimasukkan.</p>
+                    </div>
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button type="button" onclick="closeUpdateModal()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
+                        <button type="submit" id="btn_update_label" class="px-5 py-2.5 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">
+                            Simpan Label
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Success Modal -->
+    <div id="successModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden p-6 text-center">
+            <div class="w-16 h-16 bg-green-100 text-green-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            </div>
+            <h3 class="text-xl font-bold text-[#20394a] mb-2" id="successModalTitle">Berhasil</h3>
+            <p class="text-sm text-gray-500 mb-6" id="successModalMsg">Tindakan berhasil dilakukan.</p>
+            <button onclick="closeSuccessModal()" class="w-full px-5 py-2.5 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">Tutup</button>
+        </div>
+    </div>
+
+    <!-- Duplicate Label Modal -->
+    <div id="duplicateModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden p-6">
+            <div class="flex items-start gap-4 mb-4">
+                <div class="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex-shrink-0 flex items-center justify-center">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                </div>
+                <div>
+                    <h3 class="text-lg font-bold text-[#20394a] mb-1">Nomor Label Sudah Digunakan!</h3>
+                    <p class="text-sm text-gray-600">Nomor label <strong id="dup-old-label"></strong> sudah dipakai oleh barang lain. Sistem merekomendasikan menggunakan nomor label berikut:</p>
+                    
+                    <div class="mt-4 p-3 bg-gray-50 border border-gray-200 rounded-lg text-center">
+                        <span class="text-sm text-gray-500 block mb-1">Saran Nomor Label:</span>
+                        <span class="text-xl font-bold text-[#20394a]" id="dup-suggestion">...</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-end gap-3 pt-4 border-t border-gray-100 mt-4">
+                <button type="button" onclick="closeDuplicateModal()" class="px-4 py-2 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Ketik Ulang Manual</button>
+                <button type="button" onclick="useSuggestionLabel()" class="px-4 py-2 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">Gunakan Saran Ini</button>
+            </div>
+        </div>
+    </div>
 
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
@@ -269,20 +337,190 @@
                 });
             };
 
-            try {
-                const response = await fetch('http://localhost:3000/api/staf_admin/inventaris');
-                const result = await response.json();
-                
-                if (result.success && result.data.length > 0) {
-                    inventoryData = result.data;
-                    renderData();
+            let unlabeledData = [];
+
+            window.switchTab = (tab) => {
+                const tabAll = document.getElementById('tab-all');
+                const tabUnlabeled = document.getElementById('tab-unlabeled');
+                const containerAll = document.getElementById('inventory-container');
+                const containerUnlabeled = document.getElementById('unlabeled-container');
+
+                if (tab === 'all') {
+                    tabAll.classList.replace('text-gray-500', 'text-[#20394a]');
+                    tabAll.classList.replace('border-transparent', 'border-[#20394a]');
+                    tabAll.classList.add('font-bold');
+                    tabAll.classList.remove('font-medium');
+                    
+                    tabUnlabeled.classList.replace('text-[#20394a]', 'text-gray-500');
+                    tabUnlabeled.classList.replace('border-[#20394a]', 'border-transparent');
+                    tabUnlabeled.classList.add('font-medium');
+                    tabUnlabeled.classList.remove('font-bold');
+
+                    containerAll.classList.remove('hidden');
+                    containerUnlabeled.classList.add('hidden');
                 } else {
-                    container.innerHTML = '<div class="text-center py-10 text-gray-500">Tidak ada data inventaris.</div>';
+                    tabUnlabeled.classList.replace('text-gray-500', 'text-[#20394a]');
+                    tabUnlabeled.classList.replace('border-transparent', 'border-[#20394a]');
+                    tabUnlabeled.classList.add('font-bold');
+                    tabUnlabeled.classList.remove('font-medium');
+                    
+                    tabAll.classList.replace('text-[#20394a]', 'text-gray-500');
+                    tabAll.classList.replace('border-[#20394a]', 'border-transparent');
+                    tabAll.classList.add('font-medium');
+                    tabAll.classList.remove('font-bold');
+
+                    containerAll.classList.add('hidden');
+                    containerUnlabeled.classList.remove('hidden');
                 }
-            } catch (error) {
-                console.error('Error fetching inventory:', error);
-                container.innerHTML = '<div class="text-center py-10 text-red-500">Gagal memuat data dari server.</div>';
-            }
+            };
+
+            const renderUnlabeledData = () => {
+                const tbody = document.getElementById('unlabeled-tbody');
+                const badge = document.getElementById('badge-unlabeled');
+                
+                if (unlabeledData.length > 0) {
+                    badge.textContent = unlabeledData.length;
+                    badge.classList.remove('hidden');
+                } else {
+                    badge.classList.add('hidden');
+                }
+
+                if (unlabeledData.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">Tidak ada barang yang belum dilabeli.</td></tr>';
+                    return;
+                }
+
+                let html = '';
+                unlabeledData.forEach(item => {
+                    const tgl = item.tanggal_penerimaan ? new Date(item.tanggal_penerimaan).toLocaleDateString('id-ID') : '-';
+                    html += `
+                    <tr class="hover:bg-gray-50/50 transition-colors">
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-[#20394a]">#${item.id_inventaris}</div>
+                            <div class="text-xs text-gray-500 mt-1">${tgl}</div>
+                        </td>
+                        <td class="px-6 py-4">
+                            <div class="font-bold text-gray-800">${item.nama_barang}</div>
+                            <div class="text-xs text-gray-500 mt-1">Kategori: ${item.jenis_barang}</div>
+                        </td>
+                        <td class="px-6 py-4 text-gray-600">${item.nama_ruangan ? item.nama_ruangan + ' (' + item.lokasi + ')' : '-'}</td>
+                        <td class="px-6 py-4 text-right">
+                            <button onclick="openUpdateModal(${item.id_inventaris})" class="text-xs font-bold text-white bg-[#6196aa] hover:bg-[#20394a] transition-colors px-3 py-2 rounded-lg shadow-sm">
+                                Berikan Label & QR
+                            </button>
+                        </td>
+                    </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+            };
+
+            window.openUpdateModal = (id) => {
+                document.getElementById('modal_id_inventaris').value = id;
+                document.getElementById('modal_nomor_label').value = '';
+                document.getElementById('updateLabelModal').classList.remove('hidden');
+                document.getElementById('updateLabelModal').classList.add('flex');
+            };
+
+            window.closeUpdateModal = () => {
+                document.getElementById('updateLabelModal').classList.add('hidden');
+                document.getElementById('updateLabelModal').classList.remove('flex');
+            };
+
+            window.showSuccessModal = (msg) => {
+                document.getElementById('successModalMsg').textContent = msg;
+                document.getElementById('successModal').classList.remove('hidden');
+                document.getElementById('successModal').classList.add('flex');
+            };
+            
+            window.closeSuccessModal = () => {
+                document.getElementById('successModal').classList.add('hidden');
+                document.getElementById('successModal').classList.remove('flex');
+            };
+
+            window.showDuplicateModal = (oldLabel, suggestion) => {
+                document.getElementById('dup-old-label').textContent = oldLabel;
+                document.getElementById('dup-suggestion').textContent = suggestion;
+                document.getElementById('duplicateModal').classList.remove('hidden');
+                document.getElementById('duplicateModal').classList.add('flex');
+            };
+
+            window.closeDuplicateModal = () => {
+                document.getElementById('duplicateModal').classList.add('hidden');
+                document.getElementById('duplicateModal').classList.remove('flex');
+            };
+
+            window.useSuggestionLabel = () => {
+                const suggestion = document.getElementById('dup-suggestion').textContent;
+                document.getElementById('modal_nomor_label').value = suggestion;
+                closeDuplicateModal();
+                // Optionally auto submit here
+                document.getElementById('btn_update_label').click();
+            };
+
+            window.handleUpdateLabel = async (e) => {
+                e.preventDefault();
+                const id = document.getElementById('modal_id_inventaris').value;
+                const nomor_label = document.getElementById('modal_nomor_label').value;
+
+                document.getElementById('btn_update_label').disabled = true;
+                document.getElementById('btn_update_label').innerText = 'Menyimpan...';
+
+                try {
+                    const response = await fetch(`http://localhost:3000/api/staf_admin/inventaris/update-label/${id}`, {
+                        method: 'PUT',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ nomor_label })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        closeUpdateModal();
+                        showSuccessModal(result.message || 'Nomor label berhasil disimpan');
+                        fetchData(); // Reload both tabs
+                    } else if (result.isDuplicate) {
+                        showDuplicateModal(nomor_label, result.suggestion);
+                    } else {
+                        alert(result.message || 'Gagal update label');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Terjadi kesalahan jaringan');
+                } finally {
+                    document.getElementById('btn_update_label').disabled = false;
+                    document.getElementById('btn_update_label').innerText = 'Simpan Label';
+                }
+            };
+
+            const fetchData = async () => {
+                try {
+                    const [resAll, resUnlabeled] = await Promise.all([
+                        fetch('http://localhost:3000/api/staf_admin/inventaris'),
+                        fetch('http://localhost:3000/api/staf_admin/inventaris/belum-dilabeli')
+                    ]);
+                    
+                    const resultAll = await resAll.json();
+                    const resultUnlabeled = await resUnlabeled.json();
+                    
+                    if (resultAll.success && resultAll.data.length > 0) {
+                        inventoryData = resultAll.data;
+                        renderData();
+                    } else {
+                        container.innerHTML = '<div class="text-center py-10 text-gray-500">Tidak ada data inventaris.</div>';
+                    }
+
+                    if (resultUnlabeled.success) {
+                        unlabeledData = resultUnlabeled.data;
+                        renderUnlabeledData();
+                    }
+                } catch (error) {
+                    console.error('Error fetching inventory:', error);
+                    container.innerHTML = '<div class="text-center py-10 text-red-500">Gagal memuat data dari server.</div>';
+                }
+            };
+
+            fetchData();
         });
     </script>
     </main>

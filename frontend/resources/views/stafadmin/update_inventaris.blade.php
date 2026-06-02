@@ -205,97 +205,6 @@
                     </div>
                 </div>
 
-                <hr class="border-gray-100">
-
-                <!-- Inventory Summary -->
-                <div>
-                    <div class="flex justify-between items-center mb-4">
-                        <h3 class="flex items-center gap-2 text-lg font-bold text-[#20394a]">
-                            <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>
-                            Total Inventaris
-                        </h3>
-                        <a href="#" class="text-xs text-gray-500 hover:text-[#6196aa] flex items-center gap-1 font-medium transition-colors">
-                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                            Riwayat Perubahan Jumlah
-                        </a>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-8 text-sm">
-                        <div class="grid grid-cols-2">
-                            <span class="font-semibold text-gray-800">Jumlah Keseluruhan</span>
-                            <span id="info-total" class="text-gray-600 font-bold text-lg text-[#20394a]">0</span>
-                        </div>
-                        <div class="grid grid-cols-2">
-                            <span class="font-semibold text-gray-800">Satuan</span>
-                            <span class="text-gray-600">Unit</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Relevant Plans / Tasks -->
-                <div>
-                    <h3 class="text-sm font-bold text-[#20394a] mb-3 mt-6">Rencana Pemeliharaan Terkait</h3>
-                    <div class="space-y-0 divide-y divide-gray-100 border border-gray-100 rounded-lg">
-                        
-                        <!-- Item 1 -->
-                        <div class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
-                            <div class="flex items-center gap-4">
-                                <div class="text-gray-400">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-800">[Mendesak] Kalibrasi Lensa Objektif</p>
-                                    <p class="text-xs text-gray-500">2 Unit Mikroskop</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-6">
-                                <span class="px-3 py-1 bg-white border border-gray-300 text-gray-600 text-xs font-semibold rounded-full">Todo</span>
-                                <div class="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden">
-                                    <div class="w-0 h-full bg-[#6196aa]"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Item 2 -->
-                        <div class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
-                            <div class="flex items-center gap-4">
-                                <div class="text-gray-400">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-800">[Bulan Ini] Pembersihan Optik Rutin - Lab A</p>
-                                    <p class="text-xs text-gray-500">20 Unit Mikroskop</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-6">
-                                <span class="px-3 py-1 bg-white border border-gray-300 text-gray-600 text-xs font-semibold rounded-full">Processing</span>
-                                <div class="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden flex">
-                                    <div class="w-1/3 h-full bg-[#20394a]"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Item 3 -->
-                        <div class="flex items-center justify-between p-4 hover:bg-gray-50 transition-colors">
-                            <div class="flex items-center gap-4">
-                                <div class="text-gray-400">
-                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
-                                </div>
-                                <div>
-                                    <p class="text-sm font-semibold text-gray-800">[Bulan Lalu] Inspeksi Kondisi Lampu Halogen</p>
-                                    <p class="text-xs text-gray-500">27 Unit Mikroskop</p>
-                                </div>
-                            </div>
-                            <div class="flex items-center gap-6">
-                                <span class="px-3 py-1 bg-white border border-gray-300 text-gray-600 text-xs font-semibold rounded-full">Completed</span>
-                                <div class="w-24 h-1.5 bg-gray-200 rounded-full overflow-hidden flex">
-                                    <div class="w-full h-full bg-[#20394a]"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                    </div>
-                </div>
-
             </div>
         </div>
     </main>
@@ -333,8 +242,6 @@
                     document.getElementById('info-harga').textContent = data.harga ? formatter.format(data.harga) : '-';
                     document.getElementById('info-sumber-dana').innerHTML = data.tahun_pengadaan ? 
                         `Pengadaan <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500">Tahun: ${data.tahun_pengadaan}</span>` : '-';
-                    
-                    document.getElementById('info-total').textContent = data.total_stok || 0;
                 }
             } catch (error) {
                 console.error('Error fetching inventory detail:', error);

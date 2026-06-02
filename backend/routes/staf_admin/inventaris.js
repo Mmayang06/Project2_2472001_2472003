@@ -50,6 +50,83 @@ router.get('/', async (req, res) => {
     }
 });
 
+router.get('/belum-dilabeli', async (req, res) => {
+    try {
+        const query = `
+            SELECT 
+                bi.id_inventaris,
+                bi.tanggal_penerimaan,
+                dp.nama_barang,
+                dp.jenis_barang,
+                r.nama_ruangan,
+                r.lokasi
+            FROM barang_inventaris bi
+            JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
+            WHERE bi.nomor_label IS NULL
+            ORDER BY bi.id_inventaris DESC
+        `;
+        const [rows] = await db.query(query);
+        return res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Terjadi kesalahan' });
+    }
+});
+
+router.put('/update-label/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { nomor_label } = req.body;
+        
+        // Auto-generate QR code text based on label
+        const qr_code = `QR-${nomor_label}`;
+
+        // Check if label exists
+        const [existing] = await db.query('SELECT id_inventaris FROM barang_inventaris WHERE nomor_label = ? AND id_inventaris != ?', [nomor_label, id]);
+        if (existing.length > 0) {
+            // Generate suggestion
+            let suggestedLabel = '';
+            const match = nomor_label.match(/^(.*?)(\d+)$/);
+            
+            if (match) {
+                const prefix = match[1];
+                let numStr = match[2];
+                let numLen = numStr.length;
+                let num = parseInt(numStr, 10);
+                
+                while (true) {
+                    num++;
+                    suggestedLabel = prefix + num.toString().padStart(numLen, '0');
+                    const [check] = await db.query('SELECT id_inventaris FROM barang_inventaris WHERE nomor_label = ?', [suggestedLabel]);
+                    if (check.length === 0) break;
+                }
+            } else {
+                let suffix = 1;
+                while (true) {
+                    suggestedLabel = `${nomor_label}-${suffix}`;
+                    const [check] = await db.query('SELECT id_inventaris FROM barang_inventaris WHERE nomor_label = ?', [suggestedLabel]);
+                    if (check.length === 0) break;
+                    suffix++;
+                }
+            }
+
+            return res.json({ 
+                success: false, 
+                isDuplicate: true, 
+                suggestion: suggestedLabel,
+                message: 'Nomor label sudah digunakan' 
+            });
+        }
+
+        await db.query('UPDATE barang_inventaris SET nomor_label = ?, qr_code = ? WHERE id_inventaris = ?', [nomor_label, qr_code, id]);
+        return res.json({ success: true, message: 'Nomor label berhasil disimpan' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Gagal update label' });
+    }
+});
+
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;

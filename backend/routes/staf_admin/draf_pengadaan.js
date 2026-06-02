@@ -72,7 +72,7 @@ router.post('/cek-label', async (req, res) => {
 router.post('/terima', async (req, res) => {
     const connection = await db.getConnection();
     try {
-        const { id_detail, tanggal_penerimaan, id_ruangan, labels } = req.body;
+        const { id_detail, tanggal_penerimaan, id_ruangan, input_qty } = req.body;
         
         await connection.beginTransaction();
 
@@ -81,14 +81,12 @@ router.post('/terima', async (req, res) => {
             await connection.query('UPDATE detail_pengadaan SET id_ruangan = ? WHERE id_detail = ?', [id_ruangan, id_detail]);
         }
 
-        // 2. Insert tiap label ke barang_inventaris
-        for (let label of labels) {
-            // Generate QR Code Text (just using label string for now, frontend will render)
-            const qr_text = `QR-${label}`;
-            
+        // 2. Insert tiap item ke barang_inventaris dengan nomor_label NULL
+        const qty = parseInt(input_qty) || 1;
+        for (let i = 0; i < qty; i++) {
             await connection.query(
                 'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
-                [label, qr_text, 'baik', id_ruangan || null, id_detail, tanggal_penerimaan]
+                [null, null, 'baik', id_ruangan || null, id_detail, tanggal_penerimaan]
             );
         }
 
