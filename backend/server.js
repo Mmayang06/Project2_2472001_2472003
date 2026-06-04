@@ -18,6 +18,13 @@ app.get('/', (req, res) => {
 
 const db = require('./config/db');
 
+// Reset all users to offline on server startup
+db.query('UPDATE user SET is_online = 0').then(() => {
+    console.log('Semua status online pengguna berhasil direset.');
+}).catch(e => {
+    console.error('Gagal mereset status online:', e);
+});
+
 const jwt = require('jsonwebtoken');
 
 // Login API
@@ -30,6 +37,9 @@ app.post('/api/login', async (req, res) => {
         if (rows.length > 0) {
             const user = rows[0];
             if (user.password === password) {
+                // Set is_online = 1
+                await db.query('UPDATE user SET is_online = 1 WHERE id_user = ?', [user.id_user]);
+
                 // Generate JWT Token
                 const token = jwt.sign(
                     { id: user.id_user, username: user.nama, role: user.role },
@@ -53,6 +63,24 @@ app.post('/api/login', async (req, res) => {
         return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
     }
 });
+
+// Logout API
+app.post('/api/logout', async (req, res) => {
+    const { id_user } = req.body;
+    try {
+        if (id_user) {
+            await db.query('UPDATE user SET is_online = 0 WHERE id_user = ?', [id_user]);
+        }
+        return res.json({ success: true, message: 'Berhasil logout' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
+    }
+});
+
+// Routes Administrator
+app.use('/api/administrator/users', require('./routes/administrator/users'));
+app.use('/api/administrator/rooms', require('./routes/administrator/rooms'));
 
 // Routes Staf Admin
 const inventarisRoute = require('./routes/staf_admin/inventaris');

@@ -3,8 +3,8 @@
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\AuthController;
-
 use App\Http\Controllers\StafLabController;
+use App\Http\Controllers\AdministratorController;
 
 Route::middleware(['checkRole:staflab'])->group(function () {
     Route::get('/staf-lab/home', [StafLabController::class, 'dashboard']);
@@ -54,4 +54,21 @@ Route::middleware(['checkRole:stafadmin'])->group(function () {
     Route::put('/stafadmin/draf-pengadaan/{id}/status', [App\Http\Controllers\StafAdminController::class, 'updateStatusPengadaan']);
     Route::post('/stafadmin/draf-pengadaan/cek-label', [App\Http\Controllers\StafAdminController::class, 'cekLabel']);
     Route::post('/stafadmin/draf-pengadaan/terima', [App\Http\Controllers\StafAdminController::class, 'prosesTerima']);
+});
+
+// Rute ke dashboard administrator yang dilindungi middleware
+Route::middleware(['checkRole:administrator'])->group(function () {
+    Route::get('/administrator/home', [AdministratorController::class, 'home']);
+    Route::get('/administrator/users', [AdministratorController::class, 'users']);
+    Route::get('/administrator/rooms', [AdministratorController::class, 'rooms']);
+    
+    // API endpoints untuk CRUD user
+    Route::post('/administrator/users', [AdministratorController::class, 'storeUser']);
+    Route::put('/administrator/users/{id}', [AdministratorController::class, 'updateUser']);
+    Route::delete('/administrator/users/{id}', [AdministratorController::class, 'deleteUser']);
+
+    // API endpoints untuk CRUD ruangan
+    Route::post('/administrator/rooms', [AdministratorController::class, 'storeRoom']);
+    Route::put('/administrator/rooms/{id}', [AdministratorController::class, 'updateRoom']);
+    Route::delete('/administrator/rooms/{id}', [AdministratorController::class, 'deleteRoom']);
 });
