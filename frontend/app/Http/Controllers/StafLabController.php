@@ -87,11 +87,13 @@ class StafLabController extends Controller
 
     public function maintenance(Request $request)
     {
-        $response = Http::get("{$this->apiUrl}/staf_lab/maintenance");
-        $bhpResponse = Http::get("{$this->apiUrl}/staf_lab/bhp");
-        
+        $response       = Http::get("{$this->apiUrl}/staf_lab/maintenance");
+        $bhpResponse    = Http::get("{$this->apiUrl}/staf_lab/bhp");
+        $inventResponse = Http::get("{$this->apiUrl}/staf_lab/maintenance/inventaris");
+
         $maintenanceData = [];
-        $bhpData = [];
+        $bhpData         = [];
+        $inventarisData  = [];
 
         if ($response->successful() && $response->json('success')) {
             $maintenanceData = $response->json('data');
@@ -99,7 +101,47 @@ class StafLabController extends Controller
         if ($bhpResponse->successful() && $bhpResponse->json('success')) {
             $bhpData = $bhpResponse->json('data');
         }
+        if ($inventResponse->successful() && $inventResponse->json('success')) {
+            $inventarisData = $inventResponse->json('data');
+        }
 
-        return view('staf-lab.maintenance', compact('maintenanceData', 'bhpData'));
+        return view('staf-lab.maintenance', compact('maintenanceData', 'bhpData', 'inventarisData'));
+    }
+
+    public function storeMaintenance(Request $request)
+    {
+        $request->validate([
+            'id_inventaris'    => 'required|integer',
+            'tanggal'          => 'required|date',
+            'kondisi_setelah'  => 'required|string',
+            'status'           => 'required|string',
+        ]);
+
+        $payload = [
+            'id_inventaris'    => $request->id_inventaris,
+            'id_user'          => session('user_id'),
+            'jenis_maintenance'=> $request->jenis_maintenance ?? 'Pemeliharaan',
+            'tanggal'          => $request->tanggal,
+            'kondisi_sebelum'  => $request->kondisi_sebelum,
+            'kondisi_setelah'  => $request->kondisi_setelah,
+            'status'           => $request->status,
+            'keterangan'       => $request->keterangan,
+            'bhp_digunakan'    => $request->bhp_digunakan ?? [],
+        ];
+
+        $response = Http::post("{$this->apiUrl}/staf_lab/maintenance", $payload);
+
+        if ($response->successful() && $response->json('success')) {
+            return response()->json([
+                'success' => true,
+                'message' => $response->json('message'),
+                'id_pemeliharaan' => $response->json('id_pemeliharaan'),
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => $response->json('message') ?? 'Terjadi kesalahan saat menyimpan log maintenance',
+        ], $response->status() >= 400 ? $response->status() : 500);
     }
 }

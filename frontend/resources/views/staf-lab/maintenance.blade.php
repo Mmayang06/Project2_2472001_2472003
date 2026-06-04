@@ -358,16 +358,18 @@
                         <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Aset / Barang <span class="text-rose-500">*</span></label>
                         <select id="f-asset" required class="w-full border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm bg-white">
                             <option value="">-- Pilih Aset --</option>
-                            <option value="PC-01">PC-01 — Desktop Lab</option>
-                            <option value="PC-02">PC-02 — Desktop Lab</option>
-                            <option value="PC-03">PC-03 — Desktop Lab</option>
-                            <option value="PC-04">PC-04 — Desktop Lab</option>
-                            <option value="PC-05">PC-05 — Desktop Lab</option>
-                            <option value="PC-06">PC-06 — Desktop Lab</option>
-                            <option value="Switch-01">Switch Cisco SG350</option>
-                            <option value="Router-01">Router Mikrotik RB2011</option>
-                            <option value="Proyektor-01">Proyektor Epson EB-X51</option>
-                            <option value="AC-01">AC Daikin 1.5 PK</option>
+                            @foreach($inventarisData as $inv)
+                                <option value="{{ $inv['id_inventaris'] }}"
+                                    data-label="{{ $inv['nomor_label'] }}"
+                                    data-kondisi="{{ $inv['kondisi'] ?? 'baik' }}">
+                                    {{ $inv['nomor_label'] }}
+                                    @if(!empty($inv['nama_barang'])) — {{ $inv['nama_barang'] }}@endif
+                                    @if(!empty($inv['nama_ruangan'])) ({{ $inv['nama_ruangan'] }})@endif
+                                </option>
+                            @endforeach
+                            @if(empty($inventarisData))
+                                <option disabled>Tidak ada aset tersedia</option>
+                            @endif
                         </select>
                     </div>
                     <div>
@@ -540,30 +542,39 @@
         }));
 
         // ======================================================
-        // Asset Data
+        // Asset Data — diisi dari inventarisData (real DB)
         // ======================================================
-        let assetConditions = {
-            'PC-01': 'Baik', 'PC-02': 'Baik', 'PC-03': 'Perlu Perhatian',
-            'PC-04': 'Baik', 'PC-05': 'Rusak Ringan', 'PC-06': 'Baik',
-            'Switch-01': 'Baik', 'Router-01': 'Baik',
-            'Proyektor-01': 'Perlu Perhatian', 'AC-01': 'Baik',
-        };
+        const rawInventarisData = {!! json_encode($inventarisData ?? []) !!};
+        let assetConditions = {};
+        const kondisiMap = { 'baik': 'Baik', 'perlu_perhatian': 'Perlu Perhatian', 'rusak_ringan': 'Rusak Ringan', 'rusak_berat': 'Rusak Berat' };
+        rawInventarisData.forEach(inv => {
+            if (inv.nomor_label) {
+                assetConditions[inv.nomor_label] = kondisiMap[inv.kondisi] || inv.kondisi || 'Baik';
+            }
+        });
 
         // ======================================================
         // tarik data histori servis dari backend
         // ======================================================
         const rawMaintenanceLogs = {!! json_encode($maintenanceData ?? []) !!};
         let maintenanceLogs = rawMaintenanceLogs.map(log => ({
-            id: 'MNT-' + log.id_pemeliharaan.toString().padStart(3, '0'),
+            id: 'MNT-' + String(log.id_pemeliharaan).padStart(3, '0'),
+            dbId: log.id_pemeliharaan,
             asset: log.nomor_label,
+            assetId: log.id_inventaris,
             teknisi: log.teknisi || 'Sistem',
-            jenis: 'Pemeliharaan',
-            tanggal: log.tanggal,
-            kondisiSebelum: log.kondisi_sekarang,
-            kondisiSesudah: log.kondisi_setelah,
-            status: log.kondisi_setelah === 'baik' ? 'Selesai' : 'Proses',
+            jenis: log.jenis_maintenance || 'Pemeliharaan',
+            tanggal: log.tanggal ? String(log.tanggal).split('T')[0] : '',
+            kondisiSebelum: log.kondisi_sebelum || log.kondisi_sekarang || 'Baik',
+            kondisiSesudah: log.kondisi_setelah || 'Baik',
+            status: log.status || (log.kondisi_setelah === 'baik' ? 'Selesai' : 'Proses'),
             deskripsi: log.keterangan,
-            bhpUsed: [] // belum dihubungin ke tabel barang kepake (penggunaan_bhp)
+            bhpUsed: (log.bhp_digunakan || []).map(b => ({
+                bhpId: b.id_bhp,
+                name: b.nama_bhp,
+                qty: b.jumlah_digunakan,
+                unit: b.satuan || 'Pcs'
+            }))
         }));
 
         // ======================================================
@@ -826,29 +837,38 @@
         // ======================================================
         // Form Submit
         // ======================================================
-        function handleFormSubmit(e) {
+        async function handleFormSubmit(e) {
             e.preventDefault();
 
-            const asset    = document.getElementById('f-asset').value;
-            const teknisi  = document.getElementById('f-teknisi').value;
-            const jenis    = document.getElementById('f-jenis').value;
-            const tanggal  = document.getElementById('f-tanggal').value;
+            const assetSelect = document.getElementById('f-asset');
+            const assetId     = parseInt(assetSelect.value);
+            const assetOpt    = assetSelect.options[assetSelect.selectedIndex];
+            const assetLabel  = assetOpt ? (assetOpt.getAttribute('data-label') || assetOpt.text.trim()) : '';
+            const teknisi     = document.getElementById('f-teknisi').value.trim();
+            const jenis       = document.getElementById('f-jenis').value;
+            const tanggal     = document.getElementById('f-tanggal').value;
             const kondisiSebelum = document.getElementById('f-kondisi-sebelum').value;
             const kondisiSesudah = document.getElementById('f-kondisi-sesudah').value;
-            const deskripsi = document.getElementById('f-deskripsi').value;
-            const status   = document.querySelector('input[name="f-status"]:checked')?.value || 'Selesai';
+            const deskripsi   = document.getElementById('f-deskripsi').value;
+            const status      = document.querySelector('input[name="f-status"]:checked')?.value || 'Selesai';
 
-            // Collect BHP rows
+            if (!assetId) {
+                showToast('Pilih aset terlebih dahulu!', true);
+                return;
+            }
+
+            // Kumpulkan baris BHP
             const bhpRows = document.querySelectorAll('#bhp-rows > div');
             const bhpUsed = [];
-            let bhpError = false;
+            let bhpError  = false;
 
             bhpRows.forEach(row => {
-                const sel = row.querySelector('.bhp-select');
-                const qty = parseInt(row.querySelector('.bhp-qty').value) || 0;
+                const sel   = row.querySelector('.bhp-select');
+                const qty   = parseInt(row.querySelector('.bhp-qty').value) || 0;
                 const bhpId = parseInt(sel.value);
-                const opt = sel.options[sel.selectedIndex];
+                const opt   = sel.options[sel.selectedIndex];
                 const stock = parseInt(opt.getAttribute('data-stock'));
+                const unit  = opt.getAttribute('data-unit');
 
                 if (qty <= 0) { bhpError = true; return; }
                 if (qty > stock) {
@@ -856,38 +876,89 @@
                     bhpError = true;
                     return;
                 }
-                const unit = opt.getAttribute('data-unit');
-                bhpUsed.push({ bhpId, name: opt.text.split(' (')[0], qty, unit });
+                bhpUsed.push({ bhpId, id_bhp: bhpId, jumlah: qty, name: opt.text.split(' (')[0], qty, unit });
             });
 
             if (bhpError) return;
 
-            // Reduce BHP stock
-            bhpUsed.forEach(used => {
-                const item = bhpData.find(b => b.id === used.bhpId);
-                if (item) item.stock -= used.qty;
-            });
+            // Disable submit button
+            const submitBtn = document.querySelector('#maintenance-form [type=submit]');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Menyimpan...';
 
-            // Update asset condition
-            if (asset) assetConditions[asset] = kondisiSesudah;
+            try {
+                const payload = {
+                    id_inventaris:    assetId,
+                    jenis_maintenance: jenis,
+                    tanggal,
+                    kondisi_sebelum:  kondisiSebelum,
+                    kondisi_setelah:  kondisiSesudah,
+                    status,
+                    keterangan:       deskripsi,
+                    bhp_digunakan:    bhpUsed.map(b => ({ id_bhp: b.id_bhp, jumlah: b.qty }))
+                };
 
-            // Create new log
-            const newLog = {
-                id: `MNT-${String(maintenanceLogs.length + 1).padStart(3, '0')}`,
-                asset, teknisi, jenis, tanggal,
-                kondisiSebelum, kondisiSesudah, status, deskripsi, bhpUsed
-            };
-            maintenanceLogs.push(newLog);
+                const resp = await fetch('/staf-lab/maintenance', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify(payload)
+                });
+                const result = await resp.json();
 
-            // Refresh UI
-            renderLogTable();
-            renderBhpStockList();
-            renderAssetConditionList();
-            updateStats();
-            closeFormModal();
+                if (!result.success) {
+                    showToast(result.message || 'Gagal menyimpan log.', true);
+                    return;
+                }
 
-            const bhpMsg = bhpUsed.length > 0 ? ` ${bhpUsed.length} item BHP dikurangi dari stok.` : '';
-            showToast(`Log ${newLog.id} berhasil disimpan.${bhpMsg}`);
+                // Update local BHP stok
+                bhpUsed.forEach(used => {
+                    const item = bhpData.find(b => b.id === used.bhpId);
+                    if (item) item.stock -= used.qty;
+                });
+
+                // Update kondisi aset lokal
+                if (assetLabel) assetConditions[assetLabel] = kondisiSesudah;
+
+                // Tambahkan ke log lokal
+                const newId = result.id_pemeliharaan
+                    ? 'MNT-' + String(result.id_pemeliharaan).padStart(3, '0')
+                    : `MNT-${String(maintenanceLogs.length + 1).padStart(3, '0')}`;
+
+                const newLog = {
+                    id: newId,
+                    dbId: result.id_pemeliharaan,
+                    asset: assetLabel,
+                    assetId,
+                    teknisi: teknisi || 'Sistem',
+                    jenis,
+                    tanggal,
+                    kondisiSebelum,
+                    kondisiSesudah,
+                    status,
+                    deskripsi,
+                    bhpUsed
+                };
+                maintenanceLogs.unshift(newLog);
+
+                renderLogTable();
+                renderBhpStockList();
+                renderAssetConditionList();
+                updateStats();
+                closeFormModal();
+
+                const bhpMsg = bhpUsed.length > 0 ? ` ${bhpUsed.length} item BHP dikurangi dari stok.` : '';
+                showToast(`Log ${newLog.id} berhasil disimpan.${bhpMsg}`);
+
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal terhubung ke server.', true);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg> Simpan Log`;
+            }
         }
 
         // ======================================================

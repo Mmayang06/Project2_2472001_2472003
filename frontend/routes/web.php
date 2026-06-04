@@ -19,7 +19,11 @@ Route::middleware(['checkRole:staflab'])->group(function () {
 
     Route::get('/staf-lab/maintenance', [StafLabController::class, 'maintenance']);
     Route::get('/staf_lab/maintenance', [StafLabController::class, 'maintenance']);
+
+    // Simpan log maintenance baru (juga mengurangi stok BHP)
+    Route::post('/staf-lab/maintenance', [StafLabController::class, 'storeMaintenance']);
 });
+
 
 
 

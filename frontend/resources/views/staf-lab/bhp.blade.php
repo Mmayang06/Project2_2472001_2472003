@@ -184,10 +184,9 @@
                                 <tr class="bg-[#20394a]/5 text-[#20394a] border-b border-[#c9ccc3]/30 text-xs font-bold uppercase tracking-wider">
                                     <th class="px-6 py-4">Nama Barang</th>
                                     <th class="px-6 py-4">Kategori</th>
-                                    <th class="px-6 py-4">Lokasi Rak</th>
+                                    <th class="px-6 py-4">Lokasi Ruangan</th>
                                     <th class="px-6 py-4">Jumlah Stok / Status</th>
-                                    <th class="px-6 py-4 text-center">Batas Minimum</th>
-                                    <th class="px-6 py-4 text-right">Aksi Cepat</th>
+                                    <th class="px-6 py-4 text-right">Aksi</th>
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-100 text-sm" id="bhp-table-body">
@@ -231,6 +230,43 @@
                     </button>
                     <button type="submit" class="flex-1 py-3 bg-[#20394a] hover:bg-[#6196aa] text-white rounded-xl text-sm font-semibold transition-all duration-200">
                         Simpan Stok
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- MODAL: PAKAI BHP -->
+    <div id="modal-consume" class="fixed inset-0 z-50 bg-[#030706]/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl border border-[#c9ccc3]/40 shadow-2xl p-6 relative transform scale-95 transition-transform duration-300">
+            <button onclick="closeConsumeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+
+            <h3 class="text-lg font-bold text-[#20394a] mb-4">Form Penggunaan BHP</h3>
+            
+            <form onsubmit="handleConsumeSubmit(event)" class="space-y-4">
+                <input type="hidden" id="consume-item-id">
+                
+                <div>
+                    <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Nama Barang BHP</label>
+                    <input type="text" id="consume-item-name" readonly class="w-full bg-[#f9f5ed]/20 border border-[#c9ccc3]/40 rounded-xl px-4 py-2.5 text-sm text-gray-500 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Jumlah Digunakan</label>
+                    <input type="number" id="consume-amount" min="1" required class="w-full bg-[#f9f5ed]/30 border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#6196aa] transition-all" placeholder="Misal: 5">
+                    <span id="consume-stock-hint" class="text-xs text-gray-400 mt-1 block">Stok tersedia: 0 Pcs</span>
+                </div>
+
+                <div class="flex gap-3 pt-2">
+                    <button type="button" onclick="closeConsumeModal()" class="flex-1 py-3 bg-[#c9ccc3]/30 hover:bg-[#c9ccc3]/50 text-gray-700 rounded-xl text-sm font-semibold transition-all duration-200">
+                        Batal
+                    </button>
+                    <button type="submit" class="flex-1 py-3 bg-[#20394a] hover:bg-[#6196aa] text-white rounded-xl text-sm font-semibold transition-all duration-200">
+                        Gunakan BHP
                     </button>
                 </div>
             </form>
@@ -303,10 +339,9 @@
                                 <div class="h-full ${progressColor} rounded-full" style="width: ${pct}%"></div>
                             </div>
                         </td>
-                        <td class="px-6 py-4 text-center text-gray-500 font-medium">${item.minStock} ${item.unit}</td>
                         <td class="px-6 py-4 text-right space-x-2">
-                            <button onclick="consumeBhp(${item.id})" class="px-2.5 py-1.5 border border-[#20394a]/30 text-[#20394a] hover:bg-[#20394a]/10 rounded-lg text-xs font-bold transition-all duration-200">
-                                Pakai 1
+                            <button onclick="openConsumeModal(${item.id})" class="px-2.5 py-1.5 border border-[#20394a]/30 text-[#20394a] hover:bg-[#20394a]/10 rounded-lg text-xs font-bold transition-all duration-200">
+                                Pakai
                             </button>
                             <button onclick="openRestockModal('${item.name}')" class="px-2.5 py-1.5 bg-[#20394a]/10 text-[#20394a] hover:bg-[#20394a] hover:text-white rounded-lg text-xs font-bold transition-all duration-200">
                                 Tambah
@@ -317,10 +352,10 @@
             });
         }
 
-        async function consumeBhp(id) {
+        async function consumeBhp(id, jumlah) {
             const item = bhpData.find(b => b.id === id);
             if (item) {
-                if (item.stock > 0) {
+                if (item.stock >= jumlah) {
                     try {
                         const response = await fetch('/staf-lab/bhp/consume', {
                             method: 'POST',
@@ -328,13 +363,13 @@
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             },
-                            body: JSON.stringify({ id_bhp: id, jumlah: 1 })
+                            body: JSON.stringify({ id_bhp: id, jumlah: jumlah })
                         });
                         const result = await response.json();
                         
                         if (result.success) {
-                            item.stock -= 1;
-                            showToast(`BHP ${item.name} digunakan 1 ${item.unit}.`);
+                            item.stock -= jumlah;
+                            showToast(`BHP ${item.name} digunakan sebanyak ${jumlah} ${item.unit}.`);
                             renderBhpTable();
                         } else {
                             alert('Gagal menggunakan BHP: ' + result.message);
@@ -343,10 +378,74 @@
                         alert('Terjadi kesalahan koneksi.');
                     }
                 } else {
-                    alert(`Stok ${item.name} sudah habis! Silakan lakukan restok.`);
+                    alert(`Stok ${item.name} tidak mencukupi! Silakan lakukan restok.`);
                 }
             }
         }
+
+        // Consume Modal
+        function openConsumeModal(itemId) {
+            const item = bhpData.find(b => b.id === itemId);
+            if (item) {
+                document.getElementById('consume-item-id').value = item.id;
+                document.getElementById('consume-item-name').value = item.name;
+                document.getElementById('consume-amount').value = '';
+                document.getElementById('consume-stock-hint').textContent = `Stok tersedia: ${item.stock} ${item.unit}`;
+                
+                const amountInput = document.getElementById('consume-amount');
+                amountInput.setAttribute('max', item.stock);
+
+                const modal = document.getElementById('modal-consume');
+                modal.classList.remove('hidden');
+                modal.classList.add('flex');
+                setTimeout(() => {
+                    modal.querySelector('div').classList.remove('scale-95');
+                    modal.querySelector('div').classList.add('scale-100');
+                }, 10);
+            }
+        }
+
+        function closeConsumeModal() {
+            const modal = document.getElementById('modal-consume');
+            modal.querySelector('div').classList.remove('scale-100');
+            modal.querySelector('div').classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+            }, 150);
+        }
+
+        async function handleConsumeSubmit(e) {
+            e.preventDefault();
+            const itemId = parseInt(document.getElementById('consume-item-id').value);
+            const amount = parseInt(document.getElementById('consume-amount').value);
+
+            const item = bhpData.find(b => b.id === itemId);
+            if (item) {
+                if (amount <= 0) {
+                    alert('Jumlah harus minimal 1.');
+                    return;
+                }
+                if (amount > item.stock) {
+                    alert(`Stok tidak mencukupi! Hanya tersedia ${item.stock} ${item.unit}.`);
+                    return;
+                }
+                await consumeBhp(itemId, amount);
+                closeConsumeModal();
+            }
+        }
+
+        // Close modals on backdrop click
+        ['modal-restock', 'modal-consume'].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                el.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        id === 'modal-restock' ? closeRestockModal() : closeConsumeModal();
+                    }
+                });
+            }
+        });
 
         function filterBhpTable() {
             const searchVal = document.getElementById('search-bhp').value.toLowerCase();
