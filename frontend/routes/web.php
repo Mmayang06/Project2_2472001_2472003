@@ -13,6 +13,9 @@ Route::middleware(['checkRole:staflab'])->group(function () {
     Route::get('/staf-lab/bhp', [StafLabController::class, 'bhp']);
     Route::get('/staf_lab/bhp', [StafLabController::class, 'bhp']);
     
+    Route::get('/staf-lab/bhp/riwayat', [StafLabController::class, 'bhpRiwayat']);
+    Route::get('/staf_lab/bhp/riwayat', [StafLabController::class, 'bhpRiwayat']);
+    
     // API endpoints untuk aksi AJAX
     Route::post('/staf-lab/bhp/consume', [StafLabController::class, 'consumeBhp']);
     Route::post('/staf-lab/bhp/restock', [StafLabController::class, 'restockBhp']);
@@ -71,4 +74,13 @@ Route::middleware(['checkRole:administrator'])->group(function () {
     Route::post('/administrator/rooms', [AdministratorController::class, 'storeRoom']);
     Route::put('/administrator/rooms/{id}', [AdministratorController::class, 'updateRoom']);
     Route::delete('/administrator/rooms/{id}', [AdministratorController::class, 'deleteRoom']);
+});
+
+Route::middleware(['checkRole:kaprodi'])->group(function () {
+    Route::get('/kaprodi/dashboard', [App\Http\Controllers\KaprodiController::class, 'dashboard']);
+    Route::get('/kaprodi/draf-pengadaan', [App\Http\Controllers\KaprodiController::class, 'drafPengadaan']);
+    Route::get('/kaprodi/draf-pengadaan/{id}/review', [App\Http\Controllers\KaprodiController::class, 'reviewDraft']);
+    Route::post('/kaprodi/draf-pengadaan/review-item', [App\Http\Controllers\KaprodiController::class, 'reviewItem']);
+    Route::get('/kaprodi/draf-pengadaan/{id}/finalize', [App\Http\Controllers\KaprodiController::class, 'finalizePage']);
+    Route::post('/kaprodi/draf-pengadaan/{id}/finalize', [App\Http\Controllers\KaprodiController::class, 'finalizeDraft']);
 });
