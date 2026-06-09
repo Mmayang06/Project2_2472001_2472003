@@ -100,6 +100,10 @@ app.use('/api/staf_lab/bhp', stafLabBhpRoute);
 const stafLabMaintenanceRoute = require('./routes/staf_lab/maintenance');
 app.use('/api/staf_lab/maintenance', stafLabMaintenanceRoute);
 
+// Routes Kaprodi
+const kaprodiRoute = require('./routes/kaprodi');
+app.use('/api/kaprodi', kaprodiRoute);
+
 // Jalankan Server
 app.listen(PORT, () => {
     console.log(`Server backend telah berjalan di http://localhost:${PORT}`);
