@@ -67,15 +67,15 @@
     <aside class="w-full md:w-80 bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20 min-h-screen md:h-screen md:sticky md:top-0 md:overflow-y-auto">
         <!-- Brand Logo & App Name -->
         <div class="p-6 border-b border-[#6196aa]/20 flex items-center justify-between flex-shrink-0">
-            <a href="/" class="flex items-center gap-3 group">
+            <a href="/staf-lab/home" class="flex items-center gap-3 group">
                 <div class="p-2 bg-[#6196aa] rounded-xl text-[#f9f5ed] shadow-md group-hover:scale-105 transition-transform duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
                     </svg>
                 </div>
                 <div>
                     <h1 class="text-xl font-bold tracking-tight">Lab<span class="text-[#6196aa]">ventory</span></h1>
-                    <span class="text-xs text-[#c9ccc3] tracking-wide block">Lab Komputer Kampus</span>
+                    <span class="text-xs text-[#c9ccc3] tracking-wide block">Portal Staf Laboratorium</span>
                 </div>
             </a>
         </div>
@@ -86,27 +86,35 @@
                 {{ strtoupper(substr(session('user')['username'] ?? 'SL', 0, 2)) }}
             </div>
             <div class="overflow-hidden">
-                <h4 class="font-semibold text-sm truncate text-[#f9f5ed]">Staf Lab - {{ session('user')['username'] ?? 'Staf Lab' }}</h4>
+                <h4 class="font-semibold text-sm truncate text-[#f9f5ed]">{{ session('user')['username'] ?? 'Staf Lab' }}</h4>
+                <p class="text-xs text-[#c9ccc3] flex items-center gap-1.5 mt-0.5">
+                    <span class="w-2.5 h-2.5 rounded-full bg-emerald-500 inline-block animate-pulse"></span>
+                    Online
+                </p>
             </div>
         </div>
 
         <!-- Navigation Menu -->
-        <nav class="flex-grow p-4 space-y-1 mt-2 overflow-y-auto">
-            <p class="text-[10px] font-bold text-[#6196aa]/60 uppercase tracking-widest px-4 py-2">Menu Utama</p>
-
-            <a href="{{ url('/staf-lab/home') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white">
+        <nav class="flex-grow p-4 space-y-2 mt-4 overflow-y-auto">
+            <a href="{{ url('/staf-lab/home') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
                 </svg>
                 Dashboard Overview
             </a>
-            <a href="{{ url('/staf-lab/bhp') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 bg-[#6196aa] text-white shadow-lg">
+            <a href="{{ url('/staf-lab/bhp') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 bg-[#6196aa] text-white shadow-lg cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                 </svg>
                 Kelola Stok BHP
             </a>
-            <a href="{{ url('/staf-lab/maintenance') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white">
+            <a href="{{ url('/staf-lab/bhp/riwayat') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                </svg>
+                Riwayat Penggunaan BHP
+            </a>
+            <a href="{{ url('/staf-lab/maintenance') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
@@ -117,12 +125,15 @@
 
         <!-- Sidebar Footer -->
         <div class="p-4 border-t border-[#6196aa]/20 flex-shrink-0">
-            <a href="/" class="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-[#c9ccc3]/20 hover:bg-[#c9ccc3]/10 text-xs font-semibold text-[#c9ccc3] hover:text-[#f9f5ed] transition-all duration-200">
+            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-[#c9ccc3]/20 hover:bg-[#c9ccc3]/10 text-xs font-semibold text-[#c9ccc3] hover:text-[#f9f5ed] transition-all duration-200 cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3 3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                 </svg>
-                Keluar
+                Logout
             </a>
+            <form id="logout-form" action="/logout" method="POST" class="hidden">
+                @csrf
+            </form>
         </div>
     </aside>
 
@@ -184,7 +195,6 @@
                                 <tr class="bg-[#20394a]/5 text-[#20394a] border-b border-[#c9ccc3]/30 text-xs font-bold uppercase tracking-wider">
                                     <th class="px-6 py-4">Nama Barang</th>
                                     <th class="px-6 py-4">Kategori</th>
-                                    <th class="px-6 py-4">Lokasi Ruangan</th>
                                     <th class="px-6 py-4">Jumlah Stok / Status</th>
                                     <th class="px-6 py-4 text-right">Aksi</th>
                                 </tr>
@@ -333,29 +343,13 @@
                     badge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Menipis</span>';
                 }
 
-                // Render usage rooms summary text
-                let usageText = '';
-                if (item.usages && item.usages.length > 0) {
-                    const roomTotals = {};
-                    item.usages.forEach(u => {
-                        const rName = u.nama_ruangan || 'Tanpa Ruangan';
-                        roomTotals[rName] = (roomTotals[rName] || 0) + u.jumlah_digunakan;
-                    });
-                    const usageParts = Object.entries(roomTotals).map(([room, qty]) => `${room} (${qty} ${item.unit})`);
-                    usageText = `<div class="text-[11px] text-[#20394a] bg-[#6196aa]/10 border border-[#6196aa]/20 rounded-lg px-2.5 py-1 mt-2 inline-block font-semibold">Penggunaan: ${usageParts.join(', ')}</div>`;
-                } else {
-                    usageText = `<div class="text-[11px] text-gray-400 mt-2 italic">Belum pernah digunakan</div>`;
-                }
-
                 tableBody.innerHTML += `
                     <tr class="hover:bg-gray-50/50 transition-colors">
                         <td class="px-6 py-4">
                             <div class="font-semibold text-[#20394a]">${item.name}</div>
                             <div class="text-xs text-gray-400 mt-0.5">ID: BHP-0${item.id}</div>
-                            ${usageText}
                         </td>
                         <td class="px-6 py-4 text-gray-600">${item.category}</td>
-                        <td class="px-6 py-4 text-gray-600 font-medium">${item.rack}</td>
                         <td class="px-6 py-4">
                             <div class="flex items-center gap-2">
                                 <span class="font-bold text-[#20394a]">${item.stock} ${item.unit}</span>

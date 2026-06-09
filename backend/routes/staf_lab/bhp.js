@@ -5,7 +5,11 @@ const db = require('../../config/db');
 // GET /api/staf_lab/bhp
 router.get('/', async (req, res) => {
     try {
-        const [bhps] = await db.query('SELECT * FROM bhp');
+        const [bhps] = await db.query(`
+            SELECT b.*, k.nama_kategori AS kategori
+            FROM bhp b
+            LEFT JOIN kategori_bhp k ON b.id_kategori = k.id_kategori
+        `);
         
         for (const bhp of bhps) {
             // Get usage logs with room names
@@ -21,6 +25,33 @@ router.get('/', async (req, res) => {
         res.json({
             success: true,
             data: bhps
+        });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// GET /api/staf_lab/bhp/riwayat — list all usage logs
+router.get('/riwayat', async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT 
+                p.id_penggunaan,
+                p.jumlah_digunakan,
+                DATE_FORMAT(p.tanggal, '%d %M %Y') as tanggal_format,
+                p.tanggal,
+                b.nama_bhp,
+                b.satuan,
+                r.nama_ruangan
+            FROM penggunaan_bhp p
+            JOIN bhp b ON p.id_bhp = b.id_bhp
+            LEFT JOIN ruangan r ON p.id_ruangan = r.id_ruangan
+            ORDER BY p.tanggal DESC, p.id_penggunaan DESC
+        `);
+        res.json({
+            success: true,
+            data: rows
         });
     } catch (error) {
         console.error(error);

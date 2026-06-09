@@ -49,6 +49,18 @@ class StafLabController extends Controller
         return view('staf-lab.bhp', compact('bhpData', 'ruangan'));
     }
 
+    public function bhpRiwayat(Request $request)
+    {
+        $response = Http::get("{$this->apiUrl}/staf_lab/bhp/riwayat");
+        
+        $usages = [];
+        if ($response->successful() && $response->json('success')) {
+            $usages = $response->json('data');
+        }
+
+        return view('staf-lab.bhp_riwayat', compact('usages'));
+    }
+
     public function consumeBhp(Request $request)
     {
         $request->validate([
