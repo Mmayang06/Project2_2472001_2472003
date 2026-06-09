@@ -72,3 +72,12 @@ Route::middleware(['checkRole:administrator'])->group(function () {
     Route::put('/administrator/rooms/{id}', [AdministratorController::class, 'updateRoom']);
     Route::delete('/administrator/rooms/{id}', [AdministratorController::class, 'deleteRoom']);
 });
+
+Route::middleware(['checkRole:kaprodi'])->group(function () {
+    Route::get('/kaprodi/dashboard', [App\Http\Controllers\KaprodiController::class, 'dashboard']);
+    Route::get('/kaprodi/draf-pengadaan', [App\Http\Controllers\KaprodiController::class, 'drafPengadaan']);
+    Route::get('/kaprodi/draf-pengadaan/{id}/review', [App\Http\Controllers\KaprodiController::class, 'reviewDraft']);
+    Route::post('/kaprodi/draf-pengadaan/review-item', [App\Http\Controllers\KaprodiController::class, 'reviewItem']);
+    Route::get('/kaprodi/draf-pengadaan/{id}/finalize', [App\Http\Controllers\KaprodiController::class, 'finalizePage']);
+    Route::post('/kaprodi/draf-pengadaan/{id}/finalize', [App\Http\Controllers\KaprodiController::class, 'finalizeDraft']);
+});

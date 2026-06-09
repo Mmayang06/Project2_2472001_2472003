@@ -87,7 +87,7 @@
     <!-- ======================================================
          SIDEBAR
     ====================================================== -->
-    <aside class="w-full md:w-80 bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20">
+    <aside class="w-full md:w-80 bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20 min-h-screen md:h-screen md:sticky md:top-0 md:overflow-y-auto">
         <!-- Brand -->
         <div class="p-6 border-b border-[#6196aa]/20 flex items-center justify-between">
             <a href="/" class="flex items-center gap-3 group">
@@ -106,10 +106,10 @@
         <!-- User Profile -->
         <div class="p-6 border-b border-[#6196aa]/20 flex items-center gap-4">
             <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#6196aa] to-[#c9ccc3] flex items-center justify-center font-bold text-lg text-[#20394a] shadow-inner">
-                SK
+                {{ strtoupper(substr(session('user')['username'] ?? 'SL', 0, 2)) }}
             </div>
             <div class="overflow-hidden">
-                <h4 class="font-semibold text-sm truncate text-[#f9f5ed]">Staf Lab - Budi W.</h4>
+                <h4 class="font-semibold text-sm truncate text-[#f9f5ed]">Staf Lab - {{ session('user')['username'] ?? 'Staf Lab' }}</h4>
             </div>
         </div>
 
@@ -373,8 +373,8 @@
                         </select>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Teknisi <span class="text-rose-500">*</span></label>
-                        <input type="text" id="f-teknisi" required placeholder="Nama teknisi / petugas" class="w-full border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm">
+                        <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Teknisi</label>
+                        <input type="text" id="f-teknisi" readonly value="{{ session('user')['username'] ?? 'Staf Lab' }}" class="w-full border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed">
                     </div>
                 </div>
 
@@ -760,6 +760,7 @@
             // Reset form
             document.getElementById('maintenance-form').reset();
             document.getElementById('f-tanggal').value = new Date().toISOString().split('T')[0];
+            document.getElementById('f-teknisi').value = "{{ session('user')['username'] ?? 'Staf Lab' }}";
             document.getElementById('bhp-rows').innerHTML = '';
             document.getElementById('bhp-empty-hint').classList.remove('hidden');
             bhpRowCount = 0;

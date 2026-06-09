@@ -64,7 +64,7 @@
     </div>
 
     <!-- Sidebar -->
-    <aside class="w-full md:w-80 h-full bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20 overflow-hidden">
+    <aside class="w-full md:w-80 bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20 min-h-screen md:h-screen md:sticky md:top-0 md:overflow-y-auto">
         <!-- Brand Logo & App Name -->
         <div class="p-6 border-b border-[#6196aa]/20 flex items-center justify-between flex-shrink-0">
             <a href="/" class="flex items-center gap-3 group">
@@ -83,10 +83,10 @@
         <!-- User profile section -->
         <div class="p-6 border-b border-[#6196aa]/20 flex items-center gap-4 flex-shrink-0">
             <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#6196aa] to-[#c9ccc3] flex items-center justify-center font-bold text-lg text-[#20394a] shadow-inner">
-                SK
+                {{ strtoupper(substr(session('user')['username'] ?? 'SL', 0, 2)) }}
             </div>
             <div class="overflow-hidden">
-                <h4 class="font-semibold text-sm truncate text-[#f9f5ed]">Staf Lab - Budi W.</h4>
+                <h4 class="font-semibold text-sm truncate text-[#f9f5ed]">Staf Lab - {{ session('user')['username'] ?? 'Staf Lab' }}</h4>
             </div>
         </div>
 
@@ -256,6 +256,16 @@
                 </div>
 
                 <div>
+                    <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Pilih Ruangan Penggunaan</label>
+                    <select id="consume-room-select" required class="w-full bg-[#f9f5ed]/30 border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#6196aa] transition-all">
+                        <option value="">-- Pilih Ruangan --</option>
+                        @foreach($ruangan as $r)
+                        <option value="{{ $r->id_ruangan }}">{{ $r->nama_ruangan }}</option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <div>
                     <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Jumlah Digunakan</label>
                     <input type="number" id="consume-amount" min="1" required class="w-full bg-[#f9f5ed]/30 border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#6196aa] transition-all" placeholder="Misal: 5">
                     <span id="consume-stock-hint" class="text-xs text-gray-400 mt-1 block">Stok tersedia: 0 Pcs</span>
@@ -284,7 +294,8 @@
             rack: item.lokasi_rak || 'Belum Ditentukan',
             stock: item.stok,
             minStock: item.stok_minimal || 5,
-            unit: item.satuan || 'Pcs'
+            unit: item.satuan || 'Pcs',
+            usages: item.usages || []
         }));
 
         const holidays = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
@@ -322,11 +333,26 @@
                     badge = '<span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-amber-100 text-amber-800">Menipis</span>';
                 }
 
+                // Render usage rooms summary text
+                let usageText = '';
+                if (item.usages && item.usages.length > 0) {
+                    const roomTotals = {};
+                    item.usages.forEach(u => {
+                        const rName = u.nama_ruangan || 'Tanpa Ruangan';
+                        roomTotals[rName] = (roomTotals[rName] || 0) + u.jumlah_digunakan;
+                    });
+                    const usageParts = Object.entries(roomTotals).map(([room, qty]) => `${room} (${qty} ${item.unit})`);
+                    usageText = `<div class="text-[11px] text-[#20394a] bg-[#6196aa]/10 border border-[#6196aa]/20 rounded-lg px-2.5 py-1 mt-2 inline-block font-semibold">Penggunaan: ${usageParts.join(', ')}</div>`;
+                } else {
+                    usageText = `<div class="text-[11px] text-gray-400 mt-2 italic">Belum pernah digunakan</div>`;
+                }
+
                 tableBody.innerHTML += `
                     <tr class="hover:bg-gray-50/50 transition-colors">
                         <td class="px-6 py-4">
                             <div class="font-semibold text-[#20394a]">${item.name}</div>
-                            <div class="text-xs text-gray-400">ID: BHP-0${item.id}</div>
+                            <div class="text-xs text-gray-400 mt-0.5">ID: BHP-0${item.id}</div>
+                            ${usageText}
                         </td>
                         <td class="px-6 py-4 text-gray-600">${item.category}</td>
                         <td class="px-6 py-4 text-gray-600 font-medium">${item.rack}</td>
@@ -352,7 +378,7 @@
             });
         }
 
-        async function consumeBhp(id, jumlah) {
+        async function consumeBhp(id, jumlah, idRuangan) {
             const item = bhpData.find(b => b.id === id);
             if (item) {
                 if (item.stock >= jumlah) {
@@ -363,12 +389,21 @@
                                 'Content-Type': 'application/json',
                                 'X-CSRF-TOKEN': '{{ csrf_token() }}'
                             },
-                            body: JSON.stringify({ id_bhp: id, jumlah: jumlah })
+                            body: JSON.stringify({ id_bhp: id, jumlah: jumlah, id_ruangan: idRuangan })
                         });
                         const result = await response.json();
                         
                         if (result.success) {
                             item.stock -= jumlah;
+                            
+                            // Add to local usages array
+                            const roomOption = document.querySelector(`#consume-room-select option[value="${idRuangan}"]`);
+                            const roomName = roomOption ? roomOption.text : 'Ruangan';
+                            item.usages.push({
+                                jumlah_digunakan: jumlah,
+                                nama_ruangan: roomName
+                            });
+
                             showToast(`BHP ${item.name} digunakan sebanyak ${jumlah} ${item.unit}.`);
                             renderBhpTable();
                         } else {
@@ -390,6 +425,7 @@
                 document.getElementById('consume-item-id').value = item.id;
                 document.getElementById('consume-item-name').value = item.name;
                 document.getElementById('consume-amount').value = '';
+                document.getElementById('consume-room-select').value = '';
                 document.getElementById('consume-stock-hint').textContent = `Stok tersedia: ${item.stock} ${item.unit}`;
                 
                 const amountInput = document.getElementById('consume-amount');
@@ -419,9 +455,14 @@
             e.preventDefault();
             const itemId = parseInt(document.getElementById('consume-item-id').value);
             const amount = parseInt(document.getElementById('consume-amount').value);
+            const idRuangan = parseInt(document.getElementById('consume-room-select').value);
 
             const item = bhpData.find(b => b.id === itemId);
             if (item) {
+                if (!idRuangan) {
+                    alert('Silakan pilih ruangan terlebih dahulu.');
+                    return;
+                }
                 if (amount <= 0) {
                     alert('Jumlah harus minimal 1.');
                     return;
@@ -430,7 +471,7 @@
                     alert(`Stok tidak mencukupi! Hanya tersedia ${item.stock} ${item.unit}.`);
                     return;
                 }
-                await consumeBhp(itemId, amount);
+                await consumeBhp(itemId, amount, idRuangan);
                 closeConsumeModal();
             }
         }

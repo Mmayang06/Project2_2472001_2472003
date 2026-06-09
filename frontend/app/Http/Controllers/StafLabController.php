@@ -44,19 +44,23 @@ class StafLabController extends Controller
             $bhpData = $response->json('data');
         }
 
-        return view('staf-lab.bhp', compact('bhpData'));
+        $ruangan = \Illuminate\Support\Facades\DB::table('ruangan')->get();
+
+        return view('staf-lab.bhp', compact('bhpData', 'ruangan'));
     }
 
     public function consumeBhp(Request $request)
     {
         $request->validate([
             'id_bhp' => 'required|integer',
-            'jumlah' => 'required|integer|min:1'
+            'jumlah' => 'required|integer|min:1',
+            'id_ruangan' => 'required|integer'
         ]);
 
         $response = Http::post("{$this->apiUrl}/staf_lab/bhp/consume", [
             'id_bhp' => $request->id_bhp,
-            'jumlah' => $request->jumlah
+            'jumlah' => $request->jumlah,
+            'id_ruangan' => $request->id_ruangan
         ]);
 
         if ($response->successful() && $response->json('success')) {
@@ -119,7 +123,7 @@ class StafLabController extends Controller
 
         $payload = [
             'id_inventaris'    => $request->id_inventaris,
-            'id_user'          => session('user_id'),
+            'id_user'          => session('user')['id'] ?? null,
             'jenis_maintenance'=> $request->jenis_maintenance ?? 'Pemeliharaan',
             'tanggal'          => $request->tanggal,
             'kondisi_sebelum'  => $request->kondisi_sebelum,
