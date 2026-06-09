@@ -159,10 +159,11 @@ router.get('/ruangan-rekomendasi/:id_detail', async (req, res) => {
 
         // Get Labs with SPECIFIC broken items of this id_detail
         const [recommendedLabs] = await db.query(`
-            SELECT DISTINCT r.id_ruangan, r.nama_ruangan 
+            SELECT r.id_ruangan, r.nama_ruangan, COUNT(bi.id_inventaris) as broken_count
             FROM ruangan r 
             JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan 
             WHERE bi.kondisi != 'baik' AND bi.id_penggunaan = ? AND r.nama_ruangan != 'Storage'
+            GROUP BY r.id_ruangan, r.nama_ruangan
         `, [id_detail]);
 
         return res.json({

@@ -10,9 +10,8 @@ router.get('/', async (req, res) => {
                 dp.id_detail, dp.nama_barang, dp.jenis_barang,
                 bi.id_inventaris, bi.nomor_label, bi.kondisi
             FROM ruangan r
-            INNER JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan
-            INNER JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
-            WHERE bi.nomor_label IS NOT NULL
+            LEFT JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan AND bi.nomor_label IS NOT NULL
+            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             ORDER BY r.id_ruangan ASC, bi.nomor_label ASC
         `;
         
@@ -30,15 +29,17 @@ router.get('/', async (req, res) => {
                     barang: []
                 };
             }
-            rooms[row.id_ruangan].barang.push({
-                id_inventaris: row.id_inventaris,
-                id_detail: row.id_detail,
-                nama_barang: row.nama_barang,
-                jenis_barang: row.jenis_barang,
-                nomor_label: row.nomor_label,
-                kondisi: row.kondisi
-            });
-            rooms[row.id_ruangan].total_alat++;
+            if (row.id_inventaris) {
+                rooms[row.id_ruangan].barang.push({
+                    id_inventaris: row.id_inventaris,
+                    id_detail: row.id_detail,
+                    nama_barang: row.nama_barang,
+                    jenis_barang: row.jenis_barang,
+                    nomor_label: row.nomor_label,
+                    kondisi: row.kondisi
+                });
+                rooms[row.id_ruangan].total_alat++;
+            }
         }
         
         return res.json({ success: true, data: Object.values(rooms) });
@@ -66,6 +67,25 @@ router.get('/belum-dilabeli', async (req, res) => {
         `;
         const [rows] = await db.query(query);
         return res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Terjadi kesalahan' });
+    }
+});
+
+router.post('/verify-qr/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { qr_univ } = req.body;
+        
+        const [inv] = await db.query('SELECT qr_code FROM barang_inventaris WHERE id_inventaris = ?', [id]);
+        if (inv.length === 0) return res.status(404).json({ success: false, message: 'Barang tidak ditemukan' });
+        
+        if (inv[0].qr_code !== qr_univ) {
+            return res.json({ success: false, message: 'QR Universitas tidak valid! Pastikan anda memasukkan QR yang benar.' });
+        }
+        
+        return res.json({ success: true, message: 'QR Valid' });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ success: false, message: 'Terjadi kesalahan' });

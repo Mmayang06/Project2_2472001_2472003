@@ -6,6 +6,7 @@
     <title>Daftar Inventaris - Labventory</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
     <script>
         tailwind.config = {
             theme: {
@@ -146,31 +147,75 @@
         </div>
     </main>
 
-    <!-- Update Label Modal -->
-    <div id="updateLabelModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto pt-10 pb-10">
+    <!-- Verify QR Modal -->
+    <div id="verifyQrModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto pt-10 pb-10">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden flex flex-col max-h-full">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-[#f9f5ed]/50 shrink-0">
-                <h3 class="text-lg font-bold text-[#20394a]">Update Label Barang</h3>
-                <button onclick="closeUpdateModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                <h3 class="text-lg font-bold text-[#20394a]">Verifikasi Otorisasi QR</h3>
+                <button onclick="closeVerifyModal()" class="text-gray-400 hover:text-red-500 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
             <div class="p-6 overflow-y-auto flex-grow">
-                <form id="updateLabelForm" onsubmit="handleUpdateLabel(event)">
-                    <input type="hidden" id="modal_id_inventaris">
-                    <div class="mb-4">
+                <form id="verifyQrForm" onsubmit="handleVerifyQr(event)">
+                    <input type="hidden" id="modal_qr_id_inventaris">
+                    <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-1">QR Universitas</label>
-                        <input type="text" id="modal_qr_univ" required placeholder="Masukkan QR yang didapat saat penerimaan" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
-                        <p class="text-xs text-gray-500 mt-2">Masukkan kode QR dari Universitas sebagai otorisasi label.</p>
+                        
+                        <!-- Upload Area -->
+                        <div class="mt-2 mb-4">
+                            <label for="qr_image_upload" class="flex flex-col items-center justify-center w-full h-32 border-2 border-gray-300 border-dashed rounded-lg cursor-pointer bg-gray-50 hover:bg-gray-100 transition-colors relative">
+                                <div class="flex flex-col items-center justify-center pt-5 pb-6">
+                                    <svg class="w-8 h-8 mb-3 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                                    <p class="mb-1 text-sm text-gray-500 font-semibold">Klik untuk upload gambar QR Code</p>
+                                    <p class="text-xs text-gray-500">PNG, JPG, atau JPEG</p>
+                                </div>
+                                <input id="qr_image_upload" type="file" accept="image/*" class="hidden" onchange="handleQrUpload(event)" />
+                            </label>
+                        </div>
+
+                        <div class="flex items-center gap-4 mb-4">
+                            <div class="h-px bg-gray-200 flex-1"></div>
+                            <span class="text-xs text-gray-400 font-bold uppercase tracking-wider">Atau masukkan kode manual</span>
+                            <div class="h-px bg-gray-200 flex-1"></div>
+                        </div>
+
+                        <input type="text" id="modal_qr_univ" required placeholder="Masukkan teks kode QR secara manual..." class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
+                        <p class="text-xs text-gray-500 mt-2">Otorisasi universitas diperlukan sebelum dapat memberikan label barang.</p>
                     </div>
+                    <canvas id="qr_canvas" hidden></canvas>
+                    <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
+                        <button type="button" onclick="closeVerifyModal()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
+                        <button type="submit" id="btn_verify_qr" class="px-5 py-2.5 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">
+                            Verifikasi QR
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Assign Label Modal -->
+    <div id="assignLabelModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto pt-10 pb-10">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden flex flex-col max-h-full">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-emerald-50 shrink-0">
+                <h3 class="text-lg font-bold text-emerald-800">QR Tervalidasi! Berikan Label</h3>
+                <button onclick="closeAssignModal()" class="text-gray-400 hover:text-red-500 transition-colors">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-6 overflow-y-auto flex-grow">
+                <form id="assignLabelForm">
+                    <input type="hidden" id="modal_assign_id_inventaris">
+                    <input type="hidden" id="modal_assign_qr_univ">
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Label</label>
                         <input type="text" id="modal_nomor_label" required placeholder="Contoh: ELEK-001" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
                         <p class="text-xs text-gray-500 mt-2">Sistem akan secara otomatis men-generate QR Code berdasarkan nomor label yang dimasukkan.</p>
                     </div>
                     <div class="flex justify-end gap-3 pt-4 border-t border-gray-100">
-                        <button type="button" onclick="closeUpdateModal()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
-                        <button type="submit" id="btn_update_label" class="px-5 py-2.5 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">
+                        <button type="button" onclick="closeAssignModal()" class="px-5 py-2.5 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
+                        <button type="button" onclick="handleAssignLabel(event)" id="btn_assign_label" class="px-5 py-2.5 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">
                             Simpan Label
                         </button>
                     </div>
@@ -192,7 +237,7 @@
     </div>
 
     <!-- Duplicate Label Modal -->
-    <div id="duplicateModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+    <div id="duplicateModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden p-6">
             <div class="flex items-start gap-4 mb-4">
                 <div class="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex-shrink-0 flex items-center justify-center">
@@ -282,7 +327,10 @@
                     const currentItems = room.barang.slice(start, end);
                     
                     let cardsHtml = '';
-                    currentItems.forEach(item => {
+                    if (currentItems.length === 0) {
+                        cardsHtml = '<div class="col-span-full text-center py-8 text-gray-500 font-medium bg-white/30 backdrop-blur-sm rounded-xl border border-white/40">Tidak ada barang berlabel di ruangan ini.</div>';
+                    } else {
+                        currentItems.forEach(item => {
                         let badgeHtml = '';
                         if (item.kondisi !== 'baik') {
                             badgeHtml = `
@@ -318,6 +366,7 @@
                         </a>
                         `;
                     });
+                    }
 
                     const paginationHtml = renderPagination(room.barang.length, itemsPerPage, currentPage, index);
 
@@ -417,7 +466,7 @@
                         </td>
                         <td class="px-6 py-4 text-gray-600">${item.nama_ruangan ? item.nama_ruangan + ' (' + item.lokasi + ')' : '-'}</td>
                         <td class="px-6 py-4 text-right">
-                            <button onclick="openUpdateModal(${item.id_inventaris})" class="text-xs font-bold text-white bg-[#6196aa] hover:bg-[#20394a] transition-colors px-3 py-2 rounded-lg shadow-sm">
+                            <button onclick="openVerifyModal(${item.id_inventaris})" class="text-xs font-bold text-white bg-[#6196aa] hover:bg-[#20394a] transition-colors px-3 py-2 rounded-lg shadow-sm">
                                 Berikan Label & QR
                             </button>
                         </td>
@@ -427,17 +476,64 @@
                 tbody.innerHTML = html;
             };
 
-            window.openUpdateModal = (id) => {
-                document.getElementById('modal_id_inventaris').value = id;
-                document.getElementById('modal_nomor_label').value = '';
-                document.getElementById('modal_qr_univ').value = '';
-                document.getElementById('updateLabelModal').classList.remove('hidden');
-                document.getElementById('updateLabelModal').classList.add('flex');
+            window.handleQrUpload = (event) => {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    const img = new Image();
+                    img.onload = () => {
+                        const canvas = document.getElementById('qr_canvas');
+                        const ctx = canvas.getContext('2d');
+                        canvas.width = img.width;
+                        canvas.height = img.height;
+                        ctx.drawImage(img, 0, 0, img.width, img.height);
+                        
+                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
+                            inversionAttempts: "dontInvert",
+                        });
+                        
+                        if (code) {
+                            document.getElementById('modal_qr_univ').value = code.data;
+                            // Automatically trigger verification to save time
+                            document.getElementById('btn_verify_qr').click();
+                        } else {
+                            alert('Tidak ada QR Code yang terdeteksi pada gambar. Silakan coba gambar lain yang lebih jelas, atau ketik kode teksnya secara manual.');
+                        }
+                        
+                        // Reset file input so same file can be selected again if needed
+                        event.target.value = '';
+                    };
+                    img.src = e.target.result;
+                };
+                reader.readAsDataURL(file);
             };
 
-            window.closeUpdateModal = () => {
-                document.getElementById('updateLabelModal').classList.add('hidden');
-                document.getElementById('updateLabelModal').classList.remove('flex');
+            window.openVerifyModal = (id) => {
+                document.getElementById('modal_qr_id_inventaris').value = id;
+                document.getElementById('modal_qr_univ').value = '';
+                document.getElementById('verifyQrModal').classList.remove('hidden');
+                document.getElementById('verifyQrModal').classList.add('flex');
+            };
+
+            window.closeVerifyModal = () => {
+                document.getElementById('verifyQrModal').classList.add('hidden');
+                document.getElementById('verifyQrModal').classList.remove('flex');
+            };
+
+            window.openAssignModal = (id, qr) => {
+                document.getElementById('modal_assign_id_inventaris').value = id;
+                document.getElementById('modal_assign_qr_univ').value = qr;
+                document.getElementById('modal_nomor_label').value = '';
+                document.getElementById('assignLabelModal').classList.remove('hidden');
+                document.getElementById('assignLabelModal').classList.add('flex');
+            };
+
+            window.closeAssignModal = () => {
+                document.getElementById('assignLabelModal').classList.add('hidden');
+                document.getElementById('assignLabelModal').classList.remove('flex');
             };
 
             window.showSuccessModal = (msg) => {
@@ -467,18 +563,54 @@
                 const suggestion = document.getElementById('dup-suggestion').textContent;
                 document.getElementById('modal_nomor_label').value = suggestion;
                 closeDuplicateModal();
-                // Optionally auto submit here
-                document.getElementById('btn_update_label').click();
+                document.getElementById('btn_assign_label').click();
             };
 
-            window.handleUpdateLabel = async (e) => {
+            window.handleVerifyQr = async (e) => {
                 e.preventDefault();
-                const id = document.getElementById('modal_id_inventaris').value;
-                const nomor_label = document.getElementById('modal_nomor_label').value;
+                const id = document.getElementById('modal_qr_id_inventaris').value;
                 const qr_univ = document.getElementById('modal_qr_univ').value;
 
-                document.getElementById('btn_update_label').disabled = true;
-                document.getElementById('btn_update_label').innerText = 'Menyimpan...';
+                document.getElementById('btn_verify_qr').disabled = true;
+                document.getElementById('btn_verify_qr').innerText = 'Memverifikasi...';
+
+                try {
+                    const response = await fetch(`http://localhost:3000/api/staf_admin/inventaris/verify-qr/${id}`, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ qr_univ })
+                    });
+                    const result = await response.json();
+                    if (result.success) {
+                        closeVerifyModal();
+                        openAssignModal(id, qr_univ);
+                    } else {
+                        alert(result.message || 'QR tidak valid');
+                    }
+                } catch (error) {
+                    console.error(error);
+                    alert('Terjadi kesalahan jaringan');
+                } finally {
+                    document.getElementById('btn_verify_qr').disabled = false;
+                    document.getElementById('btn_verify_qr').innerText = 'Verifikasi QR';
+                }
+            };
+
+            window.handleAssignLabel = async (e) => {
+                if (e) e.preventDefault();
+                const id = document.getElementById('modal_assign_id_inventaris').value;
+                const nomor_label = document.getElementById('modal_nomor_label').value;
+                const qr_univ = document.getElementById('modal_assign_qr_univ').value;
+
+                if (!nomor_label || nomor_label.trim() === '') {
+                    alert('Nomor label wajib diisi!');
+                    return;
+                }
+
+                document.getElementById('btn_assign_label').disabled = true;
+                document.getElementById('btn_assign_label').innerText = 'Menyimpan...';
 
                 try {
                     const response = await fetch(`http://localhost:3000/api/staf_admin/inventaris/update-label/${id}`, {
@@ -490,7 +622,7 @@
                     });
                     const result = await response.json();
                     if (result.success) {
-                        closeUpdateModal();
+                        closeAssignModal();
                         showSuccessModal(result.message || 'Nomor label berhasil disimpan');
                         fetchData(); // Reload both tabs
                     } else if (result.isDuplicate) {
@@ -502,8 +634,8 @@
                     console.error(error);
                     alert('Terjadi kesalahan jaringan');
                 } finally {
-                    document.getElementById('btn_update_label').disabled = false;
-                    document.getElementById('btn_update_label').innerText = 'Simpan Label';
+                    document.getElementById('btn_assign_label').disabled = false;
+                    document.getElementById('btn_assign_label').innerText = 'Simpan Label';
                 }
             };
 

@@ -203,12 +203,7 @@
                                     </a>
                                     @endif
 
-                                    @if($draft['jumlah_diterima'] >= $draft['jumlah'])
-                                    <span class="text-xs text-emerald-600 font-bold flex items-center justify-end gap-1 w-full mt-1">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        Selesai
-                                    </span>
-                                    @endif
+
                                 </td>
                             </tr>
                             @empty
@@ -290,6 +285,20 @@
         </div>
     </div>
 
+    <!-- Error Modal -->
+    <div id="errorModal" class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden p-6 text-center relative border border-gray-100">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#20394a] mb-2">Gagal</h3>
+            <p id="errorModalMessage" class="text-sm text-gray-500 mb-6"></p>
+            <button onclick="closeErrorModal()" class="w-full px-4 py-2 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-md transition-colors">Tutup</button>
+        </div>
+    </div>
+
     <!-- CSRF Token for fetch -->
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
@@ -297,9 +306,25 @@
         let currentSelectElement = null;
         let originalStatusValue = null;
 
+        function showErrorModal(msg) {
+            document.getElementById('errorModalMessage').innerText = msg;
+            document.getElementById('errorModal').classList.remove('hidden');
+            document.getElementById('errorModal').classList.add('flex');
+        }
+
+        function closeErrorModal() {
+            document.getElementById('errorModal').classList.add('hidden');
+            document.getElementById('errorModal').classList.remove('flex');
+        }
+
         function handleStatusChange(selectElement, id, name, maxQty, oldStatus) {
             const newStatus = selectElement.value;
             if (newStatus === 'telah_diterima') {
+                if (maxQty <= 0) {
+                    showErrorModal("Seluruh unit untuk barang ini sudah diterima (kuantitas maksimal sudah tercapai).");
+                    selectElement.value = oldStatus;
+                    return;
+                }
                 currentSelectElement = selectElement;
                 originalStatusValue = oldStatus;
                 openReceiveModal(id, name, maxQty);
@@ -406,7 +431,12 @@
                     document.getElementById('suggestionModalMessage').innerHTML = warningMessage;
                     document.getElementById('suggestionModal').classList.remove('hidden');
                     document.getElementById('suggestionModal').classList.add('flex');
-                    selectEl.value = ''; // Reset selection
+                    // Auto-select the first suggested room or storage
+                    if (recommendedLabsCache.length > 0) {
+                        selectEl.value = recommendedLabsCache[0].id_ruangan;
+                    } else {
+                        selectEl.value = storageRoomCache.id_ruangan;
+                    }
                 }
             }
         }
@@ -415,23 +445,57 @@
             document.getElementById('suggestionModal').classList.add('hidden');
             document.getElementById('suggestionModal').classList.remove('flex');
         }
+    </script>
+
+    <!-- Split Confirmation Modal -->
+    <div id="splitConfirmModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden p-6 text-center relative border border-gray-100">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-blue-100 mb-4">
+                <svg class="h-6 w-6 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#20394a] mb-2">Informasi Alokasi</h3>
+            <p id="splitConfirmMessage" class="text-sm text-gray-500 mb-6"></p>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeSplitConfirmModal()" class="w-full px-4 py-2 border border-gray-300 rounded-xl text-sm font-semibold text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
+                <button type="button" onclick="executeReceiveSubmit()" class="w-full px-4 py-2 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-md transition-colors">Lanjutkan</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function closeSplitConfirmModal() {
+            document.getElementById('splitConfirmModal').classList.add('hidden');
+            document.getElementById('splitConfirmModal').classList.remove('flex');
+        }
 
         async function handleReceiveSubmit(e) {
             e.preventDefault();
-            const qty = parseInt(document.getElementById('input_qty').value);
-            if (qty > maxQtyAllowed) {
-                alert(`Maksimal unit yang bisa diterima adalah ${maxQtyAllowed}`);
-                return false;
-            }
-
+            const qty = maxQtyAllowed; // because input is hidden and we just receive the max allowed
+            
             const selectedRoomId = parseInt(document.getElementById('ruangan_select').value);
-            if (!selectedRoomId) {
-                return false;
+            if (!selectedRoomId) return false;
+
+            if (recommendedLabsCache && storageRoomCache && selectedRoomId !== storageRoomCache.id_ruangan) {
+                const lab = recommendedLabsCache.find(r => r.id_ruangan === selectedRoomId);
+                if (lab && qty > lab.broken_count) {
+                    const msg = `Barang yang dialokasikan ke lab ini untuk menggantikan barang yang rusak hanya <strong>${lab.broken_count} unit</strong>.<br><br>Sisa barang sebanyak <strong>${qty - lab.broken_count} unit</strong> akan otomatis dialokasikan ke ruangan <strong>Storage</strong>.`;
+                    document.getElementById('splitConfirmMessage').innerHTML = msg;
+                    document.getElementById('splitConfirmModal').classList.remove('hidden');
+                    document.getElementById('splitConfirmModal').classList.add('flex');
+                    return false;
+                }
             }
 
+            executeReceiveSubmit();
+        }
+
+        function executeReceiveSubmit() {
+            closeSplitConfirmModal();
             document.getElementById('btn_submit').disabled = true;
             document.getElementById('btn_submit').innerText = 'Memproses...';
-            e.target.submit();
+            document.getElementById('receiveForm').submit();
         }
     </script>
     @if(session('qr_univ'))
@@ -452,14 +516,26 @@
         </div>
     </div>
     <script>
-        function downloadQrUniv(qr) {
-            const element = document.createElement('a');
-            const file = new Blob([qr], {type: 'text/plain'});
-            element.href = URL.createObjectURL(file);
-            element.download = 'QR_Universitas_' + qr + '.txt';
-            document.body.appendChild(element);
-            element.click();
-            document.body.removeChild(element);
+        async function downloadQrUniv(qr) {
+            try {
+                // Generate QR code using public API
+                const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qr}`);
+                if (!response.ok) throw new Error('Network response was not ok');
+                const blob = await response.blob();
+                
+                const url = window.URL.createObjectURL(blob);
+                const element = document.createElement('a');
+                element.style.display = 'none';
+                element.href = url;
+                element.download = 'QR_Universitas_' + qr + '.png';
+                document.body.appendChild(element);
+                element.click();
+                document.body.removeChild(element);
+                window.URL.revokeObjectURL(url);
+            } catch (error) {
+                console.error(error);
+                alert('Gagal mendownload gambar QR Code. Silakan coba lagi.');
+            }
         }
     </script>
     @endif
