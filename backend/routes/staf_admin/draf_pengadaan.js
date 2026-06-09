@@ -76,18 +76,44 @@ router.post('/terima', async (req, res) => {
         
         await connection.beginTransaction();
 
-        // 1. Update ruangan di detail pengadaan jika ada
+        // 1. Get Storage ID
+        const [storage] = await connection.query('SELECT id_ruangan FROM ruangan WHERE nama_ruangan = "Storage" LIMIT 1');
+        const storage_id = storage[0] ? storage[0].id_ruangan : null;
+
+        // 2. Update ruangan di detail pengadaan jika ada
         if (id_ruangan) {
             await connection.query('UPDATE detail_pengadaan SET id_ruangan = ? WHERE id_detail = ?', [id_ruangan, id_detail]);
         }
 
-        // 2. Insert tiap item ke barang_inventaris dengan nomor_label NULL
         const qty = parseInt(input_qty) || 1;
         const qr_univ = 'UNIV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
-        for (let i = 0; i < qty; i++) {
+        
+        let allocateToRoom = 0;
+        let allocateToStorage = 0;
+        
+        if (id_ruangan && id_ruangan != storage_id) {
+            const [brokenCheck] = await connection.query("SELECT COUNT(*) as c FROM barang_inventaris WHERE id_ruangan = ? AND id_penggunaan = ? AND kondisi != 'baik'", [id_ruangan, id_detail]);
+            const brokenCount = brokenCheck[0].c;
+            
+            allocateToRoom = Math.min(qty, brokenCount);
+            allocateToStorage = qty - allocateToRoom;
+        } else {
+            allocateToStorage = qty;
+        }
+        
+        // Insert for selected room
+        for (let i = 0; i < allocateToRoom; i++) {
             await connection.query(
                 'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
-                [null, qr_univ, 'baik', id_ruangan || null, id_detail, tanggal_penerimaan]
+                [null, qr_univ, 'baik', id_ruangan, id_detail, tanggal_penerimaan]
+            );
+        }
+        
+        // Insert for storage
+        for (let i = 0; i < allocateToStorage; i++) {
+            await connection.query(
+                'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
+                [null, qr_univ, 'baik', storage_id, id_detail, tanggal_penerimaan]
             );
         }
 
@@ -113,6 +139,41 @@ router.post('/terima', async (req, res) => {
         return res.status(500).json({ success: false, message: 'Gagal memproses penerimaan.' });
     } finally {
         connection.release();
+    }
+});
+
+router.get('/ruangan-rekomendasi/:id_detail', async (req, res) => {
+    try {
+        const { id_detail } = req.params;
+
+        // Get Storage room
+        const [storage] = await db.query('SELECT id_ruangan, nama_ruangan FROM ruangan WHERE nama_ruangan = "Storage" LIMIT 1');
+        
+        // Get Labs with ANY broken items (excluding Storage)
+        const [labsWithBroken] = await db.query(`
+            SELECT DISTINCT r.id_ruangan, r.nama_ruangan 
+            FROM ruangan r 
+            JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan 
+            WHERE bi.kondisi != 'baik' AND r.nama_ruangan != 'Storage'
+        `);
+
+        // Get Labs with SPECIFIC broken items of this id_detail
+        const [recommendedLabs] = await db.query(`
+            SELECT DISTINCT r.id_ruangan, r.nama_ruangan 
+            FROM ruangan r 
+            JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan 
+            WHERE bi.kondisi != 'baik' AND bi.id_penggunaan = ? AND r.nama_ruangan != 'Storage'
+        `, [id_detail]);
+
+        return res.json({
+            success: true,
+            storage_room: storage[0] || null,
+            labs_with_broken: labsWithBroken,
+            recommended_labs: recommendedLabs
+        });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Gagal memuat rekomendasi ruangan' });
     }
 });
 

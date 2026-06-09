@@ -254,16 +254,13 @@
                         </div>
                         <div>
                             <label class="block text-sm font-medium text-gray-700 mb-1">Alokasi Ruangan (Tujuan Lab)</label>
-                            <select name="id_ruangan" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
-                                <option value="">-- Pilih Ruangan --</option>
-                                @foreach($ruangan as $r)
-                                <option value="{{ $r->id_ruangan }}">{{ $r->nama_ruangan }}</option>
-                                @endforeach
+                            <select name="id_ruangan" id="ruangan_select" onchange="handleRoomSelection(this)" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
+                                <option value="">-- Memuat Ruangan... --</option>
                             </select>
                         </div>
                     </div>
 
-                    <div class="mb-6">
+                    <div class="mb-6 hidden">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Jumlah Unit Diterima Saat Ini</label>
                         <input type="number" id="input_qty" name="input_qty" min="1" required class="w-full md:w-1/3 rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
                     </div>
@@ -276,6 +273,20 @@
                     </div>
                 </form>
             </div>
+        </div>
+    </div>
+
+    <!-- Suggestion Modal -->
+    <div id="suggestionModal" class="fixed inset-0 z-[60] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-md mx-4 overflow-hidden p-6 text-center relative border border-gray-100">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-amber-100 mb-4">
+                <svg class="h-6 w-6 text-amber-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                </svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#20394a] mb-2">Perhatian</h3>
+            <p id="suggestionModalMessage" class="text-sm text-gray-500 mb-6"></p>
+            <button onclick="closeSuggestionModal()" class="w-full px-4 py-2 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-md transition-colors">Saya Mengerti</button>
         </div>
     </div>
 
@@ -320,9 +331,10 @@
             }
         }
 
-        let maxQtyAllowed = 0;
+        let recommendedLabsCache = null;
+        let storageRoomCache = null;
 
-        function openReceiveModal(id, name, maxQty) {
+        async function openReceiveModal(id, name, maxQty) {
             document.getElementById('modal_id_detail').value = id;
             document.getElementById('modal_nama_barang').innerText = name;
             document.getElementById('modal_max_qty').innerText = maxQty;
@@ -332,6 +344,31 @@
             qtyInput.value = maxQty; // auto fill max
             maxQtyAllowed = maxQty;
             
+            // Fetch ruangan recommendations
+            const selectEl = document.getElementById('ruangan_select');
+            selectEl.innerHTML = '<option value="">-- Memuat Ruangan... --</option>';
+            try {
+                const response = await fetch(`http://localhost:3000/api/staf_admin/draf_pengadaan/ruangan-rekomendasi/${id}`);
+                const data = await response.json();
+                if (data.success) {
+                    recommendedLabsCache = data.recommended_labs;
+                    storageRoomCache = data.storage_room;
+
+                    selectEl.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
+                    
+                    if (data.storage_room) {
+                        selectEl.innerHTML += `<option value="${data.storage_room.id_ruangan}">${data.storage_room.nama_ruangan}</option>`;
+                    }
+                    
+                    data.labs_with_broken.forEach(lab => {
+                        selectEl.innerHTML += `<option value="${lab.id_ruangan}">${lab.nama_ruangan}</option>`;
+                    });
+                }
+            } catch (err) {
+                console.error(err);
+                selectEl.innerHTML = '<option value="">-- Gagal memuat ruangan --</option>';
+            }
+
             document.getElementById('receiveModal').classList.remove('hidden');
             document.getElementById('receiveModal').classList.add('flex');
         }
@@ -344,11 +381,51 @@
             document.getElementById('receiveModal').classList.remove('flex');
         }
 
+        function handleRoomSelection(selectEl) {
+            const selectedRoomId = parseInt(selectEl.value);
+            if (!selectedRoomId) return;
+
+            if (recommendedLabsCache && storageRoomCache) {
+                const isRecommended = recommendedLabsCache.some(r => r.id_ruangan === selectedRoomId);
+                const isStorage = (selectedRoomId === storageRoomCache.id_ruangan);
+                
+                let warningMessage = '';
+                if (recommendedLabsCache.length > 0) {
+                    if (!isRecommended) {
+                        const recNames = recommendedLabsCache.map(r => r.nama_ruangan).join(', ');
+                        warningMessage = `Tidak ada nama barang yang rusak di lab ini.<br><br><span class="font-bold text-[#6196aa]">Saran:</span> Silahkan alokasikan ke lab yang memiliki barang rusak yang cocok, yaitu: <strong>${recNames}</strong>`;
+                    }
+                } else {
+                    if (!isStorage) {
+                        warningMessage = `Tidak ada nama barang yang rusak di lab ini.<br><br><span class="font-bold text-[#6196aa]">Saran:</span> Tidak ada barang serupa yang rusak di lab manapun. Silahkan masukkan ke ruangan <strong>Storage</strong>.`;
+                    }
+                }
+
+                if (warningMessage) {
+                    // Show modal and reset select
+                    document.getElementById('suggestionModalMessage').innerHTML = warningMessage;
+                    document.getElementById('suggestionModal').classList.remove('hidden');
+                    document.getElementById('suggestionModal').classList.add('flex');
+                    selectEl.value = ''; // Reset selection
+                }
+            }
+        }
+
+        function closeSuggestionModal() {
+            document.getElementById('suggestionModal').classList.add('hidden');
+            document.getElementById('suggestionModal').classList.remove('flex');
+        }
+
         async function handleReceiveSubmit(e) {
             e.preventDefault();
             const qty = parseInt(document.getElementById('input_qty').value);
             if (qty > maxQtyAllowed) {
                 alert(`Maksimal unit yang bisa diterima adalah ${maxQtyAllowed}`);
+                return false;
+            }
+
+            const selectedRoomId = parseInt(document.getElementById('ruangan_select').value);
+            if (!selectedRoomId) {
                 return false;
             }
 
