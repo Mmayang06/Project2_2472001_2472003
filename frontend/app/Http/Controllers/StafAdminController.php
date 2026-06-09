@@ -77,7 +77,11 @@ class StafAdminController extends Controller
         ])->post('http://localhost:3000/api/staf_admin/draf_pengadaan/terima', $request->all());
 
         if ($response->successful() && $response->json('success')) {
-            return redirect()->back()->with('success', 'Barang berhasil diterima!');
+            $qr_univ = $response->json('qr_univ');
+            return redirect()->back()->with([
+                'success' => 'Barang berhasil diterima!',
+                'qr_univ' => $qr_univ
+            ]);
         }
         return redirect()->back()->with('error', 'Gagal memproses penerimaan barang.');
     }

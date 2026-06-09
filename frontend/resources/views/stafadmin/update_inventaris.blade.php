@@ -205,6 +205,30 @@
                     </div>
                 </div>
 
+                <hr class="border-gray-100">
+
+                <!-- Individual Items Status -->
+                <div>
+                    <h3 class="flex items-center gap-2 text-lg font-bold text-[#20394a] mb-4">
+                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
+                        Daftar Item & Kondisi
+                    </h3>
+                    <div class="overflow-x-auto bg-white border border-gray-100 rounded-xl shadow-sm">
+                        <table class="w-full text-left text-sm border-collapse">
+                            <thead>
+                                <tr class="bg-gray-50 text-gray-500 uppercase tracking-wider text-xs font-bold border-b border-gray-100">
+                                    <th class="px-4 py-3">Nomor Label</th>
+                                    <th class="px-4 py-3">QR Code</th>
+                                    <th class="px-4 py-3">Kondisi Saat Ini</th>
+                                </tr>
+                            </thead>
+                            <tbody id="items-tbody" class="divide-y divide-gray-100">
+                                <!-- Data rendered here -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
             </div>
         </div>
     </main>
@@ -242,6 +266,35 @@
                     document.getElementById('info-harga').textContent = data.harga ? formatter.format(data.harga) : '-';
                     document.getElementById('info-sumber-dana').innerHTML = data.tahun_pengadaan ? 
                         `Pengadaan <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500">Tahun: ${data.tahun_pengadaan}</span>` : '-';
+
+                    // Render items list
+                    if (data.items && data.items.length > 0) {
+                        const tbody = document.getElementById('items-tbody');
+                        let html = '';
+                        data.items.forEach(it => {
+                            let condClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                            let condText = 'Bagus';
+                            if (it.kondisi !== 'baik') {
+                                condClass = 'bg-red-50 text-red-700 border-red-200';
+                                condText = 'Rusak';
+                            }
+                            
+                            html += `
+                                <tr class="hover:bg-gray-50 transition-colors">
+                                    <td class="px-4 py-3 font-semibold text-[#20394a]">${it.nomor_label}</td>
+                                    <td class="px-4 py-3 text-gray-600 font-mono text-xs">${it.qr_code}</td>
+                                    <td class="px-4 py-3">
+                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${condClass}">
+                                            ${condText}
+                                        </span>
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                        tbody.innerHTML = html;
+                    } else if (document.getElementById('items-tbody')) {
+                        document.getElementById('items-tbody').innerHTML = '<tr><td colspan="3" class="px-4 py-6 text-center text-gray-500">Belum ada item yang dilabeli.</td></tr>';
+                    }
                 }
             } catch (error) {
                 console.error('Error fetching inventory detail:', error);

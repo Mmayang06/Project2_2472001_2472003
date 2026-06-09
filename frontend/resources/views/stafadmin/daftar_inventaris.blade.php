@@ -158,6 +158,11 @@
             <div class="p-6 overflow-y-auto flex-grow">
                 <form id="updateLabelForm" onsubmit="handleUpdateLabel(event)">
                     <input type="hidden" id="modal_id_inventaris">
+                    <div class="mb-4">
+                        <label class="block text-sm font-medium text-gray-700 mb-1">QR Universitas</label>
+                        <input type="text" id="modal_qr_univ" required placeholder="Masukkan QR yang didapat saat penerimaan" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
+                        <p class="text-xs text-gray-500 mt-2">Masukkan kode QR dari Universitas sebagai otorisasi label.</p>
+                    </div>
                     <div class="mb-6">
                         <label class="block text-sm font-medium text-gray-700 mb-1">Nomor Label</label>
                         <input type="text" id="modal_nomor_label" required placeholder="Contoh: ELEK-001" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
@@ -278,29 +283,36 @@
                     
                     let cardsHtml = '';
                     currentItems.forEach(item => {
-                        const lowStockBadge = item.stok <= 5 ? `
-                            <div class="absolute top-3 right-3 z-10 bg-[#20394a] text-white text-[10px] font-bold px-2 py-1 rounded-full shadow-sm">
-                                Low-Stock Alerts
-                            </div>
-                        ` : '';
-                        
-                        const stockClass = item.stok <= 5 ? 'text-amber-600' : 'text-gray-800';
+                        let badgeHtml = '';
+                        if (item.kondisi !== 'baik') {
+                            badgeHtml = `
+                                <div class="absolute top-3 right-3 z-10">
+                                    <span class="bg-red-50 text-red-600 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm border border-red-200 flex items-center gap-1.5">
+                                        Perlu Perbaikan
+                                    </span>
+                                </div>
+                            `;
+                        }
+
                         const urlUpdate = '/stafadmin/update-inventaris/' + item.id_detail;
                         
                         cardsHtml += `
                         <a href="${urlUpdate}" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
-                            ${lowStockBadge}
+                            ${badgeHtml}
                             <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6 relative">
                                 <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
                             </div>
                             <div class="p-4">
                                 <div class="flex justify-between items-center mb-2">
-                                    <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: ${item.contoh_kode || 'N/A'}</span>
+                                    <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: ${item.nomor_label || 'N/A'}</span>
                                     <span class="text-xs font-semibold text-gray-500">${item.jenis_barang || 'Barang'}</span>
                                 </div>
                                 <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate" title="${item.nama_barang}">${item.nama_barang}</h4>
-                                <div class="flex justify-between items-end">
-                                    <span class="text-xs text-gray-500">Stok Tersedia: <strong class="${stockClass}">${item.stok} Unit</strong></span>
+                                <div class="flex flex-col gap-1 mt-1">
+                                    <div class="flex items-center justify-between text-xs font-bold border-t border-gray-100 pt-3">
+                                        <span class="text-gray-500">Kondisi Alat:</span>
+                                        <span class="${item.kondisi === 'baik' ? 'text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100' : 'text-red-600 bg-red-50 px-2 py-1 rounded-md border border-red-100'} uppercase text-[10px] tracking-wider">${item.kondisi === 'baik' ? 'Bagus' : 'Rusak'}</span>
+                                    </div>
                                 </div>
                             </div>
                         </a>
@@ -418,6 +430,7 @@
             window.openUpdateModal = (id) => {
                 document.getElementById('modal_id_inventaris').value = id;
                 document.getElementById('modal_nomor_label').value = '';
+                document.getElementById('modal_qr_univ').value = '';
                 document.getElementById('updateLabelModal').classList.remove('hidden');
                 document.getElementById('updateLabelModal').classList.add('flex');
             };
@@ -462,6 +475,7 @@
                 e.preventDefault();
                 const id = document.getElementById('modal_id_inventaris').value;
                 const nomor_label = document.getElementById('modal_nomor_label').value;
+                const qr_univ = document.getElementById('modal_qr_univ').value;
 
                 document.getElementById('btn_update_label').disabled = true;
                 document.getElementById('btn_update_label').innerText = 'Menyimpan...';
@@ -472,7 +486,7 @@
                         headers: {
                             'Content-Type': 'application/json'
                         },
-                        body: JSON.stringify({ nomor_label })
+                        body: JSON.stringify({ nomor_label, qr_univ })
                     });
                     const result = await response.json();
                     if (result.success) {

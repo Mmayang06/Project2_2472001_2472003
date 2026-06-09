@@ -8,13 +8,12 @@ router.get('/', async (req, res) => {
             SELECT 
                 r.id_ruangan, r.nama_ruangan, r.lokasi, 
                 dp.id_detail, dp.nama_barang, dp.jenis_barang,
-                COUNT(bi.id_inventaris) as stok,
-                MAX(bi.nomor_label) as contoh_kode
+                bi.id_inventaris, bi.nomor_label, bi.kondisi
             FROM ruangan r
-            LEFT JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan
-            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
-            GROUP BY r.id_ruangan, dp.id_detail
-            ORDER BY r.id_ruangan ASC
+            INNER JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan
+            INNER JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            WHERE bi.nomor_label IS NOT NULL
+            ORDER BY r.id_ruangan ASC, bi.nomor_label ASC
         `;
         
         const [rows] = await db.query(query);
@@ -31,16 +30,15 @@ router.get('/', async (req, res) => {
                     barang: []
                 };
             }
-            if (row.id_detail) {
-                rooms[row.id_ruangan].barang.push({
-                    id_detail: row.id_detail,
-                    nama_barang: row.nama_barang,
-                    jenis_barang: row.jenis_barang,
-                    stok: row.stok,
-                    contoh_kode: row.contoh_kode
-                });
-                rooms[row.id_ruangan].total_alat += row.stok;
-            }
+            rooms[row.id_ruangan].barang.push({
+                id_inventaris: row.id_inventaris,
+                id_detail: row.id_detail,
+                nama_barang: row.nama_barang,
+                jenis_barang: row.jenis_barang,
+                nomor_label: row.nomor_label,
+                kondisi: row.kondisi
+            });
+            rooms[row.id_ruangan].total_alat++;
         }
         
         return res.json({ success: true, data: Object.values(rooms) });
@@ -77,8 +75,15 @@ router.get('/belum-dilabeli', async (req, res) => {
 router.put('/update-label/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { nomor_label } = req.body;
+        const { nomor_label, qr_univ } = req.body;
         
+        const [inv] = await db.query('SELECT qr_code FROM barang_inventaris WHERE id_inventaris = ?', [id]);
+        if (inv.length === 0) return res.status(404).json({ success: false, message: 'Barang tidak ditemukan' });
+        
+        if (inv[0].qr_code !== qr_univ) {
+            return res.json({ success: false, message: 'QR Universitas tidak valid! Pastikan anda memasukkan QR yang benar.' });
+        }
+
         // Auto-generate QR code text based on label
         const qr_code = `QR-${nomor_label}`;
 
@@ -155,6 +160,15 @@ router.get('/:id', async (req, res) => {
         if (rows.length === 0) {
             return res.status(404).json({ success: false, message: 'Barang tidak ditemukan.' });
         }
+        
+        const [items] = await db.query(`
+            SELECT id_inventaris, nomor_label, kondisi, qr_code
+            FROM barang_inventaris
+            WHERE id_penggunaan = ? AND nomor_label IS NOT NULL
+            ORDER BY nomor_label ASC
+        `, [id]);
+        
+        rows[0].items = items;
         
         return res.json({ success: true, data: rows[0] });
     } catch (error) {

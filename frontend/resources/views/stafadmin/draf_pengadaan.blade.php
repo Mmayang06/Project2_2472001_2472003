@@ -139,7 +139,6 @@
                             <tr class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-200">
                                 <th class="px-6 py-4">No. Pengajuan</th>
                                 <th class="px-6 py-4">Nama Barang</th>
-                                <th class="px-6 py-4">Tujuan Lab</th>
                                 <th class="px-6 py-4">Qty</th>
                                 <th class="px-6 py-4">Estimasi Harga</th>
                                 <th class="px-6 py-4 text-center">Persetujuan Kaprodi</th>
@@ -155,7 +154,6 @@
                                     <div class="font-bold text-gray-800">{{ $draft['nama_barang'] }}</div>
                                     <div class="text-xs text-gray-500 mt-1">Kategori: {{ $draft['jenis_barang'] }}</div>
                                 </td>
-                                <td class="px-6 py-4 text-gray-600">{{ $draft['tujuan_lab'] ?? 'Belum ditentukan' }}</td>
                                 <td class="px-6 py-4 font-semibold">{{ $draft['jumlah'] }} Unit</td>
                                 <td class="px-6 py-4 text-gray-600">Rp {{ number_format($draft['harga'], 0, ',', '.') }}</td>
                                 <td class="px-6 py-4 text-center">
@@ -359,5 +357,34 @@
             e.target.submit();
         }
     </script>
+    @if(session('qr_univ'))
+    <div id="qrUnivModal" class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden p-6 text-center relative">
+            <h3 class="text-xl font-bold text-[#20394a] mb-2">Penerimaan Berhasil</h3>
+            <p class="text-sm text-gray-500 mb-4">Berikut adalah QR Otorisasi dari Universitas untuk pemberian label barang ini. Simpan QR ini untuk digunakan saat melabeli barang.</p>
+            
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 mb-6">
+                <span class="block text-xs text-gray-500 mb-1">Kode QR Universitas:</span>
+                <span class="text-2xl font-mono font-bold text-[#20394a]">{{ session('qr_univ') }}</span>
+            </div>
+            
+            <div class="flex gap-3">
+                <button onclick="downloadQrUniv('{{ session('qr_univ') }}')" class="w-full px-4 py-2 border border-[#c9ccc3] text-[#20394a] rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">Download QR</button>
+                <button onclick="document.getElementById('qrUnivModal').remove()" class="w-full px-4 py-2 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">Tutup</button>
+            </div>
+        </div>
+    </div>
+    <script>
+        function downloadQrUniv(qr) {
+            const element = document.createElement('a');
+            const file = new Blob([qr], {type: 'text/plain'});
+            element.href = URL.createObjectURL(file);
+            element.download = 'QR_Universitas_' + qr + '.txt';
+            document.body.appendChild(element);
+            element.click();
+            document.body.removeChild(element);
+        }
+    </script>
+    @endif
 </body>
 </html>

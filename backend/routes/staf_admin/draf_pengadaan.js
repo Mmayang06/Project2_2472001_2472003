@@ -83,10 +83,11 @@ router.post('/terima', async (req, res) => {
 
         // 2. Insert tiap item ke barang_inventaris dengan nomor_label NULL
         const qty = parseInt(input_qty) || 1;
+        const qr_univ = 'UNIV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
         for (let i = 0; i < qty; i++) {
             await connection.query(
                 'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
-                [null, null, 'baik', id_ruangan || null, id_detail, tanggal_penerimaan]
+                [null, qr_univ, 'baik', id_ruangan || null, id_detail, tanggal_penerimaan]
             );
         }
 
@@ -105,7 +106,7 @@ router.post('/terima', async (req, res) => {
         await connection.query('UPDATE detail_pengadaan SET status_pengadaan = ? WHERE id_detail = ?', [newStatus, id_detail]);
 
         await connection.commit();
-        return res.json({ success: true, message: 'Barang berhasil diterima' });
+        return res.json({ success: true, message: 'Barang berhasil diterima', qr_univ: qr_univ });
     } catch (error) {
         await connection.rollback();
         console.error(error);
