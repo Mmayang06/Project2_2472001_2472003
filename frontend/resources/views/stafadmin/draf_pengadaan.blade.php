@@ -480,7 +480,7 @@
             if (recommendedLabsCache && storageRoomCache && selectedRoomId !== storageRoomCache.id_ruangan) {
                 const lab = recommendedLabsCache.find(r => r.id_ruangan === selectedRoomId);
                 if (lab && qty > lab.broken_count) {
-                    const msg = `Barang yang dialokasikan ke lab ini untuk menggantikan barang yang rusak hanya <strong>${lab.broken_count} unit</strong>.<br><br>Sisa barang sebanyak <strong>${qty - lab.broken_count} unit</strong> akan otomatis dialokasikan ke ruangan <strong>Storage</strong>.`;
+                    const msg = `Barang yang dialokasikan ke lab ini untuk menggantikan barang yang rusak hanya <strong>${lab.broken_count} unit</strong>.<br><br>Sisa barang sebanyak <strong>${qty - lab.broken_count} unit</strong> akan diprioritaskan untuk menggantikan barang rusak di lab lain (jika ada), dan sisanya akan dialokasikan ke ruangan <strong>Storage</strong>.`;
                     document.getElementById('splitConfirmMessage').innerHTML = msg;
                     document.getElementById('splitConfirmModal').classList.remove('hidden');
                     document.getElementById('splitConfirmModal').classList.add('flex');

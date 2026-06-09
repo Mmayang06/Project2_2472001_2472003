@@ -85,36 +85,70 @@ router.post('/terima', async (req, res) => {
             await connection.query('UPDATE detail_pengadaan SET id_ruangan = ? WHERE id_detail = ?', [id_ruangan, id_detail]);
         }
 
-        const qty = parseInt(input_qty) || 1;
+        let qtyRemaining = parseInt(input_qty) || 1;
         const qr_univ = 'UNIV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
         
-        let allocateToRoom = 0;
-        let allocateToStorage = 0;
-        
+        // Find ALL labs with broken items of this type (excluding Storage)
+        const [brokenLabs] = await connection.query(`
+            SELECT r.id_ruangan, COUNT(bi.id_inventaris) as broken_count
+            FROM ruangan r 
+            JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan 
+            JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            WHERE bi.kondisi != 'baik' AND r.id_ruangan != ?
+              AND dp.nama_barang = (SELECT nama_barang FROM detail_pengadaan WHERE id_detail = ?)
+            GROUP BY r.id_ruangan
+        `, [storage_id, id_detail]);
+
+        // First, allocate to the explicitly selected room (if any, up to its broken count)
         if (id_ruangan && id_ruangan != storage_id) {
-            const [brokenCheck] = await connection.query("SELECT COUNT(*) as c FROM barang_inventaris WHERE id_ruangan = ? AND id_penggunaan = ? AND kondisi != 'baik'", [id_ruangan, id_detail]);
-            const brokenCount = brokenCheck[0].c;
+            const selectedLabData = brokenLabs.find(l => l.id_ruangan == id_ruangan);
+            const selectedBrokenCount = selectedLabData ? selectedLabData.broken_count : 0;
+            // If the user selected a lab that has no broken items, we still allocate all of it to that lab 
+            // ONLY if there are no other broken labs, OR if they explicitly chose it despite the warning.
+            // Wait, the requirement says "utamain leb lain ya, kl di lab lain ngga ada barang dengan nama itu yang rusak baru dimasukin ke storage".
+            // So we give to the selected lab ONLY up to its broken count, or if there's no broken count but they chose it, we allocate everything.
+            // Let's stick to the popup logic: the selected lab gets UP TO its broken count. 
+            // If the lab has 0 broken count, it gets 0 (since it shouldn't replace anything), UNLESS they chose Storage.
+            // Actually, if they chose a lab, they want items there. If there are 0 broken items, they want to ADD items to the lab.
+            // So the selected lab gets the items. BUT if they exceed broken count, the EXCESS goes to other labs/storage.
+            const allocateToSelected = (selectedBrokenCount > 0) ? Math.min(qtyRemaining, selectedBrokenCount) : qtyRemaining;
             
-            allocateToRoom = Math.min(qty, brokenCount);
-            allocateToStorage = qty - allocateToRoom;
-        } else {
-            allocateToStorage = qty;
+            for (let i = 0; i < allocateToSelected; i++) {
+                await connection.query(
+                    'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
+                    [null, qr_univ, 'baik', id_ruangan, id_detail, tanggal_penerimaan]
+                );
+            }
+            qtyRemaining -= allocateToSelected;
+            
+            if (selectedLabData) {
+                selectedLabData.broken_count = 0; // Mark as fulfilled
+            }
         }
-        
-        // Insert for selected room
-        for (let i = 0; i < allocateToRoom; i++) {
-            await connection.query(
-                'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
-                [null, qr_univ, 'baik', id_ruangan, id_detail, tanggal_penerimaan]
-            );
+
+        // Second, allocate remaining to OTHER labs with broken items
+        for (const lab of brokenLabs) {
+            if (qtyRemaining <= 0) break;
+            if (lab.broken_count > 0) {
+                const allocateToLab = Math.min(qtyRemaining, lab.broken_count);
+                for (let i = 0; i < allocateToLab; i++) {
+                    await connection.query(
+                        'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
+                        [null, qr_univ, 'baik', lab.id_ruangan, id_detail, tanggal_penerimaan]
+                    );
+                }
+                qtyRemaining -= allocateToLab;
+            }
         }
-        
-        // Insert for storage
-        for (let i = 0; i < allocateToStorage; i++) {
-            await connection.query(
-                'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
-                [null, qr_univ, 'baik', storage_id, id_detail, tanggal_penerimaan]
-            );
+
+        // Third, allocate any absolute remainder to Storage (or fallback to id_ruangan if no storage)
+        if (qtyRemaining > 0) {
+            for (let i = 0; i < qtyRemaining; i++) {
+                await connection.query(
+                    'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
+                    [null, qr_univ, 'baik', storage_id || id_ruangan, id_detail, tanggal_penerimaan]
+                );
+            }
         }
 
         // 3. Cek jumlah total yang diterima vs jumlah dipesan
@@ -157,12 +191,14 @@ router.get('/ruangan-rekomendasi/:id_detail', async (req, res) => {
             WHERE bi.kondisi != 'baik' AND r.nama_ruangan != 'Storage'
         `);
 
-        // Get Labs with SPECIFIC broken items of this id_detail
+        // Get Labs with SPECIFIC broken items of the same id_barang
         const [recommendedLabs] = await db.query(`
             SELECT r.id_ruangan, r.nama_ruangan, COUNT(bi.id_inventaris) as broken_count
             FROM ruangan r 
             JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan 
-            WHERE bi.kondisi != 'baik' AND bi.id_penggunaan = ? AND r.nama_ruangan != 'Storage'
+            JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            WHERE bi.kondisi != 'baik' AND r.nama_ruangan != 'Storage'
+              AND dp.nama_barang = (SELECT nama_barang FROM detail_pengadaan WHERE id_detail = ?)
             GROUP BY r.id_ruangan, r.nama_ruangan
         `, [id_detail]);
 
