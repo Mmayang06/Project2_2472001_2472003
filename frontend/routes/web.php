@@ -86,6 +86,7 @@ Route::middleware(['checkRole:kaprodi'])->group(function () {
 });
 
 Route::middleware(['checkRole:kalab'])->group(function () {
+    Route::get('/kalab/dashboard', [App\Http\Controllers\KalabController::class, 'dashboard']);
     Route::get('/kalab/draf-pengadaan', [App\Http\Controllers\KalabController::class, 'drafPengadaan']);
     Route::get('/kalab/tambah-draf', [App\Http\Controllers\KalabController::class, 'tambahDraf']);
     Route::post('/kalab/simpan-draf', [App\Http\Controllers\KalabController::class, 'simpanDraf']);

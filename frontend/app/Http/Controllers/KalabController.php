@@ -7,6 +7,22 @@ use Illuminate\Support\Facades\Http;
 
 class KalabController extends Controller
 {
+    public function dashboard(Request $request)
+    {
+        $token = $request->session()->get('jwt_token');
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->get('http://localhost:3000/api/kalab/dashboard');
+
+        $data = [];
+        if ($response->successful() && $response->json('success')) {
+            $data = $response->json('data');
+        }
+
+        return view('kalab.dashboard', compact('data'));
+    }
+
     public function drafPengadaan(Request $request)
     {
         $token = $request->session()->get('jwt_token');

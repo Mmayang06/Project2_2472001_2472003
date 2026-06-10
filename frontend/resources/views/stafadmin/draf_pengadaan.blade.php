@@ -80,6 +80,18 @@
             </a>
 
         </nav>
+
+        <div class="p-4 border-t border-[#6196aa]/20">
+            <a href="#" onclick="event.preventDefault(); document.getElementById('logout-form').submit();" class="flex items-center justify-center gap-2 w-full py-2.5 rounded-lg border border-[#c9ccc3]/20 hover:bg-[#c9ccc3]/10 text-xs font-semibold text-[#c9ccc3] hover:text-[#f9f5ed] transition-all duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                </svg>
+                Logout
+            </a>
+            <form id="logout-form" action="/logout" method="POST" class="hidden">
+                @csrf
+            </form>
+        </div>
     </aside>
 
     <!-- Main Content Area -->
