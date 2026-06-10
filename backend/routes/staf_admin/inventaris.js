@@ -113,7 +113,13 @@ router.post('/verify-qr/:id', async (req, res) => {
 router.put('/update-label/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        const { nomor_label, qr_univ } = req.body;
+        let { nomor_label, qr_univ } = req.body;
+        
+        // Bersihkan label: kapitalisasi dan hapus SEMUA spasi
+        nomor_label = (nomor_label || '').replace(/\s+/g, '').toUpperCase();
+        if (!nomor_label) {
+            return res.json({ success: false, message: 'Nomor label tidak boleh kosong' });
+        }
         
         const [inv] = await db.query('SELECT qr_code FROM barang_inventaris WHERE id_inventaris = ?', [id]);
         if (inv.length === 0) return res.status(404).json({ success: false, message: 'Barang tidak ditemukan' });

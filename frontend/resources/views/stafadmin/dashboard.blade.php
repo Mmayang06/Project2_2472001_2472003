@@ -128,20 +128,26 @@
 
         <div class="p-6 md:p-8 flex-grow overflow-y-auto max-w-7xl w-full mx-auto space-y-8">
             
-            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                <!-- Total Pengajuan Disetujui -->
-                <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group">
-                    <div class="p-3 bg-[#6196aa]/10 text-[#6196aa] rounded-xl group-hover:scale-105 transition-transform duration-200">
-                        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+            <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                <!-- Barang Belum Dilabeli -->
+                <a href="/stafadmin/daftar-inventaris" class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group relative cursor-pointer">
+                    <div class="p-3 bg-rose-500/10 text-rose-600 rounded-xl group-hover:scale-105 transition-transform duration-200">
+                        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"></path></svg>
                     </div>
                     <div>
-                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Draf Disetujui</span>
-                        <span class="text-2xl font-bold text-[#20394a]">{{ number_format($data['total_draf_disetujui'] ?? 0) }}</span>
+                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Belum Dilabeli</span>
+                        <span class="text-2xl font-bold text-[#20394a]">{{ number_format($data['barang_belum_dilabeli'] ?? 0) }}</span>
                     </div>
-                </div>
+                    @if(($data['barang_belum_dilabeli'] ?? 0) > 0)
+                        <span class="absolute top-4 right-4 flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                        </span>
+                    @endif
+                </a>
 
                 <!-- Pesanan Menunggu Diterima -->
-                <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group">
+                <a href="/stafadmin/draf-pengadaan" class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group relative cursor-pointer">
                     <div class="p-3 bg-amber-500/10 text-amber-600 rounded-xl group-hover:scale-105 transition-transform duration-200">
                         <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"></path></svg>
                     </div>
@@ -149,29 +155,25 @@
                         <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Dlm Pengiriman</span>
                         <span class="text-2xl font-bold text-[#20394a]">{{ number_format($data['pesanan_dikirim'] ?? 0) }}</span>
                     </div>
-                </div>
+                    @if(($data['pesanan_dikirim'] ?? 0) > 0)
+                        <span class="absolute top-4 right-4 flex h-3 w-3">
+                          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+                          <span class="relative inline-flex rounded-full h-3 w-3 bg-amber-500"></span>
+                        </span>
+                    @endif
+                </a>
 
-                <!-- Total Inventaris -->
-                <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group">
-                    <div class="p-3 bg-indigo-500/10 text-indigo-600 rounded-xl group-hover:scale-105 transition-transform duration-200">
-                        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <!-- Inventaris Rusak -->
+                <a href="/stafadmin/daftar-inventaris" class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group relative cursor-pointer">
+                    <div class="p-3 bg-red-500/10 text-red-600 rounded-xl group-hover:scale-105 transition-transform duration-200">
+                        <svg class="h-7 w-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
                     </div>
                     <div>
-                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Total Inventaris</span>
-                        <span class="text-2xl font-bold text-[#20394a]">{{ number_format($data['total_inventaris'] ?? 0) }}</span>
+                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Alat Rusak</span>
+                        <span class="text-2xl font-bold text-red-600">{{ number_format($data['inventaris_rusak'] ?? 0) }}</span>
                     </div>
-                </div>
+                </a>
 
-                <!-- Barang Baru Bulan Ini -->
-                <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm hover:shadow-md transition-all duration-300 flex items-center gap-4 group">
-                    <div class="p-3 bg-emerald-500/10 text-emerald-600 rounded-xl group-hover:scale-105 transition-transform duration-200">
-                        <svg viewBox="0 0 24 24" class="h-7 w-7" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 9h-2V7h-2v5H6l4 4 4-4z"/></svg>
-                    </div>
-                    <div>
-                        <span class="text-xs font-semibold text-gray-400 uppercase tracking-wider block">Barang Baru</span>
-                        <span class="text-2xl font-bold text-emerald-600">+{{ number_format($data['barang_baru_bulan_ini'] ?? 0) }}</span>
-                    </div>
-                </div>
             </div>
 
             <!-- Tabel Aktivitas Terkini (Riwayat Penerimaan) -->
@@ -190,34 +192,21 @@
                     <table class="w-full text-left border-collapse">
                         <thead>
                             <tr class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-200">
-                                <th class="px-6 py-4">Nomor Label</th>
+                                <th class="px-6 py-4">Jumlah Penerimaan</th>
                                 <th class="px-6 py-4">Nama Barang</th>
-                                <th class="px-6 py-4">Ruangan (Lab)</th>
-                                <th class="px-6 py-4">Tanggal Terima</th>
-                                <th class="px-6 py-4">Kondisi</th>
+                                <th class="px-6 py-4">Kategori</th>
+                                <th class="px-6 py-4 text-right">Tanggal Terima</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 text-sm">
                             @if(isset($data['aktivitas_terkini']) && count($data['aktivitas_terkini']) > 0)
                                 @foreach($data['aktivitas_terkini'] as $act)
                                 <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="px-6 py-4 font-bold text-[#20394a]">{{ $act['nomor_label'] }}</td>
-                                    <td class="px-6 py-4">
-                                        <div class="font-semibold text-gray-800">{{ $act['nama_barang'] }}</div>
-                                        <div class="text-xs text-gray-500">{{ $act['jenis_barang'] }}</div>
-                                    </td>
-                                    <td class="px-6 py-4 text-gray-600">{{ $act['lab'] ?? 'Belum dialokasikan' }}</td>
-                                    <td class="px-6 py-4 text-gray-600">
+                                    <td class="px-6 py-4 font-bold text-[#6196aa]">{{ $act['jumlah'] }} Unit</td>
+                                    <td class="px-6 py-4 font-bold text-gray-800">{{ $act['nama_barang'] }}</td>
+                                    <td class="px-6 py-4 text-gray-600">{{ $act['jenis_barang'] }}</td>
+                                    <td class="px-6 py-4 text-right text-gray-600">
                                         {{ \Carbon\Carbon::parse($act['tanggal_penerimaan'])->format('d M Y') }}
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        @if(strtolower($act['kondisi']) == 'baik')
-                                        <span class="bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold">Baik</span>
-                                        @elseif(strtolower($act['kondisi']) == 'rusak')
-                                        <span class="bg-rose-100 text-rose-700 px-3 py-1 rounded-full text-xs font-bold">Rusak</span>
-                                        @else
-                                        <span class="bg-gray-100 text-gray-700 px-3 py-1 rounded-full text-xs font-bold">{{ ucfirst($act['kondisi']) }}</span>
-                                        @endif
                                     </td>
                                 </tr>
                                 @endforeach
