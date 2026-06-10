@@ -4,30 +4,40 @@ const db = require('../../config/db');
 
 router.get('/', async (req, res) => {
     try {
-        const query = `
-            SELECT 
-                dp.id_detail,
-                dp.nama_barang,
-                dp.jenis_barang,
-                dp.jumlah,
-                dp.harga,
-                dp.status_persetujuan,
-                dp.status_pengadaan,
-                dp.link_pembelian,
-                dr.id_draft,
-                dr.tahun_pengadaan,
-                r.nama_ruangan as tujuan_lab,
-                (SELECT COUNT(*) FROM barang_inventaris bi WHERE bi.id_penggunaan = dp.id_detail) as jumlah_diterima
-            FROM detail_pengadaan dp
-            JOIN draft_pengadaan dr ON dp.id_draft = dr.id_draft
-            LEFT JOIN ruangan r ON dp.id_ruangan = r.id_ruangan
-            WHERE dr.status = 'disetujui'
-            ORDER BY dr.tahun_pengadaan DESC, dr.id_draft DESC
-        `;
-        
-        const [rows] = await db.query(query);
-        
-        return res.json({ success: true, data: rows });
+        const [drafts] = await db.query(`
+            SELECT
+                dp.id_draft,
+                dp.tahun_pengadaan,
+                dp.status AS status_draft,
+                u.nama AS nama_pengaju
+            FROM draft_pengadaan dp
+            LEFT JOIN user u ON dp.id_user = u.id_user
+            WHERE dp.status IN ('diajukan', 'disetujui', 'ditolak')
+            ORDER BY dp.tahun_pengadaan DESC, dp.id_draft DESC
+        `);
+
+        for (const draft of drafts) {
+            const [items] = await db.query(`
+                SELECT 
+                    dp.id_detail,
+                    dp.nama_barang,
+                    dp.jenis_barang,
+                    dp.jumlah,
+                    dp.harga,
+                    dp.status_persetujuan,
+                    dp.status_pengadaan,
+                    dp.link_pembelian,
+                    r.nama_ruangan as tujuan_lab,
+                    (SELECT COUNT(*) FROM barang_inventaris bi WHERE bi.id_penggunaan = dp.id_detail) as jumlah_diterima
+                FROM detail_pengadaan dp
+                LEFT JOIN ruangan r ON dp.id_ruangan = r.id_ruangan
+                WHERE dp.id_draft = ?
+                ORDER BY dp.id_detail ASC
+            `, [draft.id_draft]);
+            draft.items = items;
+        }
+
+        return res.json({ success: true, data: drafts });
     } catch (error) {
         console.error(error);
         return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });

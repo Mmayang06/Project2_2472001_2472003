@@ -87,7 +87,7 @@
         <!-- Top Navbar -->
         <header class="bg-[#f9f5ed]/80 backdrop-blur-md border-b border-[#c9ccc3]/40 h-20 px-6 md:px-8 flex items-center justify-between sticky top-0 z-30">
             <div>
-                <h2 class="text-xl font-bold text-[#20394a]">Draf Pengadaan Disetujui</h2>
+                <h2 class="text-xl font-bold text-[#20394a]">Draf Pengadaan</h2>
                 <div class="text-xs text-gray-500 flex items-center gap-2">
                     <a href="/stafadmin" class="hover:text-[#6196aa]">Dashboard</a>
                     <span>/</span>
@@ -124,7 +124,7 @@
             <!-- Drafts List -->
             <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-[#c9ccc3]/30 flex justify-between items-center bg-[#f9f5ed]/30">
-                    <h3 class="font-bold text-lg text-[#20394a]">Daftar Pengadaan (Telah Disetujui)</h3>
+                    <h3 class="font-bold text-lg text-[#20394a]">Daftar Pengadaan</h3>
                     <div class="flex gap-2 text-sm font-medium">
                         <button class="px-3 py-1.5 bg-white border border-[#c9ccc3] rounded-md text-[#20394a] shadow-sm flex items-center gap-1">
                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
@@ -138,78 +138,135 @@
                         <thead>
                             <tr class="bg-gray-50 text-gray-500 text-xs font-bold uppercase tracking-wider border-b border-gray-200">
                                 <th class="px-6 py-4">No. Pengajuan</th>
-                                <th class="px-6 py-4">Nama Barang</th>
-                                <th class="px-6 py-4">Qty</th>
-                                <th class="px-6 py-4">Estimasi Harga</th>
-                                <th class="px-6 py-4 text-center">Persetujuan Kaprodi</th>
-                                <th class="px-6 py-4 text-center">Status Pengadaan</th>
-                                <th class="px-6 py-4 text-right">Link Pembelian & Aksi</th>
+                                <th class="px-6 py-4">Pengaju</th>
+                                <th class="px-6 py-4">Tahun Pengadaan</th>
+                                <th class="px-6 py-4 text-center">Jumlah Item</th>
+                                <th class="px-6 py-4">Total Estimasi</th>
+                                <th class="px-6 py-4 text-center">Status Draf</th>
+                                <th class="px-6 py-4 text-right">Aksi</th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-100 text-sm">
-                            @forelse ($drafts as $draft)
-                            <tr class="hover:bg-gray-50/50 transition-colors">
-                                <td class="px-6 py-4 font-semibold text-[#20394a]">PO-{{ $draft['tahun_pengadaan'] }}-{{ str_pad($draft['id_draft'], 4, '0', STR_PAD_LEFT) }}</td>
-                                <td class="px-6 py-4">
-                                    <div class="font-bold text-gray-800">{{ $draft['nama_barang'] }}</div>
-                                    <div class="text-xs text-gray-500 mt-1">Kategori: {{ $draft['jenis_barang'] }}</div>
+                            @forelse ($drafts as $index => $draft)
+                                @php
+                                    $jumlahItem = count($draft['items']);
+                                    $totalBiaya = 0;
+                                    foreach ($draft['items'] as $item) {
+                                        $totalBiaya += ($item['jumlah'] * $item['harga']);
+                                    }
+                                @endphp
+                            <!-- Main Row -->
+                            <tr class="hover:bg-gray-50/50 transition-colors cursor-pointer" onclick="toggleAccordion({{ $draft['id_draft'] }})">
+                                <td class="px-6 py-4 font-semibold text-[#20394a]">
+                                    PO-{{ $draft['tahun_pengadaan'] }}-{{ str_pad($draft['id_draft'], 4, '0', STR_PAD_LEFT) }}
                                 </td>
-                                <td class="px-6 py-4 font-semibold">{{ $draft['jumlah'] }} Unit</td>
-                                <td class="px-6 py-4 text-gray-600">Rp {{ number_format($draft['harga'], 0, ',', '.') }}</td>
+                                <td class="px-6 py-4 font-medium text-gray-700">{{ $draft['nama_pengaju'] ?? 'Kepala Lab' }}</td>
+                                <td class="px-6 py-4 text-gray-600">{{ $draft['tahun_pengadaan'] }}</td>
+                                <td class="px-6 py-4 text-center font-medium text-gray-800">{{ $jumlahItem }} Item</td>
+                                <td class="px-6 py-4 font-semibold text-gray-700">Rp {{ number_format($totalBiaya, 0, ',', '.') }}</td>
                                 <td class="px-6 py-4 text-center">
-                                    @if($draft['status_persetujuan'] == 'disetujui')
-                                    <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        Disetujui
-                                    </span>
-                                    @elseif($draft['status_persetujuan'] == 'ditolak')
-                                    <span class="inline-flex items-center gap-1.5 bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-bold border border-red-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                        Ditolak
-                                    </span>
+                                    @if($draft['status_draft'] == 'diajukan')
+                                        <span class="inline-block text-[10px] font-bold uppercase tracking-wider bg-blue-100 text-blue-700 px-3 py-1 rounded-full">Menunggu Finalisasi</span>
+                                    @elseif($draft['status_draft'] == 'disetujui')
+                                        <span class="inline-block text-[10px] font-bold uppercase tracking-wider bg-emerald-100 text-emerald-700 px-3 py-1 rounded-full">Disetujui</span>
+                                    @elseif($draft['status_draft'] == 'ditolak')
+                                        <span class="inline-block text-[10px] font-bold uppercase tracking-wider bg-red-100 text-red-700 px-3 py-1 rounded-full">Ditolak</span>
                                     @else
-                                    <span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                                        Pending
-                                    </span>
+                                        <span class="inline-block text-[10px] font-bold uppercase tracking-wider bg-gray-100 text-gray-700 px-3 py-1 rounded-full">{{ ucfirst($draft['status_draft']) }}</span>
                                     @endif
                                 </td>
-                                <td class="px-6 py-4 text-center">
-                                    @php
-                                        $statusColors = [
-                                            'menunggu_dipesan' => 'bg-gray-100 text-gray-700',
-                                            'dipesan' => 'bg-blue-100 text-blue-700',
-                                            'sedang_dikirim' => 'bg-amber-100 text-amber-700',
-                                            'penerimaan_sebagian' => 'bg-purple-100 text-purple-700',
-                                            'telah_diterima' => 'bg-emerald-100 text-emerald-700'
-                                        ];
-                                        $colorClass = $statusColors[$draft['status_pengadaan']] ?? 'bg-gray-100 text-gray-700';
-                                    @endphp
-                                    <select 
-                                        onchange="handleStatusChange(this, {{ $draft['id_detail'] }}, '{{ $draft['nama_barang'] }}', {{ $draft['jumlah'] - $draft['jumlah_diterima'] }}, '{{ $draft['status_pengadaan'] }}')" 
-                                        class="border border-gray-200 text-xs font-semibold rounded-lg focus:ring-[#6196aa] focus:border-[#6196aa] block w-full p-2 {{ $colorClass }}"
-                                        {{ ($draft['status_pengadaan'] == 'telah_diterima' || $draft['status_persetujuan'] != 'disetujui') ? 'disabled' : '' }}>
-                                        <option value="menunggu_dipesan" {{ $draft['status_pengadaan'] == 'menunggu_dipesan' ? 'selected' : '' }}>Menunggu Dipesan</option>
-                                        <option value="dipesan" {{ $draft['status_pengadaan'] == 'dipesan' ? 'selected' : '' }}>Dipesan</option>
-                                        <option value="sedang_dikirim" {{ $draft['status_pengadaan'] == 'sedang_dikirim' ? 'selected' : '' }}>Sedang Dikirim</option>
-                                        <option value="penerimaan_sebagian" {{ $draft['status_pengadaan'] == 'penerimaan_sebagian' ? 'selected' : '' }}>Penerimaan Sebagian</option>
-                                        <option value="telah_diterima" {{ $draft['status_pengadaan'] == 'telah_diterima' ? 'selected' : '' }}>Telah Diterima</option>
-                                    </select>
+                                <td class="px-6 py-4 text-right">
+                                    <button class="text-gray-400 hover:text-[#20394a] transition-colors focus:outline-none" id="icon-{{ $draft['id_draft'] }}">
+                                        <svg class="w-5 h-5 transform transition-transform duration-200" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+                                    </button>
                                 </td>
-                                <td class="px-6 py-4 text-right flex flex-col gap-2 items-end justify-center">
-                                    @if(!empty($draft['link_pembelian']))
-                                    <a href="{{ $draft['link_pembelian'] }}" target="_blank" class="text-xs font-bold text-[#6196aa] border border-[#6196aa] hover:bg-[#6196aa] hover:text-white transition-colors px-3 py-1.5 rounded-lg shadow-sm w-full text-center">
-                                        Link Beli
-                                    </a>
-                                    @endif
+                            </tr>
 
-
+                            <!-- Sub Row (Accordion Content) -->
+                            <tr id="accordion-{{ $draft['id_draft'] }}" class="hidden bg-[#f9f5ed]/20">
+                                <td colspan="7" class="px-6 py-6 border-b-2 border-gray-100">
+                                    <div class="bg-white rounded-xl border border-gray-200 shadow-sm overflow-hidden">
+                                        <table class="w-full text-left border-collapse">
+                                            <thead>
+                                                <tr class="bg-[#20394a]/5 text-gray-600 text-[11px] font-bold uppercase tracking-wider border-b border-gray-200">
+                                                    <th class="px-4 py-3">Nama Barang</th>
+                                                    <th class="px-4 py-3">Qty</th>
+                                                    <th class="px-4 py-3">Estimasi Harga</th>
+                                                    <th class="px-4 py-3 text-center">Persetujuan Kaprodi</th>
+                                                    <th class="px-4 py-3 text-center">Status Pengadaan</th>
+                                                    <th class="px-4 py-3 text-right">Aksi</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody class="divide-y divide-gray-100 text-sm">
+                                                @forelse ($draft['items'] as $item)
+                                                <tr class="hover:bg-gray-50/50">
+                                                    <td class="px-4 py-3">
+                                                        <div class="font-bold text-gray-800">{{ $item['nama_barang'] }}</div>
+                                                        <div class="text-xs text-gray-500 mt-0.5">Kategori: {{ $item['jenis_barang'] }}</div>
+                                                    </td>
+                                                    <td class="px-4 py-3 font-semibold">{{ $item['jumlah'] }} Unit</td>
+                                                    <td class="px-4 py-3 text-gray-600">Rp {{ number_format($item['harga'], 0, ',', '.') }}</td>
+                                                    <td class="px-4 py-3 text-center">
+                                                        @if($item['status_persetujuan'] == 'disetujui')
+                                                        <span class="inline-flex items-center gap-1 bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded text-[10px] font-bold border border-emerald-200">
+                                                            Disetujui
+                                                        </span>
+                                                        @elseif($item['status_persetujuan'] == 'ditolak')
+                                                        <span class="inline-flex items-center gap-1 bg-red-50 text-red-700 px-2 py-0.5 rounded text-[10px] font-bold border border-red-200">
+                                                            Ditolak
+                                                        </span>
+                                                        @else
+                                                        <span class="inline-flex items-center gap-1 bg-amber-50 text-amber-700 px-2 py-0.5 rounded text-[10px] font-bold border border-amber-200">
+                                                            Pending
+                                                        </span>
+                                                        @endif
+                                                    </td>
+                                                    <td class="px-4 py-3 text-center">
+                                                        @php
+                                                            $statusColors = [
+                                                                'menunggu_dipesan' => 'bg-gray-100 text-gray-700',
+                                                                'dipesan' => 'bg-blue-100 text-blue-700',
+                                                                'sedang_dikirim' => 'bg-amber-100 text-amber-700',
+                                                                'penerimaan_sebagian' => 'bg-purple-100 text-purple-700',
+                                                                'telah_diterima' => 'bg-emerald-100 text-emerald-700'
+                                                            ];
+                                                            $colorClass = $statusColors[$item['status_pengadaan']] ?? 'bg-gray-100 text-gray-700';
+                                                        @endphp
+                                                        <select 
+                                                            onchange="handleStatusChange(this, {{ $item['id_detail'] }}, '{{ $item['nama_barang'] }}', {{ $item['jumlah'] - $item['jumlah_diterima'] }}, '{{ $item['status_pengadaan'] }}')" 
+                                                            class="border border-gray-200 text-xs font-semibold rounded-lg focus:ring-[#6196aa] focus:border-[#6196aa] block w-full p-1.5 {{ $colorClass }}"
+                                                            {{ ($item['status_pengadaan'] == 'telah_diterima' || $item['status_persetujuan'] != 'disetujui' || $draft['status_draft'] != 'disetujui') ? 'disabled' : '' }}>
+                                                            <option value="menunggu_dipesan" {{ $item['status_pengadaan'] == 'menunggu_dipesan' ? 'selected' : '' }}>Menunggu Dipesan</option>
+                                                            <option value="dipesan" {{ $item['status_pengadaan'] == 'dipesan' ? 'selected' : '' }}>Dipesan</option>
+                                                            <option value="sedang_dikirim" {{ $item['status_pengadaan'] == 'sedang_dikirim' ? 'selected' : '' }}>Sedang Dikirim</option>
+                                                            <option value="penerimaan_sebagian" {{ $item['status_pengadaan'] == 'penerimaan_sebagian' ? 'selected' : '' }}>Penerimaan Sebagian</option>
+                                                            <option value="telah_diterima" {{ $item['status_pengadaan'] == 'telah_diterima' ? 'selected' : '' }}>Telah Diterima</option>
+                                                        </select>
+                                                    </td>
+                                                    <td class="px-4 py-3 text-right">
+                                                        @if(!empty($item['link_pembelian']))
+                                                        <a href="{{ $item['link_pembelian'] }}" target="_blank" class="text-[11px] font-bold text-[#6196aa] border border-[#6196aa] hover:bg-[#6196aa] hover:text-white transition-colors px-2 py-1 rounded shadow-sm inline-block">
+                                                            Link Beli
+                                                        </a>
+                                                        @else
+                                                        <span class="text-[11px] text-gray-400">-</span>
+                                                        @endif
+                                                    </td>
+                                                </tr>
+                                                @empty
+                                                <tr>
+                                                    <td colspan="6" class="px-4 py-4 text-center text-gray-500 text-xs">Tidak ada item.</td>
+                                                </tr>
+                                                @endforelse
+                                            </tbody>
+                                        </table>
+                                    </div>
                                 </td>
                             </tr>
                             @empty
                             <tr>
                                 <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                                    Belum ada draf pengadaan yang disetujui.
+                                    Belum ada draf pengadaan yang diajukan.
                                 </td>
                             </tr>
                             @endforelse
@@ -303,6 +360,18 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <script>
+        function toggleAccordion(id) {
+            const accordion = document.getElementById('accordion-' + id);
+            const icon = document.getElementById('icon-' + id).querySelector('svg');
+            if (accordion.classList.contains('hidden')) {
+                accordion.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                accordion.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
         let currentSelectElement = null;
         let originalStatusValue = null;
 

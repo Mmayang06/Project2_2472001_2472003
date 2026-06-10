@@ -12,7 +12,7 @@ router.get('/', async (req, res) => {
         // 1. Total Draf Disetujui (semua waktu atau bulan ini, mari ambil semua waktu yang belum beres)
         const [drafDisetujui] = await db.query(
             `SELECT COUNT(DISTINCT d.id_draft) as total 
-             FROM draf_pengadaan d
+             FROM draft_pengadaan d
              WHERE d.status = 'disetujui'`
         );
 
