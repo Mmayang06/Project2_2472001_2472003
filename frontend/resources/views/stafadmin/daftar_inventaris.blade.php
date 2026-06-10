@@ -100,7 +100,7 @@
         <header class="bg-[#f9f5ed]/80 backdrop-blur-md border-b border-[#c9ccc3]/40 h-20 px-6 md:px-8 flex items-center justify-between sticky top-0 z-30">
             <h2 class="text-2xl font-bold text-[#20394a] uppercase tracking-wider">Daftar Inventaris</h2>
             <div class="flex items-center gap-4">
-                <!-- Tambah Inventaris button removed -->
+                @include('components.notification_bell')
             </div>
         </header>
 

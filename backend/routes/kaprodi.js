@@ -200,6 +200,13 @@ router.post('/draf_pengadaan/:id/finalize', async (req, res) => {
             [finalStatus, id]
         );
 
+        const pesan = `Draf Pengadaan #${id} telah difinalisasi oleh Kaprodi dengan status: ${finalStatus.toUpperCase()}.`;
+        const tipe = finalStatus === 'disetujui' ? 'success' : 'warning';
+        await conn.query(
+            `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
+            ['staf_admin', pesan, tipe, '/stafadmin/draf-pengadaan']
+        );
+
         await conn.commit();
         return res.json({
             success: true,

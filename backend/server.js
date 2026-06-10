@@ -89,6 +89,7 @@ app.use('/api/staf_admin/inventaris', inventarisRoute);
 const drafPengadaanRoute = require('./routes/staf_admin/draf_pengadaan');
 app.use('/api/staf_admin/draf_pengadaan', drafPengadaanRoute);
 app.use('/api/staf_admin/dashboard', require('./routes/staf_admin/dashboard'));
+app.use('/api/staf_admin/notifikasi', require('./routes/staf_admin/notifikasi'));
 
 // Routes Staf Lab
 const stafLabDashboardRoute = require('./routes/staf_lab/dashboard');
