@@ -207,6 +207,9 @@
                                     <th class="px-6 py-3 text-right">Harga Satuan</th>
                                     <th class="px-6 py-3 text-right">Subtotal</th>
                                     <th class="px-6 py-3 text-center">Status Item</th>
+                                    @if($draft['status'] == 'draft' || $draft['status'] == 'diajukan')
+                                        <th class="px-6 py-3 text-center">Aksi</th>
+                                    @endif
                                 </tr>
                             </thead>
                             <tbody class="divide-y divide-gray-50 text-sm">
@@ -253,6 +256,18 @@
                                                 </span>
                                             @endif
                                         </td>
+                                        @if($draft['status'] == 'draft' || $draft['status'] == 'diajukan')
+                                            <td class="px-6 py-4 text-center">
+                                                <div class="flex items-center justify-center gap-2">
+                                                    <button onclick="openEditModal({{ $item['id_detail'] }}, '{{ $item['nama_barang'] }}', '{{ $item['jenis_barang'] }}', {{ $item['jumlah'] }}, {{ $item['harga'] }}, '{{ $item['link_pembelian'] }}')" class="p-1.5 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors" title="Edit Item">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"/></svg>
+                                                    </button>
+                                                    <button onclick="openDeleteModal({{ $item['id_detail'] }})" class="p-1.5 text-red-600 hover:bg-red-50 rounded-lg transition-colors" title="Hapus Item">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                                    </button>
+                                                </div>
+                                            </td>
+                                        @endif
                                     </tr>
                                 @endforeach
                             </tbody>
@@ -260,7 +275,17 @@
                                 <tr>
                                     <td colspan="4" class="px-6 py-4 text-right font-bold text-gray-500 uppercase text-xs tracking-wider">Total Estimasi Draft:</td>
                                     <td class="px-6 py-4 text-right font-black text-[#20394a] text-lg">Rp {{ number_format($totalHarga, 0, ',', '.') }}</td>
-                                    <td></td>
+                                    <td class="px-6 py-4 text-center">
+                                        @if($draft['status'] == 'draft' || $draft['status'] == 'diajukan')
+                                            <a href="/kalab/tambah-draf" class="inline-flex px-3 py-1.5 bg-white border border-[#20394a] text-[#20394a] rounded-lg text-xs font-bold hover:bg-gray-50 transition-colors shadow-sm items-center gap-1">
+                                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                                                Tambah Barang
+                                            </a>
+                                        @endif
+                                    </td>
+                                    @if($draft['status'] == 'draft' || $draft['status'] == 'diajukan')
+                                        <td></td>
+                                    @endif
                                 </tr>
                             </tfoot>
                         </table>
@@ -279,5 +304,104 @@
         </div>
 
     </main>
+
+    <!-- Modal Edit -->
+    <div id="editModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-lg mx-4 overflow-hidden border border-[#c9ccc3]/40">
+            <div class="bg-[#f9f5ed]/80 border-b border-[#c9ccc3]/40 p-5">
+                <h3 class="text-xl font-bold text-[#20394a]">Edit Barang</h3>
+                <p class="text-sm text-gray-500 mt-1">Ubah detail barang pada draf ini.</p>
+            </div>
+            <form id="editForm" method="POST" action="">
+                @csrf
+                @method('PUT')
+                <div class="p-6 space-y-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Nama Barang *</label>
+                        <input type="text" id="edit_nama_barang" name="nama_barang" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border bg-white">
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Jenis *</label>
+                            <select id="edit_jenis_barang" name="jenis_barang" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border bg-white">
+                                <option value="BHP">BHP</option>
+                                <option value="Inventaris">Inventaris</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-sm font-semibold text-gray-700 mb-1">Jumlah *</label>
+                            <input type="number" id="edit_jumlah" name="jumlah" min="1" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border bg-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Harga Satuan (Estimasi) *</label>
+                        <div class="relative">
+                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                <span class="text-gray-500 sm:text-sm font-semibold">Rp</span>
+                            </div>
+                            <input type="number" id="edit_harga" name="harga" min="1" required class="w-full pl-10 rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border bg-white">
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 mb-1">Link Pembelian Referensi (Opsional)</label>
+                        <input type="url" id="edit_link_pembelian" name="link_pembelian" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border bg-white">
+                    </div>
+                </div>
+                <div class="p-5 border-t border-[#c9ccc3]/40 bg-gray-50 flex justify-end gap-3">
+                    <button type="button" onclick="closeEditModal()" class="px-5 py-2.5 border border-[#c9ccc3] rounded-xl text-sm font-bold text-gray-700 hover:bg-white transition-colors shadow-sm">Batal</button>
+                    <button type="submit" class="px-5 py-2.5 bg-[#20394a] text-white rounded-xl text-sm font-bold hover:bg-[#6196aa] shadow-lg transition-colors flex items-center gap-2">Simpan Perubahan</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Modal Delete -->
+    <div id="deleteModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden border border-[#c9ccc3]/40 text-center p-6">
+            <div class="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100 mb-4">
+                <svg class="h-6 w-6 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+            </div>
+            <h3 class="text-xl font-bold text-[#20394a] mb-2">Hapus Barang?</h3>
+            <p class="text-sm text-gray-500 mb-6">Barang yang dihapus tidak dapat dikembalikan lagi. Apakah Anda yakin?</p>
+            <form id="deleteForm" method="POST" action="">
+                @csrf
+                @method('DELETE')
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeDeleteModal()" class="w-full px-4 py-2 border border-[#c9ccc3] rounded-xl text-sm font-bold text-gray-700 hover:bg-gray-50 transition-colors">Batal</button>
+                    <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded-xl text-sm font-bold hover:bg-red-700 shadow-md transition-colors">Ya, Hapus</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function openEditModal(id, nama, jenis, jumlah, harga, link) {
+            document.getElementById('editForm').action = '/kalab/draf-pengadaan/item/' + id;
+            document.getElementById('edit_nama_barang').value = nama;
+            document.getElementById('edit_jenis_barang').value = jenis;
+            document.getElementById('edit_jumlah').value = jumlah;
+            document.getElementById('edit_harga').value = harga;
+            document.getElementById('edit_link_pembelian').value = link === '-' ? '' : link;
+            
+            document.getElementById('editModal').classList.remove('hidden');
+            document.getElementById('editModal').classList.add('flex');
+        }
+
+        function closeEditModal() {
+            document.getElementById('editModal').classList.add('hidden');
+            document.getElementById('editModal').classList.remove('flex');
+        }
+
+        function openDeleteModal(id) {
+            document.getElementById('deleteForm').action = '/kalab/draf-pengadaan/item/' + id;
+            document.getElementById('deleteModal').classList.remove('hidden');
+            document.getElementById('deleteModal').classList.add('flex');
+        }
+
+        function closeDeleteModal() {
+            document.getElementById('deleteModal').classList.add('hidden');
+            document.getElementById('deleteModal').classList.remove('flex');
+        }
+    </script>
 </body>
 </html>

@@ -64,11 +64,8 @@
 
             <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
                 <input type="hidden" name="action" id="formAction" value="simpan_draft">
-                <button type="submit" onclick="document.getElementById('formAction').value='simpan_draft';" class="px-8 py-2.5 border border-[#20394a] text-[#20394a] rounded-xl font-semibold hover:bg-[#20394a] hover:text-white transition-colors shadow-sm">
+                <button type="submit" onclick="document.getElementById('formAction').value='simpan_draft';" class="px-8 py-2.5 bg-[#20394a] text-white rounded-xl font-semibold hover:bg-[#6196aa] transition-colors shadow-md">
                     Simpan Draf
-                </button>
-                <button type="submit" onclick="document.getElementById('formAction').value='ajukan';" class="px-8 py-2.5 bg-[#20394a] text-white rounded-xl font-semibold hover:bg-[#6196aa] transition-colors shadow-md">
-                    Ajukan Langsung
                 </button>
             </div>
         </form>

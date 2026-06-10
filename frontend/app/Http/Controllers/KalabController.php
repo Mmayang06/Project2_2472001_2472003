@@ -75,4 +75,41 @@ class KalabController extends Controller
 
         return redirect()->back()->with('error', 'Gagal mengajukan draf: ' . $response->json('message'));
     }
+    public function editItem(Request $request, $id_detail)
+    {
+        $token = $request->session()->get('jwt_token');
+
+        $payload = [
+            'nama_barang' => $request->nama_barang,
+            'jenis_barang' => $request->jenis_barang,
+            'jumlah' => $request->jumlah,
+            'harga' => $request->harga,
+            'link_pembelian' => $request->link_pembelian,
+        ];
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->put('http://localhost:3000/api/kalab/draf_pengadaan/item/' . $id_detail, $payload);
+
+        if ($response->successful() && $response->json('success')) {
+            return redirect('/kalab/draf-pengadaan')->with('success', 'Barang berhasil diubah!');
+        }
+
+        return redirect('/kalab/draf-pengadaan')->with('error', $response->json('message') ?? 'Gagal mengubah barang.');
+    }
+
+    public function deleteItem(Request $request, $id_detail)
+    {
+        $token = $request->session()->get('jwt_token');
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->delete('http://localhost:3000/api/kalab/draf_pengadaan/item/' . $id_detail);
+
+        if ($response->successful() && $response->json('success')) {
+            return redirect('/kalab/draf-pengadaan')->with('success', 'Barang berhasil dihapus!');
+        }
+
+        return redirect('/kalab/draf-pengadaan')->with('error', $response->json('message') ?? 'Gagal menghapus barang.');
+    }
 }

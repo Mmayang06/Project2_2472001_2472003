@@ -90,4 +90,6 @@ Route::middleware(['checkRole:kalab'])->group(function () {
     Route::get('/kalab/tambah-draf', [App\Http\Controllers\KalabController::class, 'tambahDraf']);
     Route::post('/kalab/simpan-draf', [App\Http\Controllers\KalabController::class, 'simpanDraf']);
     Route::post('/kalab/ajukan-draf/{id}', [App\Http\Controllers\KalabController::class, 'ajukanDraf']);
+    Route::put('/kalab/draf-pengadaan/item/{id_detail}', [App\Http\Controllers\KalabController::class, 'editItem']);
+    Route::delete('/kalab/draf-pengadaan/item/{id_detail}', [App\Http\Controllers\KalabController::class, 'deleteItem']);
 });

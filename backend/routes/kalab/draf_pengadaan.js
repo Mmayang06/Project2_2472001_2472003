@@ -85,13 +85,29 @@ router.post('/', authMiddleware, async (req, res) => {
         await conn.beginTransaction();
 
         const { tahun_pengadaan, items, action } = req.body; 
-        const status = action === 'simpan_draft' ? 'draft' : 'diajukan';
+        let status = action === 'simpan_draft' ? 'draft' : 'diajukan';
+        let draftId;
 
-        const [draftResult] = await conn.query(
-            'INSERT INTO draft_pengadaan (tahun_pengadaan, status, id_user) VALUES (?, ?, ?)',
-            [tahun_pengadaan, status, req.user.id]
+        // Check for existing un-finalized draft for this year
+        const [existingDrafts] = await conn.query(
+            "SELECT id_draft, status FROM draft_pengadaan WHERE id_user = ? AND tahun_pengadaan = ? AND status IN ('draft', 'diajukan') ORDER BY id_draft DESC LIMIT 1",
+            [req.user.id, tahun_pengadaan]
         );
-        const draftId = draftResult.insertId;
+
+        if (existingDrafts.length > 0) {
+            draftId = existingDrafts[0].id_draft;
+            // If the user clicked 'Ajukan Langsung' but the existing draft was 'draft', update it
+            if (action === 'ajukan' && existingDrafts[0].status === 'draft') {
+                await conn.query('UPDATE draft_pengadaan SET status = ? WHERE id_draft = ?', ['diajukan', draftId]);
+            }
+        } else {
+            // Create new draft
+            const [draftResult] = await conn.query(
+                'INSERT INTO draft_pengadaan (tahun_pengadaan, status, id_user) VALUES (?, ?, ?)',
+                [tahun_pengadaan, status, req.user.id]
+            );
+            draftId = draftResult.insertId;
+        }
 
         if (items && items.length > 0) {
             for (const item of items) {
@@ -206,6 +222,79 @@ router.post('/:id/ajukan', authMiddleware, async (req, res) => {
         return res.status(500).json({ success: false, message: 'Server error' });
     } finally {
         conn.release();
+    }
+});
+
+// PUT /api/kalab/draf_pengadaan/item/:id_detail
+router.put('/item/:id_detail', authMiddleware, async (req, res) => {
+    try {
+        const { id_detail } = req.params;
+        const { nama_barang, jenis_barang, jumlah, harga, link_pembelian } = req.body;
+
+        // Cek status draf
+        const [draftRows] = await db.query(`
+            SELECT dp.status, dp.id_user 
+            FROM detail_pengadaan detail
+            JOIN draft_pengadaan dp ON detail.id_draft = dp.id_draft
+            WHERE detail.id_detail = ?
+        `, [id_detail]);
+
+        if (!draftRows.length) {
+            return res.status(404).json({ success: false, message: 'Item tidak ditemukan' });
+        }
+
+        if (draftRows[0].id_user !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'Akses ditolak' });
+        }
+
+        if (draftRows[0].status === 'disetujui' || draftRows[0].status === 'ditolak') {
+            return res.status(400).json({ success: false, message: 'Draf sudah difinalisasi, tidak dapat diubah' });
+        }
+
+        await db.query(`
+            UPDATE detail_pengadaan 
+            SET nama_barang = ?, jenis_barang = ?, jumlah = ?, harga = ?, link_pembelian = ?
+            WHERE id_detail = ?
+        `, [nama_barang, jenis_barang, jumlah, harga, link_pembelian || null, id_detail]);
+
+        return res.json({ success: true, message: 'Barang berhasil diubah' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// DELETE /api/kalab/draf_pengadaan/item/:id_detail
+router.delete('/item/:id_detail', authMiddleware, async (req, res) => {
+    try {
+        const { id_detail } = req.params;
+
+        // Cek status draf
+        const [draftRows] = await db.query(`
+            SELECT dp.status, dp.id_user 
+            FROM detail_pengadaan detail
+            JOIN draft_pengadaan dp ON detail.id_draft = dp.id_draft
+            WHERE detail.id_detail = ?
+        `, [id_detail]);
+
+        if (!draftRows.length) {
+            return res.status(404).json({ success: false, message: 'Item tidak ditemukan' });
+        }
+
+        if (draftRows[0].id_user !== req.user.id) {
+            return res.status(403).json({ success: false, message: 'Akses ditolak' });
+        }
+
+        if (draftRows[0].status === 'disetujui' || draftRows[0].status === 'ditolak') {
+            return res.status(400).json({ success: false, message: 'Draf sudah difinalisasi, tidak dapat dihapus' });
+        }
+
+        await db.query('DELETE FROM detail_pengadaan WHERE id_detail = ?', [id_detail]);
+
+        return res.json({ success: true, message: 'Barang berhasil dihapus' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Server error' });
     }
 });
 
