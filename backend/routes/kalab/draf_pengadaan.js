@@ -34,20 +34,40 @@ router.get('/', authMiddleware, async (req, res) => {
         `, [req.user.id]);
 
         for (const draft of drafts) {
-            const [items] = await db.query(`
-                SELECT
-                    id_detail,
-                    nama_barang,
-                    jenis_barang,
-                    jumlah,
-                    harga,
-                    link_pembelian,
-                    status_persetujuan,
-                    id_inventaris_ganti
-                FROM detail_pengadaan
-                WHERE id_draft = ?
-                ORDER BY id_detail ASC
-            `, [draft.id_draft]);
+            let items = [];
+            try {
+                const [result] = await db.query(`
+                    SELECT
+                        id_detail,
+                        nama_barang,
+                        jenis_barang,
+                        jumlah,
+                        harga,
+                        link_pembelian,
+                        status_persetujuan,
+                        id_inventaris_ganti
+                    FROM detail_pengadaan
+                    WHERE id_draft = ?
+                    ORDER BY id_detail ASC
+                `, [draft.id_draft]);
+                items = result;
+            } catch (colErr) {
+                const [result] = await db.query(`
+                    SELECT
+                        id_detail,
+                        nama_barang,
+                        jenis_barang,
+                        jumlah,
+                        harga,
+                        link_pembelian,
+                        status_persetujuan,
+                        NULL AS id_inventaris_ganti
+                    FROM detail_pengadaan
+                    WHERE id_draft = ?
+                    ORDER BY id_detail ASC
+                `, [draft.id_draft]);
+                items = result;
+            }
             draft.items = items;
         }
 
@@ -132,7 +152,8 @@ router.get('/:id', authMiddleware, async (req, res) => {
                 jumlah,
                 harga,
                 link_pembelian,
-                status_persetujuan
+                status_persetujuan,
+                NULL AS id_inventaris_ganti
             FROM detail_pengadaan
             WHERE id_draft = ?
             ORDER BY id_detail ASC
