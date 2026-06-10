@@ -135,19 +135,11 @@
             <!-- Right Column (Info & Stats) -->
             <div class="lg:col-span-8 bg-white rounded-xl border border-[#c9ccc3]/40 p-6 shadow-sm space-y-8">
                 
-                <!-- Status Cards -->
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
-                    <div class="border border-gray-100 rounded-lg p-5 bg-gray-50">
-                        <span class="text-sm font-semibold text-gray-500 block mb-1">Tersedia (Ready)</span>
-                        <span id="count-ready" class="text-3xl font-bold text-[#20394a]">0</span>
-                    </div>
-                    <div class="border border-gray-100 rounded-lg p-5 bg-gray-50">
-                        <span class="text-sm font-semibold text-gray-500 block mb-1">Sedang Dipinjam</span>
-                        <span id="count-borrowed" class="text-3xl font-bold text-[#20394a]">0</span>
-                    </div>
-                    <div class="border border-gray-100 rounded-lg p-5 bg-gray-50">
-                        <span class="text-sm font-semibold text-gray-500 block mb-1">Rusak / Servis</span>
-                        <span id="count-broken" class="text-3xl font-bold text-[#20394a]">0</span>
+                <!-- Status Card -->
+                <div class="border border-gray-100 rounded-lg p-5 bg-gray-50 flex items-center justify-between">
+                    <div>
+                        <span class="text-sm font-semibold text-gray-500 block mb-1">Kondisi Alat Saat Ini</span>
+                        <span id="unit-condition" class="text-2xl font-bold uppercase tracking-wide">...</span>
                     </div>
                 </div>
 
@@ -205,29 +197,7 @@
                     </div>
                 </div>
 
-                <hr class="border-gray-100">
 
-                <!-- Individual Items Status -->
-                <div>
-                    <h3 class="flex items-center gap-2 text-lg font-bold text-[#20394a] mb-4">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg>
-                        Daftar Item & Kondisi
-                    </h3>
-                    <div class="overflow-x-auto bg-white border border-gray-100 rounded-xl shadow-sm">
-                        <table class="w-full text-left text-sm border-collapse">
-                            <thead>
-                                <tr class="bg-gray-50 text-gray-500 uppercase tracking-wider text-xs font-bold border-b border-gray-100">
-                                    <th class="px-4 py-3">Nomor Label</th>
-                                    <th class="px-4 py-3">QR Code</th>
-                                    <th class="px-4 py-3">Kondisi Saat Ini</th>
-                                </tr>
-                            </thead>
-                            <tbody id="items-tbody" class="divide-y divide-gray-100">
-                                <!-- Data rendered here -->
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
 
             </div>
         </div>
@@ -245,17 +215,22 @@
                     const data = result.data;
                     
                     document.getElementById('item-name-header').textContent = data.nama_barang || 'Tanpa Nama';
-                    document.getElementById('item-code-header').textContent = `Kode: ${data.contoh_kode || 'N/A'}`;
-                    document.getElementById('item-barcode-text').textContent = data.contoh_qr || data.contoh_kode || 'N/A';
+                    document.getElementById('item-code-header').textContent = `Kode: ${data.nomor_label || 'N/A'}`;
+                    document.getElementById('item-barcode-text').textContent = data.qr_code || data.nomor_label || 'N/A';
                     
-                    document.getElementById('count-ready').textContent = data.stok_baik || 0;
-                    document.getElementById('count-borrowed').textContent = 0; // Not available in db currently
-                    document.getElementById('count-broken').textContent = data.stok_rusak || 0;
+                    const conditionEl = document.getElementById('unit-condition');
+                    if (data.kondisi === 'baik') {
+                        conditionEl.textContent = 'Bagus';
+                        conditionEl.className = 'text-2xl font-bold uppercase tracking-wide text-emerald-600';
+                    } else {
+                        conditionEl.textContent = data.kondisi.replace('_', ' ');
+                        conditionEl.className = 'text-2xl font-bold uppercase tracking-wide text-red-600';
+                    }
                     
                     document.getElementById('info-nama').textContent = data.nama_barang || '-';
                     document.getElementById('info-lokasi').textContent = data.lokasi_ruangan ? `${data.lokasi_ruangan} (${data.lokasi_detail})` : '-';
-                    document.getElementById('info-kode').textContent = data.contoh_kode || '-';
-                    document.getElementById('info-barcode').textContent = data.contoh_qr || data.contoh_kode || '-';
+                    document.getElementById('info-kode').textContent = data.nomor_label || '-';
+                    document.getElementById('info-barcode').textContent = data.qr_code || data.nomor_label || '-';
                     
                     const formatter = new Intl.NumberFormat('id-ID', {
                         style: 'currency',
@@ -266,35 +241,6 @@
                     document.getElementById('info-harga').textContent = data.harga ? formatter.format(data.harga) : '-';
                     document.getElementById('info-sumber-dana').innerHTML = data.tahun_pengadaan ? 
                         `Pengadaan <span class="text-[10px] bg-gray-100 px-2 py-0.5 rounded text-gray-500">Tahun: ${data.tahun_pengadaan}</span>` : '-';
-
-                    // Render items list
-                    if (data.items && data.items.length > 0) {
-                        const tbody = document.getElementById('items-tbody');
-                        let html = '';
-                        data.items.forEach(it => {
-                            let condClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
-                            let condText = 'Bagus';
-                            if (it.kondisi !== 'baik') {
-                                condClass = 'bg-red-50 text-red-700 border-red-200';
-                                condText = 'Rusak';
-                            }
-                            
-                            html += `
-                                <tr class="hover:bg-gray-50 transition-colors">
-                                    <td class="px-4 py-3 font-semibold text-[#20394a]">${it.nomor_label}</td>
-                                    <td class="px-4 py-3 text-gray-600 font-mono text-xs">${it.qr_code}</td>
-                                    <td class="px-4 py-3">
-                                        <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${condClass}">
-                                            ${condText}
-                                        </span>
-                                    </td>
-                                </tr>
-                            `;
-                        });
-                        tbody.innerHTML = html;
-                    } else if (document.getElementById('items-tbody')) {
-                        document.getElementById('items-tbody').innerHTML = '<tr><td colspan="3" class="px-4 py-6 text-center text-gray-500">Belum ada item yang dilabeli.</td></tr>';
-                    }
                 }
             } catch (error) {
                 console.error('Error fetching inventory detail:', error);

@@ -26,20 +26,38 @@ router.get('/', async (req, res) => {
                     nama: row.nama_ruangan,
                     lokasi: row.lokasi,
                     total_alat: 0,
-                    barang: []
+                    barang_map: {}
                 };
             }
             if (row.id_inventaris) {
-                rooms[row.id_ruangan].barang.push({
+                const r = rooms[row.id_ruangan];
+                if (!r.barang_map[row.id_detail]) {
+                    r.barang_map[row.id_detail] = {
+                        id_detail: row.id_detail,
+                        nama_barang: row.nama_barang,
+                        jenis_barang: row.jenis_barang,
+                        total_unit: 0,
+                        unit_rusak: 0,
+                        items: []
+                    };
+                }
+                r.barang_map[row.id_detail].items.push({
                     id_inventaris: row.id_inventaris,
-                    id_detail: row.id_detail,
-                    nama_barang: row.nama_barang,
-                    jenis_barang: row.jenis_barang,
                     nomor_label: row.nomor_label,
                     kondisi: row.kondisi
                 });
-                rooms[row.id_ruangan].total_alat++;
+                r.barang_map[row.id_detail].total_unit++;
+                if (row.kondisi !== 'baik') {
+                    r.barang_map[row.id_detail].unit_rusak++;
+                }
+                r.total_alat++;
             }
+        }
+        
+        // Convert barang_map to barang array
+        for (let roomId in rooms) {
+            rooms[roomId].barang = Object.values(rooms[roomId].barang_map);
+            delete rooms[roomId].barang_map;
         }
         
         return res.json({ success: true, data: Object.values(rooms) });
@@ -158,21 +176,16 @@ router.get('/:id', async (req, res) => {
         
         const query = `
             SELECT 
+                bi.id_inventaris, bi.nomor_label, bi.qr_code, bi.kondisi,
                 dp.id_detail, dp.nama_barang, dp.jenis_barang, dp.harga,
-                MAX(dr.tahun_pengadaan) as tahun_pengadaan,
-                GROUP_CONCAT(DISTINCT r.nama_ruangan SEPARATOR ', ') as lokasi_ruangan,
-                GROUP_CONCAT(DISTINCT r.lokasi SEPARATOR ', ') as lokasi_detail,
-                COUNT(bi.id_inventaris) as total_stok,
-                SUM(CASE WHEN bi.kondisi = 'baik' THEN 1 ELSE 0 END) as stok_baik,
-                SUM(CASE WHEN bi.kondisi IN ('rusak_ringan', 'rusak_berat') THEN 1 ELSE 0 END) as stok_rusak,
-                MAX(bi.nomor_label) as contoh_kode,
-                MAX(bi.qr_code) as contoh_qr
-            FROM detail_pengadaan dp
-            LEFT JOIN barang_inventaris bi ON dp.id_detail = bi.id_penggunaan
+                dr.tahun_pengadaan,
+                r.nama_ruangan as lokasi_ruangan,
+                r.lokasi as lokasi_detail
+            FROM barang_inventaris bi
+            JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
             LEFT JOIN draft_pengadaan dr ON dp.id_draft = dr.id_draft
-            WHERE dp.id_detail = ?
-            GROUP BY dp.id_detail
+            WHERE bi.id_inventaris = ?
         `;
         
         const [rows] = await db.query(query, [id]);
@@ -180,15 +193,6 @@ router.get('/:id', async (req, res) => {
         if (rows.length === 0) {
             return res.status(404).json({ success: false, message: 'Barang tidak ditemukan.' });
         }
-        
-        const [items] = await db.query(`
-            SELECT id_inventaris, nomor_label, kondisi, qr_code
-            FROM barang_inventaris
-            WHERE id_penggunaan = ? AND nomor_label IS NOT NULL
-            ORDER BY nomor_label ASC
-        `, [id]);
-        
-        rows[0].items = items;
         
         return res.json({ success: true, data: rows[0] });
     } catch (error) {

@@ -100,9 +100,7 @@
         <header class="bg-[#f9f5ed]/80 backdrop-blur-md border-b border-[#c9ccc3]/40 h-20 px-6 md:px-8 flex items-center justify-between sticky top-0 z-30">
             <h2 class="text-2xl font-bold text-[#20394a] uppercase tracking-wider">Daftar Inventaris</h2>
             <div class="flex items-center gap-4">
-                <button class="px-5 py-2 text-sm font-semibold text-white bg-[#20394a] rounded-lg hover:bg-[#6196aa] transition-colors shadow-sm">
-                    + Tambah Inventaris
-                </button>
+                <!-- Tambah Inventaris button removed -->
             </div>
         </header>
 
@@ -335,11 +333,11 @@
                     } else {
                         currentItems.forEach(item => {
                         let badgeHtml = '';
-                        if (item.kondisi !== 'baik') {
+                        if (item.unit_rusak > 0) {
                             badgeHtml = `
                                 <div class="absolute top-3 right-3 z-10">
                                     <span class="bg-red-50 text-red-600 text-[10px] font-bold px-3 py-1.5 rounded-full shadow-sm border border-red-200 flex items-center gap-1.5">
-                                        Perlu Perbaikan
+                                        ${item.unit_rusak} Rusak
                                     </span>
                                 </div>
                             `;
@@ -348,25 +346,23 @@
                         const urlUpdate = '/stafadmin/update-inventaris/' + item.id_detail;
                         
                         cardsHtml += `
-                        <a href="${urlUpdate}" class="block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
+                        <div onclick="openGroupModal(${index}, ${item.id_detail})" class="cursor-pointer block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
                             ${badgeHtml}
-                            <div class="aspect-square bg-white/20 backdrop-blur-sm w-full flex items-center justify-center p-6 relative">
-                                <svg class="w-20 h-20 text-gray-300 group-hover:scale-105 transition-transform" fill="currentColor" viewBox="0 0 24 24"><path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/></svg>
+                            <div class="aspect-square bg-[#f9f5ed]/50 backdrop-blur-sm w-full flex items-center justify-center p-6 relative">
+                                <svg class="w-20 h-20 text-[#6196aa]/80 group-hover:text-[#6196aa] group-hover:scale-105 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
+                                <div class="absolute bottom-3 right-3 bg-white border border-gray-100 text-[#20394a] px-3 py-1 rounded-lg text-sm font-bold shadow-sm">
+                                    ${item.total_unit} Unit
+                                </div>
                             </div>
                             <div class="p-4">
                                 <div class="flex justify-between items-center mb-2">
-                                    <span class="bg-white/40 backdrop-blur-sm text-gray-600 text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wide">Kode: ${item.nomor_label || 'N/A'}</span>
-                                    <span class="text-xs font-semibold text-gray-500">${item.jenis_barang || 'Barang'}</span>
+                                    <span class="bg-[#20394a]/5 text-[#20394a] text-[10px] font-bold px-2 py-1 rounded-md uppercase tracking-wide border border-[#20394a]/10">${item.jenis_barang || 'Kategori'}</span>
+                                    <span class="text-xs font-semibold text-emerald-600">${item.total_unit - item.unit_rusak} Bagus</span>
                                 </div>
-                                <h4 class="font-bold text-[#20394a] mb-3 group-hover:text-[#6196aa] transition-colors truncate" title="${item.nama_barang}">${item.nama_barang}</h4>
-                                <div class="flex flex-col gap-1 mt-1">
-                                    <div class="flex items-center justify-between text-xs font-bold border-t border-gray-100 pt-3">
-                                        <span class="text-gray-500">Kondisi Alat:</span>
-                                        <span class="${item.kondisi === 'baik' ? 'text-emerald-600 bg-emerald-50 px-2 py-1 rounded-md border border-emerald-100' : 'text-red-600 bg-red-50 px-2 py-1 rounded-md border border-red-100'} uppercase text-[10px] tracking-wider">${item.kondisi === 'baik' ? 'Bagus' : 'Rusak'}</span>
-                                    </div>
-                                </div>
+                                <h4 class="font-bold text-[#20394a] mt-3 group-hover:text-[#6196aa] transition-colors truncate text-lg" title="${item.nama_barang}">${item.nama_barang}</h4>
+                                <p class="text-xs text-gray-500 mt-1 font-medium">Klik untuk lihat rincian ${item.total_unit} barang</p>
                             </div>
-                        </a>
+                        </div>
                         `;
                     });
                     }
@@ -669,9 +665,85 @@
                 }
             };
 
+            window.closeGroupModal = () => {
+                document.getElementById('groupItemsModal').classList.add('hidden');
+                document.getElementById('groupItemsModal').classList.remove('flex');
+            };
+
+            window.openGroupModal = (roomIndex, detailId) => {
+                const room = inventoryData[roomIndex];
+                const group = room.barang.find(b => b.id_detail === detailId);
+                if (!group) return;
+
+                document.getElementById('modal-group-title').textContent = group.nama_barang;
+                document.getElementById('modal-group-subtitle').textContent = `Total: ${group.total_unit} Unit | Rusak: ${group.unit_rusak}`;
+
+                const tbody = document.getElementById('modal-group-tbody');
+                let html = '';
+                group.items.forEach(it => {
+                    let condClass = 'bg-emerald-50 text-emerald-700 border-emerald-200';
+                    let condText = 'Bagus';
+                    if (it.kondisi !== 'baik') {
+                        condClass = 'bg-red-50 text-red-700 border-red-200';
+                        condText = 'Rusak';
+                    }
+                    html += `
+                        <tr class="hover:bg-gray-50 transition-colors">
+                            <td class="px-6 py-4 font-semibold text-[#20394a]">${it.nomor_label || '-'}</td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${condClass}">
+                                    ${condText}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="/stafadmin/update-inventaris/${it.id_inventaris}" class="text-xs font-bold text-[#6196aa] border border-[#6196aa] hover:bg-[#6196aa] hover:text-white transition-colors px-4 py-2 rounded-lg shadow-sm inline-block">
+                                    Lihat Unit
+                                </a>
+                            </td>
+                        </tr>
+                    `;
+                });
+                tbody.innerHTML = html;
+                
+                document.getElementById('groupItemsModal').classList.remove('hidden');
+                document.getElementById('groupItemsModal').classList.add('flex');
+            };
+
             fetchData();
         });
     </script>
+    <!-- Group Items Modal -->
+    <div id="groupItemsModal" class="fixed inset-0 z-[80] hidden items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto pt-10 pb-10">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-3xl mx-4 overflow-hidden flex flex-col max-h-full border border-gray-100">
+            <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-[#f9f5ed]/50 shrink-0">
+                <div>
+                    <h3 id="modal-group-title" class="text-xl font-bold text-[#20394a]">Nama Barang</h3>
+                    <p id="modal-group-subtitle" class="text-sm font-semibold text-gray-500 mt-1">Total: 0 Unit | Rusak: 0</p>
+                </div>
+                <button onclick="closeGroupModal()" class="text-gray-400 hover:text-red-500 transition-colors bg-white p-2 rounded-full shadow-sm border border-gray-200">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+            </div>
+            <div class="p-0 overflow-y-auto flex-grow bg-gray-50 relative max-h-[60vh]">
+                <table class="w-full text-left text-sm border-collapse">
+                    <thead class="sticky top-0 z-10">
+                        <tr class="bg-white text-gray-500 uppercase tracking-wider text-xs font-bold border-b border-gray-200 shadow-sm">
+                            <th class="px-6 py-4">Nomor Label</th>
+                            <th class="px-6 py-4">Kondisi</th>
+                            <th class="px-6 py-4 text-right">Aksi</th>
+                        </tr>
+                    </thead>
+                    <tbody id="modal-group-tbody" class="divide-y divide-gray-100 bg-white">
+                        <!-- Data injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+            <div class="p-4 border-t border-gray-100 bg-white text-right shrink-0">
+                <button onclick="closeGroupModal()" class="px-5 py-2.5 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     </main>
 
 </body>
