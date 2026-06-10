@@ -146,4 +146,46 @@ router.get('/:id', authMiddleware, async (req, res) => {
     }
 });
 
+// POST /api/kalab/draf_pengadaan/:id/ajukan
+router.post('/:id/ajukan', authMiddleware, async (req, res) => {
+    const conn = await db.getConnection();
+    try {
+        await conn.beginTransaction();
+
+        const { id } = req.params;
+        
+        // Cek apakah draft milik user dan statusnya draft
+        const [draftRows] = await conn.query(`
+            SELECT status FROM draft_pengadaan 
+            WHERE id_draft = ? AND id_user = ?
+        `, [id, req.user.id]);
+
+        if (!draftRows.length) {
+            await conn.rollback();
+            return res.status(404).json({ success: false, message: 'Draft tidak ditemukan' });
+        }
+
+        if (draftRows[0].status !== 'draft') {
+            await conn.rollback();
+            return res.status(400).json({ success: false, message: 'Draft sudah diajukan atau dikunci' });
+        }
+
+        // Update status menjadi diajukan
+        await conn.query(`
+            UPDATE draft_pengadaan 
+            SET status = 'diajukan' 
+            WHERE id_draft = ?
+        `, [id]);
+
+        await conn.commit();
+        return res.json({ success: true, message: 'Draf berhasil diajukan ke Kaprodi' });
+    } catch (error) {
+        await conn.rollback();
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    } finally {
+        conn.release();
+    }
+});
+
 module.exports = router;

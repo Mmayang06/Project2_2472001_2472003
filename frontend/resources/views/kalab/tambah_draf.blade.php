@@ -63,12 +63,9 @@
             </div>
 
             <div class="p-6 bg-gray-50 border-t border-gray-100 flex justify-end gap-3">
-                <input type="hidden" name="action" id="formAction" value="ajukan">
-                <button type="button" onclick="submitForm('simpan_draft')" class="px-6 py-2.5 bg-white border border-[#c9ccc3] text-gray-700 rounded-xl font-semibold hover:bg-gray-100 transition-colors">
-                    Save as Draft
-                </button>
-                <button type="button" onclick="submitForm('ajukan')" class="px-6 py-2.5 bg-[#20394a] text-white rounded-xl font-semibold hover:bg-[#6196aa] transition-colors shadow-md">
-                    Ajukan ke Kaprodi
+                <input type="hidden" name="action" id="formAction" value="simpan_draft">
+                <button type="submit" class="px-8 py-2.5 bg-[#20394a] text-white rounded-xl font-semibold hover:bg-[#6196aa] transition-colors shadow-md">
+                    Simpan Draf
                 </button>
             </div>
         </form>
@@ -151,7 +148,6 @@
                 alert('Silahkan tambah minimal 1 barang sebelum menyimpan.');
                 return;
             }
-            document.getElementById('formAction').value = actionType;
             document.getElementById('draftForm').submit();
         }
 

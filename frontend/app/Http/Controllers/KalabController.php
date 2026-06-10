@@ -60,4 +60,19 @@ class KalabController extends Controller
 
         return redirect()->back()->with('error', 'Gagal menyimpan draf pengadaan: ' . $response->json('message'));
     }
+
+    public function ajukanDraf(Request $request, $id)
+    {
+        $token = $request->session()->get('jwt_token');
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->post('http://localhost:3000/api/kalab/draf_pengadaan/' . $id . '/ajukan');
+
+        if ($response->successful() && $response->json('success')) {
+            return redirect('/kalab/draf-pengadaan')->with('success', 'Draf berhasil diajukan ke Kaprodi!');
+        }
+
+        return redirect()->back()->with('error', 'Gagal mengajukan draf: ' . $response->json('message'));
+    }
 }
