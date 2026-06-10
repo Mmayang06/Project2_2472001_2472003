@@ -115,6 +115,8 @@ app.use('/api/kalab/inventaris', kalabInventarisRoute);
 const kalabDashboardRoute = require('./routes/kalab/dashboard');
 app.use('/api/kalab/dashboard', kalabDashboardRoute);
 
+app.use('/api/kalab/notifikasi', require('./routes/kalab/notifikasi'));
+
 // Jalankan Server
 app.listen(PORT, () => {
     console.log(`Server backend telah berjalan di http://localhost:${PORT}`);

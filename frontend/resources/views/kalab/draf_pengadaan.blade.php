@@ -90,10 +90,13 @@
                 <h2 class="text-2xl font-bold text-[#20394a]">Draf Pengadaan Saya</h2>
                 <p class="text-sm text-gray-500 mt-1">Kelola dan pantau pengajuan pengadaan barang inventaris dan BHP Anda.</p>
             </div>
-            <a href="/kalab/tambah-draf" class="px-5 py-2.5 bg-[#20394a] hover:bg-[#6196aa] text-white rounded-xl shadow transition-colors font-medium text-sm flex items-center gap-2 whitespace-nowrap">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                Buat Draf Baru
-            </a>
+            <div class="flex items-center gap-4">
+                <a href="/kalab/tambah-draf" class="px-5 py-2.5 bg-[#20394a] hover:bg-[#6196aa] text-white rounded-xl shadow transition-colors font-medium text-sm flex items-center gap-2 whitespace-nowrap">
+                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+                    Buat Draf Baru
+                </a>
+                @include('components.notification_bell')
+            </div>
         </div>
 
         @if(session('success'))

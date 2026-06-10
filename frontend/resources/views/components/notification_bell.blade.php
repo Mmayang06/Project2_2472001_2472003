@@ -46,11 +46,20 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 
+    // Determine API Base URL from path
+    const path = window.location.pathname;
+    let apiBase = '';
+    if (path.startsWith('/kalab')) {
+        apiBase = 'http://localhost:3000/api/kalab/notifikasi';
+    } else {
+        apiBase = 'http://localhost:3000/api/staf_admin/notifikasi';
+    }
+
     // Fetch Notifications
     async function fetchNotifications() {
         try {
             const token = localStorage.getItem('jwt_token') || '{{ session("jwt_token") }}';
-            const res = await fetch('http://localhost:3000/api/staf_admin/notifikasi', {
+            const res = await fetch(apiBase, {
                 headers: { 'Authorization': 'Bearer ' + token }
             });
             const json = await res.json();
@@ -103,7 +112,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 if (!n.is_read) {
                     try {
                         const token = localStorage.getItem('jwt_token') || '{{ session("jwt_token") }}';
-                        await fetch(`http://localhost:3000/api/staf_admin/notifikasi/${n.id_notifikasi}/read`, {
+                        await fetch(`${apiBase}/${n.id_notifikasi}/read`, {
                             method: 'PUT',
                             headers: { 'Authorization': 'Bearer ' + token }
                         });

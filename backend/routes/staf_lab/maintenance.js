@@ -105,6 +105,16 @@ router.post('/', async (req, res) => {
 
         await conn.query('UPDATE barang_inventaris SET kondisi = ? WHERE id_inventaris = ?', [kondisi_setelah, id_inventaris]);
 
+        if (kondisi_setelah === 'rusak' || kondisi_setelah === 'rusak_berat') {
+            const [inv] = await conn.query('SELECT nomor_label FROM barang_inventaris WHERE id_inventaris = ?', [id_inventaris]);
+            const no_label = inv[0] ? inv[0].nomor_label : id_inventaris;
+            const pesan = `Peringatan: Barang dengan label ${no_label} dilaporkan dalam kondisi ${kondisi_setelah.replace('_', ' ').toUpperCase()}.`;
+            await conn.query(
+                `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
+                ['kalab', pesan, 'warning', '/kalab/inventaris']
+            );
+        }
+
         await conn.commit();
         res.json({ success: true, message: 'Log maintenance berhasil disimpan', id_pemeliharaan });
     } catch (error) {

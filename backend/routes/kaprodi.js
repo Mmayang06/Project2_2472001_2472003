@@ -206,6 +206,11 @@ router.post('/draf_pengadaan/:id/finalize', async (req, res) => {
             `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
             ['staf_admin', pesan, tipe, '/stafadmin/draf-pengadaan']
         );
+        // Tambahkan notifikasi untuk Kalab
+        await conn.query(
+            `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
+            ['kalab', pesan, tipe, '/kalab/draf-pengadaan']
+        );
 
         await conn.commit();
         return res.json({
