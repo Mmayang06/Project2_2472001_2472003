@@ -80,6 +80,8 @@ class AuthController extends Controller
                 return redirect('/staf-lab/home');
             } else if ($user['role'] === 'kaprodi') {
                 return redirect('/kaprodi/dashboard');
+            } else if ($user['role'] === 'kalab') {
+                return redirect('/kalab/draf-pengadaan');
             }
         }
         

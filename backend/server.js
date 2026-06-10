@@ -104,6 +104,13 @@ app.use('/api/staf_lab/maintenance', stafLabMaintenanceRoute);
 const kaprodiRoute = require('./routes/kaprodi');
 app.use('/api/kaprodi', kaprodiRoute);
 
+// Routes Kalab
+const kalabDrafPengadaanRoute = require('./routes/kalab/draf_pengadaan');
+app.use('/api/kalab/draf_pengadaan', kalabDrafPengadaanRoute);
+
+const kalabInventarisRoute = require('./routes/kalab/inventaris');
+app.use('/api/kalab/inventaris', kalabInventarisRoute);
+
 // Jalankan Server
 app.listen(PORT, () => {
     console.log(`Server backend telah berjalan di http://localhost:${PORT}`);

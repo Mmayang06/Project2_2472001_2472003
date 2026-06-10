@@ -84,3 +84,9 @@ Route::middleware(['checkRole:kaprodi'])->group(function () {
     Route::get('/kaprodi/draf-pengadaan/{id}/finalize', [App\Http\Controllers\KaprodiController::class, 'finalizePage']);
     Route::post('/kaprodi/draf-pengadaan/{id}/finalize', [App\Http\Controllers\KaprodiController::class, 'finalizeDraft']);
 });
+
+Route::middleware(['checkRole:kalab'])->group(function () {
+    Route::get('/kalab/draf-pengadaan', [App\Http\Controllers\KalabController::class, 'drafPengadaan']);
+    Route::get('/kalab/tambah-draf', [App\Http\Controllers\KalabController::class, 'tambahDraf']);
+    Route::post('/kalab/simpan-draf', [App\Http\Controllers\KalabController::class, 'simpanDraf']);
+});
