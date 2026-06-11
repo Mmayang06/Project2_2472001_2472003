@@ -69,6 +69,18 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Field wajib tidak boleh kosong' });
     }
 
+    
+    // Mapping frontend values to ENUM values
+    let mapped_setelah = 'baik';
+    if (kondisi_setelah === 'Rusak Ringan' || kondisi_setelah === 'rusak_ringan' || kondisi_setelah === 'Perlu Perhatian' || kondisi_setelah === 'perlu_perhatian') mapped_setelah = 'rusak_ringan';
+    if (kondisi_setelah === 'Rusak Berat' || kondisi_setelah === 'rusak_berat') mapped_setelah = 'rusak_berat';
+
+    let mapped_sebelum = 'baik';
+    if (kondisi_sebelum) {
+        if (kondisi_sebelum === 'Rusak Ringan' || kondisi_sebelum === 'rusak_ringan' || kondisi_sebelum === 'Perlu Perhatian' || kondisi_sebelum === 'perlu_perhatian') mapped_sebelum = 'rusak_ringan';
+        if (kondisi_sebelum === 'Rusak Berat' || kondisi_sebelum === 'rusak_berat') mapped_sebelum = 'rusak_berat';
+    }
+
     const conn = await db.getConnection();
     try {
         await conn.beginTransaction();
@@ -76,7 +88,7 @@ router.post('/', async (req, res) => {
         const [mainResult] = await conn.query(
             `INSERT INTO pemeliharaan (id_inventaris, id_user, jenis_maintenance, tanggal, kondisi_sebelum, kondisi_setelah, status, keterangan)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [id_inventaris, id_user || null, jenis_maintenance || 'Pemeliharaan', tanggal, kondisi_sebelum || null, kondisi_setelah, status, keterangan || null]
+            [id_inventaris, id_user || null, jenis_maintenance || 'Pemeliharaan', tanggal, mapped_sebelum, mapped_setelah, status, keterangan || null]
         );
         const id_pemeliharaan = mainResult.insertId;
 
@@ -103,7 +115,7 @@ router.post('/', async (req, res) => {
             }
         }
 
-        await conn.query('UPDATE barang_inventaris SET kondisi = ? WHERE id_inventaris = ?', [kondisi_setelah, id_inventaris]);
+        await conn.query('UPDATE barang_inventaris SET kondisi = ? WHERE id_inventaris = ?', [mapped_setelah, id_inventaris]);
 
         if (kondisi_setelah === 'rusak' || kondisi_setelah === 'rusak_berat') {
             const [inv] = await conn.query('SELECT nomor_label FROM barang_inventaris WHERE id_inventaris = ?', [id_inventaris]);
