@@ -5,6 +5,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StafLabController;
 use App\Http\Controllers\AdministratorController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\KalabController;
 
 Route::middleware(['checkRole:staflab'])->group(function () {
@@ -49,6 +50,10 @@ Route::post('/register', [AuthController::class, 'register']);
 Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
 
 Route::get('/dashboard', [AuthController::class, 'dashboard'])->name('dashboard');
+
+// Profil Pengguna (Semua Role)
+Route::get('/profile', [ProfileController::class, 'index'])->name('profile');
+Route::put('/profile', [ProfileController::class, 'update']);
 
 // Rute ke dashboard staf admin yang dilindungi middleware
 Route::middleware(['checkRole:stafadmin'])->group(function () {
