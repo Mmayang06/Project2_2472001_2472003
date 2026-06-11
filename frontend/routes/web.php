@@ -16,6 +16,13 @@ Route::middleware(['checkRole:staflab'])->group(function () {
     Route::get('/staf-lab/bhp/riwayat', [StafLabController::class, 'bhpRiwayat']);
     Route::get('/staf_lab/bhp/riwayat', [StafLabController::class, 'bhpRiwayat']);
     
+    Route::get('/staf-lab/daftar-inventaris', function () {
+        return view('staf-lab.daftar_inventaris');
+    });
+    Route::get('/staf_lab/daftar-inventaris', function () {
+        return view('staf-lab.daftar_inventaris');
+    });
+    
     // API endpoints untuk aksi AJAX
     Route::post('/staf-lab/bhp/consume', [StafLabController::class, 'consumeBhp']);
     Route::post('/staf-lab/bhp/restock', [StafLabController::class, 'restockBhp']);
