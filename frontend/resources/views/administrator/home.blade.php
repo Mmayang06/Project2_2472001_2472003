@@ -29,28 +29,20 @@
 
     <!-- Sidebar navigasi admin -->
     <aside class="w-full md:w-80 h-full bg-[#20394a] text-[#f9f5ed] flex flex-col flex-shrink-0 border-r border-[#6196aa]/20 overflow-hidden">
-        <div class="p-6 border-b border-[#6196aa]/20 flex items-center justify-between flex-shrink-0">
-            <a href="/administrator/home" class="flex items-center gap-3 group">
-                <div class="p-2 bg-[#6196aa] rounded-xl text-[#f9f5ed] shadow-md">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+        <div class="p-6 border-b border-[#6196aa]/20 flex items-center justify-between">
+        <a href="/administrator/home" class="flex items-center gap-3 group">
+            <div class="p-2 bg-[#6196aa] rounded-xl text-[#f9f5ed] shadow-md group-hover:scale-105 transition-transform duration-200">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
                     </svg>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-tight">Lab<span class="text-[#6196aa]">ventory</span></h1>
-                    <span class="text-xs text-[#c9ccc3] tracking-wide block">Panel Administrator</span>
-                </div>
-            </a>
-        </div>
-
-        <div class="p-6 border-b border-[#6196aa]/20 flex items-center gap-4 flex-shrink-0">
-            <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#6196aa] to-[#c9ccc3] flex items-center justify-center font-bold text-lg text-[#20394a]">
-                AD
             </div>
             <div>
-                <h4 class="font-semibold text-sm text-[#f9f5ed]">{{ session('user')['username'] ?? 'Administrator' }}</h4>
-                <span class="text-xs text-emerald-400">Online</span>
+                <h1 class="text-xl font-bold tracking-tight">Lab<span class="text-[#6196aa]">ventory</span></h1>
+                <span class="text-xs text-[#c9ccc3] tracking-wide block">Panel Administrator</span>
+                <span class="text-[10px] text-emerald-400 font-semibold tracking-wide block mt-1">{{ session('user')['username'] ?? 'Administrator' }}</span>
             </div>
+        </a>
+    </div>
         </div>
 
         <nav class="flex-grow p-4 space-y-1 mt-2 overflow-y-auto">
