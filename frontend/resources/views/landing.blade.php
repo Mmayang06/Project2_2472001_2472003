@@ -77,24 +77,7 @@
             border-color: var(--noir);
         }
 
-        .btn-register {
-            background-color: var(--denim);
-            color: var(--bone);
-            padding: 10px 24px;
-            border-radius: 8px;
-            text-decoration: none;
-            font-weight: 600;
-            border: 2px solid var(--denim);
-            transition: all 0.3s;
-            display: inline-block;
-        }
 
-        .btn-register:hover {
-            background-color: var(--steel);
-            border-color: var(--steel);
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(3, 7, 6, 0.2);
-        }
 
         .hero {
             display: flex;
@@ -219,7 +202,6 @@
         <a href="#" class="logo">Lab<span>ventory</span></a>
         <div class="nav-buttons">
             <a href="/login" class="btn-login">Login</a>
-            <a href="/register" class="btn-register">Register</a>
         </div>
     </nav>
 
