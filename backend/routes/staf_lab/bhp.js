@@ -68,7 +68,7 @@ router.post('/consume', async (req, res) => {
 
         const currentStock = rows[0].stok;
         if (currentStock < jumlah) {
-            return res.status(400).json({ success: false, message: 'Stok tidak mencukupi' });
+            return res.status(400).json({ success: false, message: `Stok tidak mencukupi. Sisa stok saat ini hanya ${currentStock}.` });
         }
 
         // kurangi stok
@@ -78,6 +78,25 @@ router.post('/consume', async (req, res) => {
         await db.query(
             'INSERT INTO penggunaan_bhp (id_bhp, jumlah_digunakan, tanggal, id_ruangan) VALUES (?, ?, CURDATE(), ?)', 
             [id_bhp, jumlah, id_ruangan || null]
+        );
+
+        // Notifikasi ke kalab
+        const [bhpData] = await db.query('SELECT nama_bhp FROM bhp WHERE id_bhp = ?', [id_bhp]);
+        const nama_bhp = bhpData[0]?.nama_bhp || 'BHP';
+
+        let nama_ruangan = 'Ruangan Tidak Diketahui';
+        if (id_ruangan) {
+            const [ruanganData] = await db.query('SELECT nama_ruangan FROM ruangan WHERE id_ruangan = ?', [id_ruangan]);
+            if (ruanganData.length > 0) {
+                nama_ruangan = ruanganData[0].nama_ruangan;
+            }
+        }
+
+        const pesanNotif = `Anggota Staf Lab telah menggunakan ${jumlah} ${nama_bhp} di ${nama_ruangan}.`;
+        
+        await db.query(
+            'INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)',
+            ['kalab', pesanNotif, 'info', '/kalab/bhp/riwayat']
         );
 
         res.json({ success: true, message: 'BHP berhasil digunakan' });
