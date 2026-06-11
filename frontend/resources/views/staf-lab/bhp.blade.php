@@ -181,7 +181,7 @@
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
                             </svg>
-                            Restok / Tambah BHP
+                            Ajukan Stok BHP
                         </button>
                     </div>
                 </div>
@@ -218,7 +218,7 @@
                 </svg>
             </button>
 
-            <h3 class="text-lg font-bold text-[#20394a] mb-4">Form Tambah Stok BHP</h3>
+            <h3 class="text-lg font-bold text-[#20394a] mb-4">Form Pengajuan Stok BHP</h3>
             
             <form onsubmit="handleRestockSubmit(event)" class="space-y-4">
                 <div>
@@ -229,7 +229,7 @@
                 </div>
 
                 <div>
-                    <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Jumlah Ditambahkan</label>
+                    <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Jumlah Diajukan</label>
                     <input type="number" id="restock-amount" min="1" required class="w-full bg-[#f9f5ed]/30 border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#6196aa] transition-all" placeholder="Misal: 10">
                 </div>
 
@@ -238,7 +238,7 @@
                         Batal
                     </button>
                     <button type="submit" class="flex-1 py-3 bg-[#20394a] hover:bg-[#6196aa] text-white rounded-xl text-sm font-semibold transition-all duration-200">
-                        Simpan Stok
+                        Ajukan Stok
                     </button>
                 </div>
             </form>
@@ -547,10 +547,9 @@
                     const result = await response.json();
                     
                     if (result.success) {
-                        item.stock += amount;
-                        showToast(`Stok ${item.name} berhasil ditambah sebanyak ${amount} ${item.unit}.`);
+                        showToast(result.message);
                         closeRestockModal();
-                        renderBhpTable();
+                        // renderBhpTable(); // No need to re-render because stock is not added directly
                     } else {
                         alert('Gagal menambah stok: ' + result.message);
                     }

@@ -78,6 +78,52 @@ router.get('/', authMiddleware, async (req, res) => {
     }
 });
 
+
+// GET /api/kalab/draf_pengadaan/permintaan_bhp
+router.get('/permintaan_bhp', authMiddleware, async (req, res) => {
+    try {
+        const [rows] = await db.query(`
+            SELECT pesan FROM notifikasi 
+            WHERE role_target = 'kalab' 
+            AND pesan LIKE 'Anggota Staf Lab mengajukan permintaan stok untuk%'
+            ORDER BY created_at DESC
+        `);
+        
+        const permintaan = [];
+        const regex = /untuk (.+) sebanyak (\d+)\./;
+        for (const row of rows) {
+            const match = row.pesan.match(regex);
+            if (match) {
+                permintaan.push({
+                    nama_barang: match[1],
+                    jumlah: parseInt(match[2], 10)
+                });
+            }
+        }
+        
+        // Buang duplikat, ambil permintaan terbaru saja per nama_barang
+        const uniquePermintaan = [];
+        const seen = new Set();
+        for (const p of permintaan) {
+            if (!seen.has(p.nama_barang)) {
+                seen.add(p.nama_barang);
+                uniquePermintaan.push(p);
+            }
+        }
+
+        // Fetch current stock from bhp table
+        for (const p of uniquePermintaan) {
+            const [bhpRows] = await db.query('SELECT stok FROM bhp WHERE nama_bhp = ?', [p.nama_barang]);
+            p.stok_sekarang = bhpRows.length > 0 ? bhpRows[0].stok : 0;
+        }
+        
+        res.json({ success: true, data: uniquePermintaan });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 // POST /api/kalab/draf_pengadaan
 router.post('/', authMiddleware, async (req, res) => {
     const conn = await db.getConnection();

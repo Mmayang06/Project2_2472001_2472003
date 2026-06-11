@@ -106,14 +106,22 @@ router.post('/consume', async (req, res) => {
     }
 });
 
-// POST /api/staf_lab/bhp/restock
+// POST /api/staf_lab/bhp/restock (Now acts as Pengajuan Stok)
 router.post('/restock', async (req, res) => {
     const { id_bhp, jumlah } = req.body;
     try {
-        // nambah stok
-        await db.query('UPDATE bhp SET stok = stok + ? WHERE id_bhp = ?', [jumlah, id_bhp]);
+        const [bhpData] = await db.query('SELECT nama_bhp FROM bhp WHERE id_bhp = ?', [id_bhp]);
+        if (bhpData.length === 0) return res.status(404).json({ success: false, message: 'BHP tidak ditemukan' });
+
+        const nama_bhp = bhpData[0].nama_bhp;
+        const pesanNotif = `Anggota Staf Lab mengajukan permintaan stok untuk ${nama_bhp} sebanyak ${jumlah}. Mohon buatkan draf pengadaan.`;
+
+        await db.query(
+            'INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)',
+            ['kalab', pesanNotif, 'warning', '/kalab/tambah-draf']
+        );
         
-        res.json({ success: true, message: 'Stok BHP berhasil ditambahkan' });
+        res.json({ success: true, message: 'Pengajuan stok BHP berhasil dikirim ke Kepala Lab.' });
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Server error' });
