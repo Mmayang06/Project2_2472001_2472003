@@ -26,6 +26,38 @@ db.query('UPDATE user SET is_online = 0').then(() => {
 });
 
 const jwt = require('jsonwebtoken');
+const nodemailer = require('nodemailer');
+
+const transporter = nodemailer.createTransport({
+    service: process.env.EMAIL_SERVICE || 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
+
+// Forgot Password API
+app.post('/api/forgot-password', async (req, res) => {
+    const { username } = req.body;
+    try {
+        // Verify user exists
+        const [users] = await db.query('SELECT * FROM user WHERE nama = ? OR email = ? LIMIT 1', [username, username]);
+        if (users.length === 0) {
+            return res.status(404).json({ success: false, message: 'Akun tidak ditemukan dalam sistem.' });
+        }
+        
+        const user = users[0];
+
+        // Set reset_requested = 1 in database
+        await db.query('UPDATE user SET reset_requested = 1 WHERE id_user = ?', [user.id_user]);
+
+        res.json({ success: true, message: `Permintaan berhasil dikirim. Nanti pembaruan password akan dikirim ke email terdaftar yaitu ${user.email}` });
+    } catch (error) {
+        console.error('Error in forgot-password:', error);
+        res.status(500).json({ success: false, message: 'Gagal mengirim permintaan.' });
+    }
+});
+
 
 // Login API
 app.post('/api/login', async (req, res) => {

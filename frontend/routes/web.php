@@ -84,6 +84,7 @@ Route::middleware(['checkRole:administrator'])->group(function () {
     Route::post('/administrator/users', [AdministratorController::class, 'storeUser']);
     Route::put('/administrator/users/{id}', [AdministratorController::class, 'updateUser']);
     Route::delete('/administrator/users/{id}', [AdministratorController::class, 'deleteUser']);
+    Route::post('/administrator/users/{id}/reset-password', [AdministratorController::class, 'resetPassword']);
 
     // API endpoints untuk CRUD ruangan
     Route::post('/administrator/rooms', [AdministratorController::class, 'storeRoom']);

@@ -18,6 +18,8 @@ class AdministratorController extends Controller
         $totalUsers = 0;
         $totalRooms = 0;
         $onlineUsers = [];
+        $resetCount = 0;
+        $pendingResets = [];
 
         if ($usersResponse->successful() && $usersResponse->json('success')) {
             $users = $usersResponse->json('data');
@@ -25,13 +27,17 @@ class AdministratorController extends Controller
             $onlineUsers = array_filter($users, function($u) {
                 return isset($u['is_online']) && ($u['is_online'] == 1 || $u['is_online'] === true);
             });
+            $pendingResets = array_filter($users, function($u) {
+                return isset($u['reset_requested']) && $u['reset_requested'] == 1;
+            });
+            $resetCount = count($pendingResets);
         }
 
         if ($roomsResponse->successful() && $roomsResponse->json('success')) {
             $totalRooms = count($roomsResponse->json('data'));
         }
 
-        return view('administrator.home', compact('totalUsers', 'totalRooms', 'onlineUsers'));
+        return view('administrator.home', compact('totalUsers', 'totalRooms', 'onlineUsers', 'resetCount', 'pendingResets'));
     }
 
     // Tampilan daftar pengguna
@@ -39,12 +45,17 @@ class AdministratorController extends Controller
     {
         $response = Http::get("{$this->apiUrl}/administrator/users");
         $users = [];
+        $resetCount = 0;
 
         if ($response->successful() && $response->json('success')) {
             $users = $response->json('data');
+            $pendingResets = array_filter($users, function($u) {
+                return isset($u['reset_requested']) && $u['reset_requested'] == 1;
+            });
+            $resetCount = count($pendingResets);
         }
 
-        return view('administrator.users', compact('users'));
+        return view('administrator.users', compact('users', 'resetCount'));
     }
 
     // Tambah pengguna baru
@@ -94,6 +105,18 @@ class AdministratorController extends Controller
         }
 
         return response()->json(['success' => false, 'message' => 'Gagal menghapus user'], 400);
+    }
+
+    // Reset password dan kirim email
+    public function resetPassword($id)
+    {
+        $response = Http::post("{$this->apiUrl}/administrator/users/{$id}/reset-password");
+
+        if ($response->successful() && $response->json('success')) {
+            return response()->json(['success' => true]);
+        }
+
+        return response()->json(['success' => false, 'message' => $response->json('message') ?? 'Gagal mereset password'], 400);
     }
 
     // Tampilan daftar ruangan

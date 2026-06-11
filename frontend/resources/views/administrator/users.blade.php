@@ -103,6 +103,16 @@
             </div>
             
             <div class="flex items-center gap-4">
+                @if(isset($resetCount) && $resetCount > 0)
+                <div class="relative p-2 bg-red-50 text-red-600 rounded-xl cursor-default" title="{{ $resetCount }} Permintaan Reset Password (buka Dashboard untuk detail)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                    </svg>
+                    <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white">
+                        {{ $resetCount }}
+                    </span>
+                </div>
+                @endif
                 <div class="flex flex-col text-right">
                     <span class="text-xs font-semibold text-[#20394a]" id="current-date">Kamis, 4 Juni 2026</span>
                     <span class="text-[10px] text-gray-400" id="current-time">11:22:00 WIB</span>
@@ -146,20 +156,34 @@
                             <tbody class="divide-y divide-gray-100 text-sm" id="user-table-body">
                                 @forelse($users as $user)
                                 <tr class="hover:bg-gray-50/50 transition-colors">
-                                    <td class="px-6 py-4 font-semibold text-[#20394a]">{{ $user['nama'] }}</td>
+                                    <td class="px-6 py-4 font-semibold text-[#20394a]">
+                                        <div class="flex items-center gap-2">
+                                            <span>{{ $user['nama'] }}</span>
+                                            @if(isset($user['reset_requested']) && $user['reset_requested'] == 1)
+                                                <span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-red-100 text-red-600 border border-red-200 whitespace-nowrap" title="User ini meminta reset password">
+                                                    Minta Reset
+                                                </span>
+                                            @endif
+                                        </div>
+                                    </td>
                                     <td class="px-6 py-4 text-gray-600">{{ $user['email'] }}</td>
                                     <td class="px-6 py-4">
                                         <span class="px-2.5 py-0.5 rounded-full text-xs font-semibold bg-blue-100 text-blue-800 uppercase">
                                             {{ $user['role'] }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 text-right space-x-2">
-                                        <button onclick="editUser({{ json_encode($user) }})" class="px-3 py-1.5 border border-amber-500/30 text-amber-600 hover:bg-amber-50 rounded-lg text-xs font-bold transition-all duration-200">
-                                            Edit
-                                        </button>
-                                        <button onclick="deleteUser({{ $user['id_user'] }})" class="px-3 py-1.5 border border-rose-500/30 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-bold transition-all duration-200">
-                                            Hapus
-                                        </button>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center justify-end gap-2">
+                                            <button onclick="resetUserPassword({{ $user['id_user'] }})" class="px-3 py-1.5 border border-indigo-500/30 text-indigo-600 hover:bg-indigo-50 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap">
+                                                Reset Password
+                                            </button>
+                                            <button onclick="editUser({{ json_encode($user) }})" class="px-3 py-1.5 border border-amber-500/30 text-amber-600 hover:bg-amber-50 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap">
+                                                Edit
+                                            </button>
+                                            <button onclick="deleteUser({{ $user['id_user'] }})" class="px-3 py-1.5 border border-rose-500/30 text-rose-600 hover:bg-rose-50 rounded-lg text-xs font-bold transition-all duration-200 whitespace-nowrap">
+                                                Hapus
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                                 @empty
@@ -225,6 +249,18 @@
                     </button>
                 </div>
             </form>
+        </div>
+    </div>
+
+    <!-- Modal Confirm Reset -->
+    <div id="modal-reset" class="fixed inset-0 z-50 bg-[#030706]/60 backdrop-blur-sm hidden items-center justify-center p-4 transition-all duration-300">
+        <div class="bg-white w-full max-w-sm rounded-2xl border border-[#c9ccc3]/40 shadow-2xl p-6 relative transform scale-95 transition-transform duration-300">
+            <h3 class="text-lg font-bold text-[#20394a] mb-2">Konfirmasi Reset</h3>
+            <p class="text-sm text-gray-500 mb-6">Apakah Anda yakin ingin mereset password pengguna ini? Password baru akan digenerate otomatis dan dikirimkan via email.</p>
+            <div class="flex gap-3">
+                <button type="button" onclick="closeResetModal()" class="flex-1 py-2.5 bg-[#c9ccc3]/30 hover:bg-[#c9ccc3]/50 text-gray-700 rounded-xl text-sm font-semibold transition-all">Batal</button>
+                <button type="button" onclick="confirmResetPassword()" class="flex-1 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-sm font-semibold transition-all">Ya, Reset</button>
+            </div>
         </div>
     </div>
 
@@ -380,6 +416,61 @@
                     setTimeout(() => location.reload(), 1000);
                 } else {
                     alert('Gagal menghapus pengguna: ' + result.message);
+                }
+            } catch (error) {
+                alert('Terjadi kesalahan koneksi.');
+            }
+        }
+
+        let userIdToReset = null;
+
+        // Buka modal reset
+        function resetUserPassword(id) {
+            userIdToReset = id;
+            const modal = document.getElementById('modal-reset');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.children[0].classList.remove('scale-95');
+                modal.children[0].classList.add('scale-100');
+            }, 10);
+        }
+
+        // Tutup modal reset
+        function closeResetModal() {
+            const modal = document.getElementById('modal-reset');
+            modal.children[0].classList.remove('scale-100');
+            modal.children[0].classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.add('hidden');
+                modal.classList.remove('flex');
+                userIdToReset = null;
+            }, 300);
+        }
+
+        // Eksekusi reset
+        async function confirmResetPassword() {
+            if (!userIdToReset) return;
+            const id = userIdToReset;
+            closeResetModal();
+
+            showToast('Sedang memproses dan mengirim email...');
+
+            try {
+                const response = await fetch(`/administrator/users/${id}/reset-password`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    }
+                });
+                const result = await response.json();
+
+                if (result.success) {
+                    showToast('Password berhasil direset dan email telah dikirim!');
+                    setTimeout(() => location.reload(), 1500); // Reload agar status "Minta Reset" hilang
+                } else {
+                    alert('Gagal mereset password: ' + result.message);
                 }
             } catch (error) {
                 alert('Terjadi kesalahan koneksi.');
