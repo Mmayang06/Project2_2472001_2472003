@@ -5,6 +5,8 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\AuthController;
 use App\Http\Controllers\StafLabController;
 use App\Http\Controllers\AdministratorController;
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\KalabController;
 
 Route::middleware(['checkRole:staflab'])->group(function () {
     Route::get('/staf-lab/home', [StafLabController::class, 'dashboard']);
