@@ -411,7 +411,7 @@
                         alert('Terjadi kesalahan koneksi.');
                     }
                 } else {
-                    alert(`Stok ${item.name} tidak mencukupi! Silakan lakukan restok.`);
+                    alert(`BHP yang ingin digunakan tidak mencukupi! Stok ${item.name} saat ini hanya tersisa ${item.stock} ${item.unit}.`);
                 }
             }
         }

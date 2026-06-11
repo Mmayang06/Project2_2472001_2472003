@@ -128,4 +128,17 @@ class KalabController extends Controller
 
         return redirect('/kalab/draf-pengadaan')->with('error', $response->json('message') ?? 'Gagal menghapus barang.');
     }
+
+    public function bhpRiwayat(Request $request)
+    {
+        // Reuse the staf-lab endpoint to get BHP history
+        $response = Http::get("http://localhost:3000/api/staf_lab/bhp/riwayat");
+        
+        $usages = [];
+        if ($response->successful() && $response->json('success')) {
+            $usages = $response->json('data');
+        }
+
+        return view('kalab.bhp_riwayat', compact('usages'));
+    }
 }
