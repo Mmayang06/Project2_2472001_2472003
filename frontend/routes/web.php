@@ -34,6 +34,9 @@ Route::middleware(['checkRole:staflab'])->group(function () {
 
     // Simpan log maintenance baru (juga mengurangi stok BHP)
     Route::post('/staf-lab/maintenance', [StafLabController::class, 'storeMaintenance']);
+    
+    // Ganti barang inventaris rusak dengan unit dari storage
+    Route::post('/staf-lab/maintenance/ganti', [StafLabController::class, 'replaceInventory']);
 });
 
 

@@ -65,7 +65,7 @@ router.get('/inventaris', async (req, res) => {
 router.post('/', async (req, res) => {
     const { id_inventaris, id_user, jenis_maintenance, tanggal, kondisi_sebelum, kondisi_setelah, status, keterangan, bhp_digunakan } = req.body;
 
-    if (!id_inventaris || !tanggal || !kondisi_setelah || !status) {
+    if (!id_inventaris || !id_user || !tanggal || !kondisi_setelah || !status) {
         return res.status(400).json({ success: false, message: 'Field wajib tidak boleh kosong' });
     }
 
@@ -85,7 +85,7 @@ router.post('/', async (req, res) => {
         const [mainResult] = await conn.query(
             `INSERT INTO pemeliharaan (id_inventaris, id_user, jenis_maintenance, tanggal, kondisi_sebelum, kondisi_setelah, status, keterangan)
              VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
-            [id_inventaris, id_user || null, jenis_maintenance || 'Pemeliharaan', tanggal, mapped_sebelum, mapped_setelah, status, keterangan || null]
+            [id_inventaris, id_user, jenis_maintenance || 'Pemeliharaan', tanggal, mapped_sebelum, mapped_setelah, status, keterangan || '']
         );
         const id_pemeliharaan = mainResult.insertId;
 
@@ -170,6 +170,71 @@ router.post('/ajukan_pengganti', async (req, res) => {
     } catch (error) {
         console.error(error);
         res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
+// POST /api/staf_lab/maintenance/ganti_inventaris
+router.post('/ganti_inventaris', async (req, res) => {
+    const { id_inventaris_rusak, id_inventaris_pengganti, id_user } = req.body;
+
+    if (!id_inventaris_rusak || !id_inventaris_pengganti || !id_user) {
+        return res.status(400).json({ success: false, message: 'Field wajib tidak boleh kosong' });
+    }
+
+    const conn = await db.getConnection();
+    try {
+        await conn.beginTransaction();
+
+        // 1. Get info of damaged item
+        const [rusakRows] = await conn.query(`
+            SELECT bi.nomor_label, bi.kondisi, dp.nama_barang, bi.id_ruangan
+            FROM barang_inventaris bi
+            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            WHERE bi.id_inventaris = ?
+        `, [id_inventaris_rusak]);
+
+        if (rusakRows.length === 0) {
+            await conn.rollback();
+            return res.status(404).json({ success: false, message: 'Barang rusak tidak ditemukan' });
+        }
+
+        const rusakItem = rusakRows[0];
+
+        // 2. Get info of replacement item
+        const [gantiRows] = await conn.query(`
+            SELECT nomor_label, kondisi FROM barang_inventaris WHERE id_inventaris = ?
+        `, [id_inventaris_pengganti]);
+
+        if (gantiRows.length === 0) {
+            await conn.rollback();
+            return res.status(404).json({ success: false, message: 'Barang pengganti tidak ditemukan' });
+        }
+
+        const gantiItem = gantiRows[0];
+
+        // 3. Insert maintenance log
+        const keteranganLog = `Mengganti barang dengan unit baru dari storage (Label unit pengganti: ${gantiItem.nomor_label}).`;
+        const [mainResult] = await conn.query(
+            `INSERT INTO pemeliharaan (id_inventaris, id_user, jenis_maintenance, tanggal, kondisi_sebelum, kondisi_setelah, status, keterangan)
+             VALUES (?, ?, ?, CURDATE(), ?, ?, ?, ?)`,
+            [id_inventaris_rusak, id_user, 'Korektif', rusakItem.kondisi || 'rusak_berat', 'baik', 'Selesai', keteranganLog]
+        );
+        const id_pemeliharaan = mainResult.insertId;
+
+        // 4. Update condition of damaged item to 'baik'
+        await conn.query('UPDATE barang_inventaris SET kondisi = ? WHERE id_inventaris = ?', ['baik', id_inventaris_rusak]);
+
+        // 5. Delete replacement item from database
+        await conn.query('DELETE FROM barang_inventaris WHERE id_inventaris = ?', [id_inventaris_pengganti]);
+
+        await conn.commit();
+        res.json({ success: true, message: 'Barang berhasil diganti dan status diupdate menjadi Baik', id_pemeliharaan });
+    } catch (error) {
+        await conn.rollback();
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error: ' + error.message });
+    } finally {
+        conn.release();
     }
 });
 

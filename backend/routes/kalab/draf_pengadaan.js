@@ -92,33 +92,64 @@ router.get('/permintaan_bhp', authMiddleware, async (req, res) => {
         `);
         
         const permintaan = [];
-        const regexBhp = /untuk (.+) sebanyak (\d+)\./;
-        const regexInv = /untuk (.+) sebanyak (\d+)\./; // format is the same
+        const regexBhp = /untuk (.+?) sebanyak (\d+)\./;
+        const regexInv = /untuk (.+?) \(Label: (.+?)\) yang rusak dan perlu diganti\./;
+        const regexInv2 = /untuk (.+?) sebanyak (\d+)\./;
 
         for (const row of rows) {
-            const match = row.pesan.match(regexBhp) || row.pesan.match(regexInv);
-            if (match) {
+            let match = row.pesan.match(regexBhp);
+            if (match && row.pesan.includes('permintaan stok')) {
                 permintaan.push({
                     nama_barang: match[1],
-                    jumlah: parseInt(match[2], 10)
+                    jumlah: parseInt(match[2], 10),
+                    tipe: 'BHP'
                 });
+            } else {
+                match = row.pesan.match(regexInv);
+                if (match) {
+                    permintaan.push({
+                        nama_barang: match[1],
+                        jumlah: 1,
+                        tipe: 'Inventaris',
+                        no_label: match[2]
+                    });
+                } else {
+                    match = row.pesan.match(regexInv2);
+                    if (match && row.pesan.includes('penggantian inventaris')) {
+                        permintaan.push({
+                            nama_barang: match[1],
+                            jumlah: parseInt(match[2], 10),
+                            tipe: 'Inventaris'
+                        });
+                    }
+                }
             }
         }
         
-        // Buang duplikat, ambil permintaan terbaru saja per nama_barang
+        // Buang duplikat, ambil permintaan terbaru saja per nama_barang + tipe
         const uniquePermintaan = [];
         const seen = new Set();
         for (const p of permintaan) {
-            if (!seen.has(p.nama_barang)) {
-                seen.add(p.nama_barang);
+            const key = p.nama_barang + '_' + p.tipe;
+            if (!seen.has(key)) {
+                seen.add(key);
                 uniquePermintaan.push(p);
             }
         }
 
-        // Fetch current stock from bhp table (if applicable)
+        // Fetch current stock from bhp table or find id_inventaris
         for (const p of uniquePermintaan) {
-            const [bhpRows] = await db.query('SELECT stok FROM bhp WHERE nama_bhp = ?', [p.nama_barang]);
-            p.stok_sekarang = bhpRows.length > 0 ? bhpRows[0].stok : 0;
+            if (p.tipe === 'BHP') {
+                const [bhpRows] = await db.query('SELECT stok FROM bhp WHERE nama_bhp = ?', [p.nama_barang]);
+                p.stok_sekarang = bhpRows.length > 0 ? bhpRows[0].stok : 0;
+            } else if (p.tipe === 'Inventaris') {
+                if (p.no_label) {
+                    const [invRows] = await db.query('SELECT id_inventaris FROM barang_inventaris WHERE nomor_label = ?', [p.no_label]);
+                    p.id_inventaris = invRows.length > 0 ? invRows[0].id_inventaris : null;
+                } else {
+                    p.id_inventaris = null;
+                }
+            }
         }
         
         res.json({ success: true, data: uniquePermintaan });

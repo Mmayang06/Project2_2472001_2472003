@@ -80,7 +80,11 @@
         function getPermintaanOptionsHTML() {
             let options = '';
             permintaanBhp.forEach(p => {
-                options += `<option value="${p.nama_barang}" data-jumlah="${p.jumlah}">BHP: ${p.nama_barang} (Stok Sekarang: ${p.stok_sekarang})</option>`;
+                if (p.tipe === 'Inventaris') {
+                    options += `<option value="${p.nama_barang}" data-jumlah="${p.jumlah}" data-tipe="Inventaris" data-id-inventaris="${p.id_inventaris || ''}">Inventaris: ${p.nama_barang} ${p.no_label ? '(Label: ' + p.no_label + ')' : ''}</option>`;
+                } else {
+                    options += `<option value="${p.nama_barang}" data-jumlah="${p.jumlah}" data-tipe="BHP">BHP: ${p.nama_barang} (Stok Sekarang: ${p.stok_sekarang})</option>`;
+                }
             });
             return options;
         }
@@ -90,17 +94,20 @@
             const hint = document.getElementById(`hint-${idx}`);
             const jumlahInput = document.querySelector(`input[name="items[${idx}][jumlah]"]`);
             const jenisSelect = document.querySelector(`select[name="items[${idx}][jenis_barang]"]`);
+            const idGantiInput = document.getElementById(`id-inventaris-ganti-${idx}`);
 
             if (select.value === 'manual') {
                 manualInput.classList.remove('hidden');
                 manualInput.required = true;
                 manualInput.value = '';
                 hint.classList.add('hidden');
+                if (idGantiInput) idGantiInput.value = '';
             } else if (select.value === '') {
                 manualInput.classList.add('hidden');
                 manualInput.required = false;
                 manualInput.value = '';
                 hint.classList.add('hidden');
+                if (idGantiInput) idGantiInput.value = '';
             } else {
                 manualInput.classList.add('hidden');
                 manualInput.required = false;
@@ -108,12 +115,19 @@
                 
                 const selectedOption = select.options[select.selectedIndex];
                 const reqJumlah = selectedOption.getAttribute('data-jumlah');
+                const tipe = selectedOption.getAttribute('data-tipe');
+                const idInventaris = selectedOption.getAttribute('data-id-inventaris');
                 
                 hint.classList.remove('hidden');
-                hint.innerHTML = `Stok yang dibutuhkan (diajukan Staf Lab): <strong>${reqJumlah} unit</strong>`;
+                if (tipe === 'Inventaris') {
+                    hint.innerHTML = `Barang pengganti untuk Staf Lab: <strong>${reqJumlah || 1} unit</strong>`;
+                } else {
+                    hint.innerHTML = `Stok yang dibutuhkan (diajukan Staf Lab): <strong>${reqJumlah} unit</strong>`;
+                }
                 
-                if (jumlahInput) jumlahInput.value = reqJumlah;
-                if (jenisSelect) jenisSelect.value = 'BHP';
+                if (jumlahInput) jumlahInput.value = reqJumlah || 1;
+                if (jenisSelect) jenisSelect.value = tipe || 'BHP';
+                if (idGantiInput) idGantiInput.value = idInventaris || '';
             }
         }
 
@@ -126,6 +140,8 @@
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                     </button>
                     
+                    <input type="hidden" name="items[${itemIndex}][id_inventaris_ganti]" id="id-inventaris-ganti-${itemIndex}" value="">
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Nama Barang *</label>

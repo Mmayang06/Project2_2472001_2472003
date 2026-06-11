@@ -160,4 +160,33 @@ class StafLabController extends Controller
             'message' => $response->json('message') ?? 'Terjadi kesalahan saat menyimpan log maintenance',
         ], $response->status() >= 400 ? $response->status() : 500);
     }
+
+    public function replaceInventory(Request $request)
+    {
+        $request->validate([
+            'id_inventaris_rusak'     => 'required|integer',
+            'id_inventaris_pengganti' => 'required|integer',
+        ]);
+
+        $payload = [
+            'id_inventaris_rusak'     => $request->id_inventaris_rusak,
+            'id_inventaris_pengganti' => $request->id_inventaris_pengganti,
+            'id_user'                  => session('user')['id'] ?? null,
+        ];
+
+        $response = Http::post("{$this->apiUrl}/staf_lab/maintenance/ganti_inventaris", $payload);
+
+        if ($response->successful() && $response->json('success')) {
+            return response()->json([
+                'success' => true,
+                'message' => $response->json('message'),
+                'id_pemeliharaan' => $response->json('id_pemeliharaan'),
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => $response->json('message') ?? 'Terjadi kesalahan saat mengganti inventaris',
+        ], $response->status() >= 400 ? $response->status() : 500);
+    }
 }
