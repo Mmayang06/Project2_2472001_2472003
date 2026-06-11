@@ -137,6 +137,9 @@ app.use('/api/kalab/dashboard', kalabDashboardRoute);
 
 app.use('/api/kalab/notifikasi', require('./routes/kalab/notifikasi'));
 
+// Routes Profil (Semua Role)
+app.use('/api/profile', require('./routes/profile'));
+
 // Jalankan Server
 app.listen(PORT, () => {
     console.log(`Server backend telah berjalan di http://localhost:${PORT}`);
