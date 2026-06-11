@@ -89,4 +89,26 @@ router.get('/', authMiddleware, async (req, res) => {
     }
 });
 
+
+// POST /api/kalab/dashboard/minta_maintenance
+router.post('/minta_maintenance', authMiddleware, async (req, res) => {
+    try {
+        const { kategori } = req.body;
+        if (!kategori) {
+            return res.status(400).json({ success: false, message: 'Kategori barang diperlukan' });
+        }
+
+        const pesan = `Kalab meminta maintenance/perbaikan untuk inventaris: ${kategori}`;
+        await db.query(
+            'INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)',
+            ['staf_lab', pesan, 'warning', '/staf-lab/maintenance?ajukan=' + encodeURIComponent(kategori)]
+        );
+
+        return res.json({ success: true, message: 'Permintaan maintenance berhasil dikirim ke Staf Lab.' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 module.exports = router;

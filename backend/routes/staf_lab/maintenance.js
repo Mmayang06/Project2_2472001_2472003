@@ -126,5 +126,29 @@ router.post('/', async (req, res) => {
     }
 });
 
+
+// POST /api/staf_lab/maintenance/ajukan_pengganti
+router.post('/ajukan_pengganti', async (req, res) => {
+    try {
+        const { nama_barang, jumlah } = req.body;
+        if (!nama_barang || !jumlah) {
+            return res.status(400).json({ success: false, message: 'Nama barang dan jumlah diperlukan' });
+        }
+        
+        const pesan = `Staf Lab mengajukan penggantian inventaris untuk ${nama_barang} sebanyak ${jumlah}.`;
+        
+        // Coba insert notifikasi untuk kalab
+        await db.query(
+            `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
+            ['kalab', pesan, 'warning', '/kalab/tambah-draf']
+        );
+        
+        res.json({ success: true, message: 'Pengajuan penggantian berhasil dikirim ke Kalab' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 module.exports = router;
 

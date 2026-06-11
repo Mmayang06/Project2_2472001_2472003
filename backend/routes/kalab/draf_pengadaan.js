@@ -79,20 +79,24 @@ router.get('/', authMiddleware, async (req, res) => {
 });
 
 
+
 // GET /api/kalab/draf_pengadaan/permintaan_bhp
 router.get('/permintaan_bhp', authMiddleware, async (req, res) => {
     try {
         const [rows] = await db.query(`
             SELECT pesan FROM notifikasi 
             WHERE role_target = 'kalab' 
-            AND pesan LIKE 'Anggota Staf Lab mengajukan permintaan stok untuk%'
+            AND (pesan LIKE 'Anggota Staf Lab mengajukan permintaan stok untuk%'
+                 OR pesan LIKE 'Staf Lab mengajukan penggantian inventaris untuk%')
             ORDER BY created_at DESC
         `);
         
         const permintaan = [];
-        const regex = /untuk (.+) sebanyak (\d+)\./;
+        const regexBhp = /untuk (.+) sebanyak (\d+)\./;
+        const regexInv = /untuk (.+) sebanyak (\d+)\./; // format is the same
+
         for (const row of rows) {
-            const match = row.pesan.match(regex);
+            const match = row.pesan.match(regexBhp) || row.pesan.match(regexInv);
             if (match) {
                 permintaan.push({
                     nama_barang: match[1],
@@ -111,7 +115,7 @@ router.get('/permintaan_bhp', authMiddleware, async (req, res) => {
             }
         }
 
-        // Fetch current stock from bhp table
+        // Fetch current stock from bhp table (if applicable)
         for (const p of uniquePermintaan) {
             const [bhpRows] = await db.query('SELECT stok FROM bhp WHERE nama_bhp = ?', [p.nama_barang]);
             p.stok_sekarang = bhpRows.length > 0 ? bhpRows[0].stok : 0;

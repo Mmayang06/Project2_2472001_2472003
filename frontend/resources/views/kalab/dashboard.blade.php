@@ -249,7 +249,13 @@
                                 <div class="w-10 h-10 rounded-lg bg-rose-200 text-rose-700 flex items-center justify-center font-bold">
                                     <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
                                 </div>
-                                <span class="font-bold text-[#20394a]">{{ $rusak['kategori'] }}</span>
+                                <div>
+                                    <span class="font-bold text-[#20394a] block">{{ $rusak['kategori'] }}</span>
+                                    <button onclick="mintaMaintenance('{{ $rusak['kategori'] }}')" class="mt-1 flex items-center gap-1 text-[10px] font-bold text-rose-600 hover:text-rose-800 transition-colors">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                        Minta Maintenance
+                                    </button>
+                                </div>
                             </div>
                             <div class="flex flex-col items-end">
                                 <span class="text-xl font-extrabold text-rose-600">{{ $rusak['jumlah'] }}</span>
@@ -356,5 +362,108 @@
             if(dateEl) dateEl.textContent = dateString;
         }, 1000);
     </script>
+
+    <!-- Custom Confirm Modal -->
+    <div id="customConfirmModal" class="hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm transform transition-all p-6 text-center">
+            <div class="w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+            </div>
+            <h3 class="text-lg font-bold text-[#20394a] mb-2" id="confirmTitle">Konfirmasi Permintaan</h3>
+            <p class="text-sm text-gray-500 mb-6" id="confirmMessage">Kirim permintaan maintenance?</p>
+            <div class="flex gap-3 justify-center">
+                <button onclick="closeConfirmModal()" class="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-semibold transition-colors">
+                    Batal
+                </button>
+                <button id="confirmBtn" class="px-5 py-2.5 bg-rose-500 hover:bg-rose-600 text-white rounded-xl font-semibold transition-colors">
+                    Ya, Kirim
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Custom Alert Modal -->
+    <div id="customAlertModal" class="hidden fixed inset-0 z-[60] bg-black/50 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm transform transition-all p-6 text-center">
+            <div id="alertIcon" class="w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4">
+                <!-- Icon inserted via JS -->
+            </div>
+            <h3 class="text-lg font-bold text-[#20394a] mb-2" id="alertTitle">Pemberitahuan</h3>
+            <p class="text-sm text-gray-500 mb-6" id="alertMessage">Pesan.</p>
+            <button onclick="closeAlertModal()" class="w-full py-2.5 bg-[#20394a] hover:bg-[#6196aa] text-white rounded-xl font-semibold transition-colors">
+                Tutup
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let currentKategori = null;
+
+        function closeConfirmModal() {
+            document.getElementById('customConfirmModal').classList.add('hidden');
+        }
+
+        function closeAlertModal() {
+            document.getElementById('customAlertModal').classList.add('hidden');
+        }
+
+        function showCustomAlert(title, message, isSuccess = true) {
+            document.getElementById('alertTitle').textContent = title;
+            document.getElementById('alertMessage').textContent = message;
+            const iconDiv = document.getElementById('alertIcon');
+            
+            if(isSuccess) {
+                iconDiv.className = "w-16 h-16 bg-emerald-100 text-emerald-500 rounded-full flex items-center justify-center mx-auto mb-4";
+                iconDiv.innerHTML = '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>';
+            } else {
+                iconDiv.className = "w-16 h-16 bg-rose-100 text-rose-500 rounded-full flex items-center justify-center mx-auto mb-4";
+                iconDiv.innerHTML = '<svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>';
+            }
+
+            document.getElementById('customAlertModal').classList.remove('hidden');
+        }
+
+        function mintaMaintenance(kategori) {
+            currentKategori = kategori;
+            document.getElementById('confirmMessage').textContent = 'Kirim permintaan maintenance ke Staf Lab untuk ' + kategori + '?';
+            document.getElementById('customConfirmModal').classList.remove('hidden');
+        }
+
+        document.getElementById('confirmBtn').addEventListener('click', function() {
+            closeConfirmModal();
+            if(!currentKategori) return;
+
+            const btn = this;
+            btn.innerHTML = 'Mengirim...';
+            btn.disabled = true;
+
+            fetch('/kalab/minta-maintenance', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({ kategori: currentKategori })
+            })
+            .then(res => res.json())
+            .then(data => {
+                if(data.success) {
+                    showCustomAlert('Berhasil', data.message, true);
+                } else {
+                    showCustomAlert('Gagal', data.message, false);
+                }
+            })
+            .catch(err => {
+                showCustomAlert('Error', 'Terjadi kesalahan jaringan.', false);
+                console.error(err);
+            })
+            .finally(() => {
+                btn.innerHTML = 'Ya, Kirim';
+                btn.disabled = false;
+                currentKategori = null;
+            });
+        });
+    </script>
 </body>
+
 </html>

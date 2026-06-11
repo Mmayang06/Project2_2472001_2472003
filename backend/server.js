@@ -120,6 +120,7 @@ app.use('/api/staf_lab/bhp', stafLabBhpRoute);
 
 const stafLabMaintenanceRoute = require('./routes/staf_lab/maintenance');
 app.use('/api/staf_lab/maintenance', stafLabMaintenanceRoute);
+app.use('/api/staf_lab/notifikasi', require('./routes/staf_lab/notifikasi'));
 
 // Routes Kaprodi
 const kaprodiRoute = require('./routes/kaprodi');

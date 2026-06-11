@@ -51,6 +51,8 @@ document.addEventListener('DOMContentLoaded', function() {
     let apiBase = '';
     if (path.startsWith('/kalab')) {
         apiBase = 'http://localhost:3000/api/kalab/notifikasi';
+    } else if (path.startsWith('/staf-lab')) {
+        apiBase = 'http://localhost:3000/api/staf_lab/notifikasi';
     } else {
         apiBase = 'http://localhost:3000/api/staf_admin/notifikasi';
     }

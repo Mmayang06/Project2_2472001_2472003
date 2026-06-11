@@ -120,7 +120,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
                 </svg>
-                Dashboard Overview
+                Dashboard
             </a>
             <a href="{{ url('/staf-lab/daftar-inventaris') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
                 <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H5v-2h6v2zm0-4H5v-2h6v2zm8-4H5V7h14v2z"/></svg>
@@ -177,12 +177,12 @@
                     <span class="text-xs font-semibold text-[#20394a]" id="current-date">Senin, 25 Mei 2026</span>
                     <span class="text-[10px] text-gray-400" id="current-time">15:10:00 WIB</span>
                 </div>
-
-                <!-- Bell Notification Button -->
+                
+                <!-- Warning Notification Button -->
                 <div class="relative" id="bell-wrapper">
                     <button id="bell-btn" onclick="toggleAlertPanel()" class="relative h-10 w-10 rounded-xl bg-[#20394a]/5 border border-[#20394a]/10 flex items-center justify-center text-[#20394a] hover:bg-amber-50 hover:border-amber-300 hover:text-amber-600 transition-all duration-200 group">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 bell-ring" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                         </svg>
                         <!-- Badge -->
                         <span id="alert-badge" class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] px-1 rounded-full bg-amber-500 border-2 border-white text-white text-[9px] font-bold flex items-center justify-center hidden">0</span>
@@ -190,7 +190,6 @@
 
                     <!-- Dropdown Alert Panel -->
                     <div id="alert-panel" class="hidden absolute right-0 top-12 w-80 bg-white rounded-2xl shadow-2xl border border-amber-100 z-50 overflow-hidden">
-                        <!-- Panel Header -->
                         <div class="bg-amber-500 px-4 py-3 flex items-center justify-between">
                             <div class="flex items-center gap-2">
                                 <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -200,19 +199,17 @@
                             </div>
                             <span id="panel-badge-count" class="bg-white text-amber-600 text-[10px] font-bold px-2 py-0.5 rounded-full">0 item</span>
                         </div>
-                        <!-- Panel Body -->
                         <div id="alert-panel-list" class="divide-y divide-amber-50 max-h-72 overflow-y-auto"></div>
-                        <!-- Panel Footer -->
                         <div class="px-4 py-3 bg-amber-50 border-t border-amber-100">
-                            <a href="{{ url('/staf-lab/bhp') }}" class="flex items-center justify-center gap-1.5 text-xs font-bold text-amber-700 hover:text-amber-900 transition-colors">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                                </svg>
+                            <a href="/staf-lab/bhp" class="flex items-center justify-center gap-1.5 text-xs font-bold text-amber-700 hover:text-amber-900 transition-colors">
                                 Kelola Stok BHP
                             </a>
                         </div>
                     </div>
                 </div>
+                @include('components.notification_bell')
+
+
             </div>
         </header>
 

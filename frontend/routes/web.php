@@ -114,4 +114,6 @@ Route::middleware(['checkRole:kalab'])->group(function () {
 
     // Riwayat BHP untuk Kalab
     Route::get('/kalab/bhp/riwayat', [KalabController::class, 'bhpRiwayat']);
+    Route::post('/kalab/minta-maintenance', [KalabController::class, 'mintaMaintenance']);
+
 });

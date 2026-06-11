@@ -116,7 +116,7 @@
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2H6a2 2 0 01-2-2v-4zM14 16a2 2 0 012-2h2a2 2 0 012 2v4a2 2 0 01-2 2h-2a2 2 0 01-2-2v-4z" />
                 </svg>
-                Dashboard Overview
+                Dashboard
             </a>
             <a href="{{ url('/staf-lab/daftar-inventaris') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
                 <svg viewBox="0 0 24 24" class="h-5 w-5" fill="currentColor"><path d="M20 3H4c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-9 14H5v-2h6v2zm0-4H5v-2h6v2zm8-4H5V7h14v2z"/></svg>
@@ -174,6 +174,8 @@
                     <span class="text-xs font-semibold text-[#20394a]" id="current-date">–</span>
                     <span class="text-[10px] text-gray-400" id="current-time">–</span>
                 </div>
+                
+                @include('components.notification_bell')
                 <button onclick="openFormModal()" class="flex items-center gap-2 px-4 py-2.5 bg-[#20394a] hover:bg-[#6196aa] text-white text-sm font-semibold rounded-xl shadow-md transition-all duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -511,6 +513,37 @@
         </div>
     </div>
 
+    
+    <!-- ======================================================
+         MODAL: Pengajuan Pengganti
+    ====================================================== -->
+    <div id="modal-pengajuan-pengganti" class="fixed inset-0 z-[60] bg-[#030706]/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-sm rounded-2xl border border-[#c9ccc3]/40 shadow-2xl relative transform scale-95 transition-transform duration-300">
+            <div class="px-6 py-4 border-b border-[#c9ccc3]/30">
+                <h3 class="font-bold text-[#20394a]">Ajukan Pengganti Inventaris</h3>
+            </div>
+            <div class="p-6">
+                <p class="text-sm text-gray-600 mb-4">Ajukan permintaan pembelian barang pengganti ke Kalab untuk barang yang tidak dapat diperbaiki.</p>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Nama Barang</label>
+                        <input type="text" id="p-nama-barang" readonly class="w-full border border-[#c9ccc3]/60 bg-gray-50 rounded-xl px-4 py-2.5 text-sm text-gray-500 font-semibold cursor-not-allowed">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Jumlah Pengganti</label>
+                        <input type="number" id="p-jumlah" min="1" value="1" class="w-full border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm">
+                    </div>
+                </div>
+
+                <div class="flex gap-3 pt-6 mt-2">
+                    <button onclick="closePengajuanModal()" class="flex-1 py-2.5 bg-[#c9ccc3]/30 hover:bg-[#c9ccc3]/50 text-gray-700 rounded-xl text-sm font-semibold transition-all duration-200">Batal</button>
+                    <button onclick="submitPengajuan()" class="flex-1 py-2.5 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold transition-all duration-200">Kirim Pengajuan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ======================================================
          SCRIPTS
     ====================================================== -->
@@ -622,7 +655,7 @@
             }
             emptyState.classList.add('hidden');
 
-            tbody.innerHTML = [...filtered].reverse().map(log => {
+            tbody.innerHTML = [...filtered].map(log => {
                 const bhpCount = log.bhpUsed.length > 0
                     ? `<span class="inline-flex items-center gap-1 text-xs font-semibold text-rose-600 bg-rose-50 px-2 py-0.5 rounded-full">${log.bhpUsed.length} item</span>`
                     : `<span class="text-xs text-gray-300">–</span>`;
@@ -640,7 +673,11 @@
                         <td class="px-5 py-4 text-center">${bhpCount}</td>
                         <td class="px-5 py-4 text-xs text-gray-500">${formatDate(log.tanggal)}</td>
                         <td class="px-5 py-4 text-center">${getStatusBadge(log.status)}</td>
-                        <td class="px-5 py-4 text-right">
+                        <td class="px-5 py-4 text-right flex justify-end gap-2">
+                            ${(log.kondisiSesudah === 'Rusak Berat' || log.kondisiSesudah === 'Rusak Ringan' || log.kondisiSesudah === 'Perlu Perhatian') ? 
+                                `<button onclick="openPengajuanModal('${log.asset}')" class="px-3 py-1.5 text-xs font-semibold text-rose-600 border border-rose-200 bg-rose-50 hover:bg-rose-600 hover:text-white rounded-lg transition-all duration-200">
+                                    Ajukan Pengganti
+                                </button>` : ''}
                             <button onclick="openDetailModal('${log.id}')" class="px-3 py-1.5 text-xs font-semibold text-[#20394a] border border-[#c9ccc3]/60 hover:bg-[#20394a] hover:text-white rounded-lg transition-all duration-200">
                                 Detail
                             </button>
@@ -954,7 +991,8 @@
                 renderLogTable();
                 renderBhpStockList();
                 renderAssetConditionList();
-                updateStats();
+
+            updateStats();
                 closeFormModal();
 
                 const bhpMsg = bhpUsed.length > 0 ? ` ${bhpUsed.length} item BHP dikurangi dari stok.` : '';
@@ -994,6 +1032,22 @@
             renderBhpStockList();
             renderAssetConditionList();
             updateStats();
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const ajukan = urlParams.get('ajukan');
+            if (ajukan) {
+                openFormModal();
+                setTimeout(() => {
+                    const select = document.getElementById('f-inventaris');
+                    for(let i=0; i < select.options.length; i++) {
+                        if(select.options[i].text.toLowerCase().includes(ajukan.toLowerCase())) {
+                            select.selectedIndex = i;
+                            break;
+                        }
+                    }
+                }, 500);
+            }
+
         };
     </script>
 </body>

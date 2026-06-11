@@ -139,6 +139,24 @@ class KalabController extends Controller
         return redirect('/kalab/draf-pengadaan')->with('error', $response->json('message') ?? 'Gagal menghapus barang.');
     }
 
+    
+    public function mintaMaintenance(Request $request)
+    {
+        $token = $request->session()->get('jwt_token');
+
+        $response = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->post('http://localhost:3000/api/kalab/dashboard/minta_maintenance', [
+            'kategori' => $request->kategori
+        ]);
+
+        if ($response->successful() && $response->json('success')) {
+            return response()->json(['success' => true, 'message' => 'Permintaan berhasil dikirim.']);
+        }
+
+        return response()->json(['success' => false, 'message' => $response->json('message') ?? 'Gagal mengirim permintaan.']);
+    }
+
     public function bhpRiwayat(Request $request)
     {
         // Reuse the staf-lab endpoint to get BHP history
