@@ -390,7 +390,7 @@
                 <div class="form-group">
                     <div class="form-labels">
                         <label for="password">Password</label>
-                        <a href="#" class="forgot-password">Forgot Password?</a>
+                        <a href="#" onclick="event.preventDefault(); openForgotModal();" class="forgot-password">Forgot Password?</a>
                     </div>
                     <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
                 </div>
@@ -413,5 +413,86 @@
 
         </div>
     </div>
+
+    <!-- Modal Forgot Password -->
+    <div id="forgot-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(3, 7, 6, 0.6); z-index: 100; justify-content: center; align-items: center;">
+        <div style="background: #fff; padding: 30px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 20px 40px rgba(0,0,0,0.2); position: relative;">
+            <button onclick="closeForgotModal()" style="position: absolute; top: 15px; right: 15px; background: none; border: none; font-size: 20px; cursor: pointer; color: #c9ccc3;">&times;</button>
+            <h3 style="margin-top: 0; color: #20394a; font-family: 'Outfit', sans-serif;">Reset Password</h3>
+            <p id="forgot-desc" style="color: #6196aa; font-size: 14px; margin-bottom: 20px;">Anda akan meminta pengaturan ulang kata sandi untuk akun ini. Administrator akan diberitahu.</p>
+            
+            <div id="forgot-alert" style="display: none; padding: 10px; border-radius: 8px; font-size: 13px; margin-bottom: 15px;"></div>
+            
+            <button onclick="submitForgot()" id="forgot-btn" class="btn-submit" style="width: 100%;">Request Reset</button>
+        </div>
+    </div>
+
+    <script>
+        let forgotUsername = '';
+
+        function openForgotModal() {
+            const usernameInput = document.getElementById('username').value;
+            if (!usernameInput) {
+                alert('Silakan masukkan Username / Email Anda pada form login terlebih dahulu sebelum meminta reset password.');
+                return;
+            }
+            forgotUsername = usernameInput;
+            document.getElementById('forgot-desc').innerHTML = `Anda akan meminta pengaturan ulang kata sandi. <strong>Password baru akan dikirimkan melalui email ${usernameInput}</strong>.`;
+            document.getElementById('forgot-modal').style.display = 'flex';
+            document.getElementById('forgot-alert').style.display = 'none';
+            
+            // Kembalikan tombol ke kondisi semula
+            const btn = document.getElementById('forgot-btn');
+            btn.style.display = 'block';
+            btn.innerText = 'Request Reset';
+            btn.disabled = false;
+        }
+
+        function closeForgotModal() {
+            document.getElementById('forgot-modal').style.display = 'none';
+        }
+
+        async function submitForgot() {
+            const alertBox = document.getElementById('forgot-alert');
+            const btn = document.getElementById('forgot-btn');
+            
+            if (!forgotUsername) {
+                return;
+            }
+
+            btn.innerText = 'Sending...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('http://localhost:3000/api/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username: forgotUsername })
+                });
+                const result = await response.json();
+                
+                alertBox.style.display = 'block';
+                if (result.success) {
+                    alertBox.style.background = '#d1fae5';
+                    alertBox.style.color = '#059669';
+                    alertBox.innerText = result.message;
+                    btn.style.display = 'none'; // Sembunyikan tombol
+                } else {
+                    alertBox.style.background = '#fee2e2';
+                    alertBox.style.color = '#dc2626';
+                    alertBox.innerText = result.message || 'Failed to send request.';
+                    btn.innerText = 'Request Reset';
+                    btn.disabled = false;
+                }
+            } catch (err) {
+                alertBox.style.display = 'block';
+                alertBox.style.background = '#fee2e2';
+                alertBox.style.color = '#dc2626';
+                alertBox.innerText = 'Connection error.';
+                btn.innerText = 'Request Reset';
+                btn.disabled = false;
+            }
+        }
+    </script>
 </body>
 </html>

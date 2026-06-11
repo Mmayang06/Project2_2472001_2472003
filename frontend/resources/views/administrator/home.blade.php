@@ -98,6 +98,26 @@
             </div>
             
             <div class="flex items-center gap-4">
+                @if(isset($resetCount) && $resetCount > 0)
+                <div class="relative">
+                    <button onclick="document.getElementById('notif-dropdown').classList.toggle('hidden')" class="relative p-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors" title="Notifikasi">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+                        </svg>
+                        <span class="absolute -top-1 -right-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-600 text-[9px] font-bold text-white">
+                            {{ $resetCount }}
+                        </span>
+                    </button>
+                    <!-- Dropdown Notifikasi -->
+                    <div id="notif-dropdown" class="hidden absolute right-0 mt-2 w-72 bg-white rounded-xl shadow-xl border border-[#c9ccc3]/40 p-2 z-50">
+                        <p class="text-[10px] font-bold text-gray-400 uppercase tracking-wider mb-2 px-2 mt-1">Notifikasi Terbaru</p>
+                        <a href="/administrator/users" class="block px-3 py-3 bg-red-50 hover:bg-red-100 border border-red-100 rounded-lg text-sm text-red-700 transition-colors">
+                            <div class="font-bold mb-1">Permintaan Reset Password</div>
+                            <div class="text-xs text-red-600/80">Ada {{ $resetCount }} pengguna yang meminta reset password. Klik di sini untuk mengelola.</div>
+                        </a>
+                    </div>
+                </div>
+                @endif
                 <div class="flex flex-col text-right">
                     <span class="text-xs font-semibold text-[#20394a]" id="current-date">Kamis, 4 Juni 2026</span>
                     <span class="text-[10px] text-gray-400" id="current-time">11:22:00 WIB</span>
@@ -138,83 +158,57 @@
                     </div>
                 </div>
 
-                <!-- Pengguna Online -->
-                <div class="bg-white p-8 rounded-2xl border border-[#c9ccc3]/30 shadow-sm">
+                @if(isset($resetCount) && $resetCount > 0)
+                <!-- Permintaan Reset Password -->
+                <div class="bg-white p-8 rounded-2xl border border-red-200 shadow-sm mt-8">
                     <div class="flex items-center justify-between mb-6">
                         <div class="flex items-center gap-3">
                             <div class="relative flex items-center justify-center">
                                 <span class="relative flex h-3.5 w-3.5">
-                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500"></span>
+                                    <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                                    <span class="relative inline-flex rounded-full h-3.5 w-3.5 bg-red-500"></span>
                                 </span>
                             </div>
-                            <h4 class="text-lg font-bold text-[#20394a]">Pengguna Online Saat Ini</h4>
+                            <h4 class="text-lg font-bold text-[#20394a]">Permintaan Reset Password</h4>
                         </div>
-                        <span class="px-3 py-1 bg-emerald-50 text-emerald-700 rounded-full text-xs font-semibold border border-emerald-100 shadow-sm">
-                            {{ count($onlineUsers) }} Aktif
+                        <span class="px-3 py-1 bg-red-50 text-red-700 rounded-full text-xs font-semibold border border-red-100 shadow-sm">
+                            {{ $resetCount }} Permintaan
                         </span>
                     </div>
 
-                    @if(count($onlineUsers) > 0)
-                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                            @foreach($onlineUsers as $user)
-                                @php
-                                    $words = explode(' ', $user['nama']);
-                                    $initials = '';
-                                    if (count($words) >= 2) {
-                                        $initials = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
-                                    } else {
-                                        $initials = strtoupper(substr($user['nama'], 0, 2));
-                                    }
-                                    
-                                    $roleClass = '';
-                                    $roleLabel = '';
-                                    $role = strtolower($user['role']);
-                                    if ($role === 'administrator' || $role === 'admin') {
-                                        $roleClass = 'bg-rose-50 text-rose-700 border-rose-100';
-                                        $roleLabel = 'Administrator';
-                                    } elseif ($role === 'stafadmin' || $role === 'staf_admin') {
-                                        $roleClass = 'bg-blue-50 text-blue-700 border-blue-100';
-                                        $roleLabel = 'Staf Admin';
-                                    } elseif ($role === 'staflab' || $role === 'staf_lab') {
-                                        $roleClass = 'bg-emerald-50 text-emerald-700 border-emerald-100';
-                                        $roleLabel = 'Staf Lab';
-                                    } else {
-                                        $roleClass = 'bg-gray-50 text-gray-700 border-gray-100';
-                                        $roleLabel = ucfirst($user['role']);
-                                    }
-                                @endphp
-                                <div class="group relative bg-[#f9f5ed]/40 hover:bg-[#f9f5ed]/10 p-5 rounded-2xl border border-[#c9ccc3]/20 hover:border-[#6196aa]/40 transition-all duration-300 hover:shadow-md flex items-center gap-4">
-                                    <div class="relative flex-shrink-0">
-                                        <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-[#6196aa] to-[#20394a] text-white flex items-center justify-center font-bold text-sm shadow-md group-hover:scale-105 transition-transform duration-300">
-                                            {{ $initials }}
-                                        </div>
-                                        <div class="absolute -bottom-1 -right-1 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full shadow-sm"></div>
-                                    </div>
-                                    <div class="min-w-0 flex-grow">
-                                        <h5 class="font-bold text-[#20394a] text-sm truncate leading-snug group-hover:text-[#6196aa] transition-colors duration-200">{{ $user['nama'] }}</h5>
-                                        <p class="text-xs text-gray-400 truncate leading-relaxed">{{ $user['email'] }}</p>
-                                        <div class="mt-2 flex items-center gap-2">
-                                            <span class="inline-block px-2.5 py-0.5 rounded-lg text-[10px] font-bold tracking-wider uppercase border {{ $roleClass }}">
-                                                {{ $roleLabel }}
-                                            </span>
-                                        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        @foreach($pendingResets as $user)
+                            @php
+                                $words = explode(' ', $user['nama']);
+                                $initials = '';
+                                if (count($words) >= 2) {
+                                    $initials = strtoupper(substr($words[0], 0, 1) . substr($words[1], 0, 1));
+                                } else {
+                                    $initials = strtoupper(substr($user['nama'], 0, 2));
+                                }
+                            @endphp
+                            <div class="group relative bg-[#f9f5ed]/40 hover:bg-[#f9f5ed]/10 p-5 rounded-2xl border border-[#c9ccc3]/20 hover:border-red-300 transition-all duration-300 hover:shadow-md flex items-center gap-4">
+                                <div class="relative flex-shrink-0">
+                                    <div class="w-12 h-12 rounded-xl bg-gradient-to-tr from-red-400 to-red-600 text-white flex items-center justify-center font-bold text-sm shadow-md group-hover:scale-105 transition-transform duration-300">
+                                        {{ $initials }}
                                     </div>
                                 </div>
-                            @endforeach
-                        </div>
-                    @else
-                        <div class="flex flex-col items-center justify-center py-12 text-center bg-[#f9f5ed]/30 rounded-2xl border border-dashed border-[#c9ccc3]/50">
-                            <div class="p-4 bg-gray-100 rounded-full text-gray-400 mb-3">
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                    <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                                </svg>
+                                <div class="min-w-0 flex-grow">
+                                    <h5 class="font-bold text-[#20394a] text-sm truncate leading-snug group-hover:text-red-700 transition-colors duration-200">{{ $user['nama'] }}</h5>
+                                    <p class="text-xs text-gray-400 truncate leading-relaxed">{{ $user['email'] }}</p>
+                                    <div class="mt-2 flex items-center gap-2">
+                                        <a href="/administrator/users" class="inline-block px-2.5 py-0.5 rounded-lg text-[10px] font-bold tracking-wider uppercase border bg-red-50 text-red-700 border-red-100">
+                                            Tinjau di Kelola Pengguna
+                                        </a>
+                                    </div>
+                                </div>
                             </div>
-                            <h5 class="text-sm font-bold text-[#20394a]">Tidak Ada Pengguna Aktif</h5>
-                            <p class="text-xs text-gray-400 mt-1">Saat ini tidak ada pengguna lain yang sedang online di dalam sistem.</p>
-                        </div>
-                    @endif
+                        @endforeach
+                    </div>
                 </div>
+                @endif
+            </div>
+
     </main>
 
     <script>
