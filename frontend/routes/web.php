@@ -93,6 +93,9 @@ Route::middleware(['checkRole:administrator'])->group(function () {
 
 Route::middleware(['checkRole:kaprodi'])->group(function () {
     Route::get('/kaprodi/dashboard', [App\Http\Controllers\KaprodiController::class, 'dashboard']);
+    Route::get('/kaprodi/daftar-inventaris', function () {
+        return view('kaprodi.daftar_inventaris');
+    });
     Route::get('/kaprodi/draf-pengadaan', [App\Http\Controllers\KaprodiController::class, 'drafPengadaan']);
     Route::get('/kaprodi/draf-pengadaan/{id}/review', [App\Http\Controllers\KaprodiController::class, 'reviewDraft']);
     Route::post('/kaprodi/draf-pengadaan/review-item', [App\Http\Controllers\KaprodiController::class, 'reviewItem']);
