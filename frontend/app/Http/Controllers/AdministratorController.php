@@ -62,19 +62,18 @@ class AdministratorController extends Controller
     public function storeUser(Request $request)
     {
         $request->validate([
-            'nama' => 'required|string',
+            'nama'  => 'required|string',
             'email' => 'required|email',
-            'password' => 'required|string',
-            'role' => 'required|string'
+            'role'  => 'required|string'
         ]);
 
-        $response = Http::post("{$this->apiUrl}/administrator/users", $request->all());
+        $response = Http::post("{$this->apiUrl}/administrator/users", $request->only(['nama', 'email', 'role']));
 
         if ($response->successful() && $response->json('success')) {
-            return response()->json(['success' => true]);
+            return response()->json(['success' => true, 'message' => $response->json('message')]);
         }
 
-        return response()->json(['success' => false, 'message' => 'Gagal menambah user'], 400);
+        return response()->json(['success' => false, 'message' => $response->json('message') ?? 'Gagal menambah user'], 400);
     }
 
     // Ubah data pengguna

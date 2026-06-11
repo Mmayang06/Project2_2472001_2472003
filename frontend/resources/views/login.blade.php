@@ -89,24 +89,7 @@
             color: var(--steel);
         }
 
-        .register-link {
-            text-align: right;
-            font-size: 13px;
-            color: var(--steel);
-            line-height: 1.4;
-        }
 
-        .register-link a {
-            display: block;
-            color: var(--denim);
-            text-decoration: none;
-            font-weight: 600;
-            transition: color 0.3s;
-        }
-        
-        .register-link a:hover {
-            color: var(--steel);
-        }
 
         h2.title {
             font-size: 46px;
@@ -354,10 +337,7 @@
                     </svg>
                     Labventory
                 </a>
-                <div class="register-link">
-                    No account?<br>
-                    <a href="/register">Sign up</a>
-                </div>
+
             </div>
 
             <h2 class="title">Sign in</h2>

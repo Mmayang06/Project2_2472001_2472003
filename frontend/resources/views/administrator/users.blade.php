@@ -223,10 +223,19 @@
                     <input type="email" id="user-email" required class="w-full bg-[#f9f5ed]/30 border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#6196aa] transition-all">
                 </div>
 
-                <div>
-                    <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Password</label>
-                    <input type="password" id="user-password" class="w-full bg-[#f9f5ed]/30 border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#6196aa] transition-all" placeholder="Kata sandi baru">
-                    <span id="password-hint" class="text-[10px] text-gray-400 mt-1 block hidden">Biarkan kosong jika tidak ingin mengubah password</span>
+                {{-- Notice password otomatis (hanya muncul saat Tambah) --}}
+                <div id="password-auto-notice" class="hidden flex items-start gap-3 bg-blue-50 border border-blue-200 rounded-xl px-4 py-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-blue-500 mt-0.5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                    <p class="text-xs text-blue-700 leading-relaxed">Password akan <strong>digenerate otomatis</strong> oleh sistem dan dikirimkan ke email pengguna. Pengguna dapat langsung login menggunakan password tersebut.</p>
+                </div>
+
+                {{-- Field password manual (hanya muncul saat Edit) --}}
+                <div id="password-field" class="hidden">
+                    <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Password Baru</label>
+                    <input type="password" id="user-password" class="w-full bg-[#f9f5ed]/30 border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:border-[#6196aa] transition-all" placeholder="Kosongkan jika tidak ingin mengubah password">
+                    <span class="text-[10px] text-gray-400 mt-1 block">Biarkan kosong jika tidak ingin mengubah password</span>
                 </div>
 
                 <div>
@@ -264,6 +273,57 @@
         </div>
     </div>
 
+    <!-- Modal Credential Info (muncul setelah tambah user berhasil) -->
+    <div id="modal-credential" class="fixed inset-0 z-50 bg-[#030706]/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl border border-[#c9ccc3]/40 shadow-2xl p-6 relative transform scale-95 transition-transform duration-300">
+            <!-- Header -->
+            <div class="flex items-center gap-3 mb-5">
+                <div class="p-2.5 bg-emerald-100 rounded-xl">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </div>
+                <div>
+                    <h3 class="text-base font-bold text-[#20394a]">Pengguna Berhasil Ditambahkan</h3>
+                    <p class="text-xs text-gray-400">Email notifikasi telah dikirim ke pengguna</p>
+                </div>
+            </div>
+
+            <!-- Info Card -->
+            <div class="bg-[#f9f5ed] border border-[#c9ccc3]/50 rounded-xl p-4 space-y-3 mb-4">
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-[#6196aa] uppercase tracking-wider">Nama</span>
+                    <span id="cred-nama" class="text-sm font-semibold text-[#20394a]"></span>
+                </div>
+                <div class="border-t border-[#c9ccc3]/30"></div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-[#6196aa] uppercase tracking-wider">Email</span>
+                    <span id="cred-email" class="text-sm text-gray-600"></span>
+                </div>
+                <div class="border-t border-[#c9ccc3]/30"></div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-[#6196aa] uppercase tracking-wider">Role</span>
+                    <span id="cred-role" class="text-xs font-bold px-2.5 py-1 bg-[#6196aa]/10 text-[#20394a] rounded-full border border-[#6196aa]/20"></span>
+                </div>
+                <div class="border-t border-[#c9ccc3]/30"></div>
+                <div class="flex justify-between items-center">
+                    <span class="text-xs font-bold text-[#6196aa] uppercase tracking-wider">Password</span>
+                    <span id="cred-password" class="font-mono text-base font-bold text-[#20394a] bg-white border border-[#c9ccc3]/50 px-3 py-1 rounded-lg tracking-widest"></span>
+                </div>
+            </div>
+
+            <!-- Preview URL (simulasi Ethereal) -->
+            <div id="cred-preview-section" class="hidden bg-blue-50 border border-blue-200 rounded-xl px-4 py-3 mb-4">
+                <p class="text-xs text-blue-700 mb-1.5 font-semibold">📧 Preview Email Simulasi:</p>
+                <a id="cred-preview-link" href="#" target="_blank" class="text-xs text-blue-600 underline break-all hover:text-blue-800">Buka Preview Email →</a>
+            </div>
+
+            <button onclick="closeCredentialModal()" class="w-full py-3 bg-[#20394a] hover:bg-[#6196aa] text-white rounded-xl text-sm font-semibold transition-all duration-200">
+                Selesai
+            </button>
+        </div>
+    </div>
+
     <script>
         const holidays = ['Minggu', 'Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu'];
         const months = ['Januari', 'Februari', 'Maret', 'April', 'Mei', 'Juni', 'Juli', 'Agustus', 'September', 'Oktober', 'November', 'Desember'];
@@ -298,9 +358,11 @@
             document.getElementById('user-name').value = '';
             document.getElementById('user-email').value = '';
             document.getElementById('user-password').value = '';
-            document.getElementById('user-password').setAttribute('required', 'true');
-            document.getElementById('password-hint').classList.add('hidden');
             document.getElementById('user-role').value = 'administrator';
+            
+            // Tampilkan notice auto-password, sembunyikan field password manual
+            document.getElementById('password-auto-notice').classList.remove('hidden');
+            document.getElementById('password-field').classList.add('hidden');
             
             document.getElementById('modal-title').textContent = 'Tambah Pengguna';
 
@@ -319,9 +381,11 @@
             document.getElementById('user-name').value = user.nama;
             document.getElementById('user-email').value = user.email;
             document.getElementById('user-password').value = '';
-            document.getElementById('user-password').removeAttribute('required');
-            document.getElementById('password-hint').classList.remove('hidden');
             document.getElementById('user-role').value = user.role;
+            
+            // Sembunyikan notice, tampilkan field password manual
+            document.getElementById('password-auto-notice').classList.add('hidden');
+            document.getElementById('password-field').classList.remove('hidden');
             
             document.getElementById('modal-title').textContent = 'Ubah Pengguna';
 
@@ -364,31 +428,26 @@
             const url = id ? `/administrator/users/${id}` : '/administrator/users';
             const method = id ? 'PUT' : 'POST';
 
-            const payload = {
-                nama,
-                email,
-                role,
-                _token: '{{ csrf_token() }}'
-            };
-
-            if (password) {
-                payload.password = password;
-            }
+            const payload = { nama, email, role, _token: '{{ csrf_token() }}' };
+            if (password) payload.password = password;
 
             try {
                 const response = await fetch(url, {
                     method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 const result = await response.json();
 
                 if (result.success) {
-                    showToast(id ? 'Pengguna berhasil diperbarui!' : 'Pengguna berhasil ditambahkan!');
                     closeUserModal();
-                    setTimeout(() => location.reload(), 1000);
+                    if (!id && result.generatedPassword) {
+                        // Mode tambah: tampilkan modal info credential
+                        showCredentialModal(nama, email, role, result.generatedPassword, result.previewUrl);
+                    } else {
+                        showToast('Pengguna berhasil diperbarui!');
+                        setTimeout(() => location.reload(), 1000);
+                    }
                 } else {
                     alert('Gagal memproses data: ' + result.message);
                 }
@@ -396,6 +455,47 @@
                 alert('Terjadi kesalahan koneksi.');
             }
         }
+
+        const roleLabels = {
+            administrator: 'Administrator', stafadmin: 'Staf Admin',
+            staflab: 'Staf Laboratorium', kalab: 'Kepala Laboratorium', kaprodi: 'Ketua Program Studi'
+        };
+
+        function showCredentialModal(nama, email, role, password, previewUrl) {
+            const roleLabel = roleLabels[role] || role;
+            const modal = document.getElementById('modal-credential');
+            document.getElementById('cred-nama').textContent = nama;
+            document.getElementById('cred-email').textContent = email;
+            document.getElementById('cred-role').textContent = roleLabel;
+            document.getElementById('cred-password').textContent = password;
+
+            const previewSection = document.getElementById('cred-preview-section');
+            if (previewUrl) {
+                previewSection.classList.remove('hidden');
+                document.getElementById('cred-preview-link').href = previewUrl;
+            } else {
+                previewSection.classList.add('hidden');
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => {
+                modal.children[0].classList.remove('scale-95');
+                modal.children[0].classList.add('scale-100');
+            }, 10);
+        }
+
+        function closeCredentialModal() {
+            const modal = document.getElementById('modal-credential');
+            modal.children[0].classList.remove('scale-100');
+            modal.children[0].classList.add('scale-95');
+            setTimeout(() => {
+                modal.classList.remove('flex');
+                modal.classList.add('hidden');
+                location.reload();
+            }, 200);
+        }
+
 
         // Hapus pengguna
         async function deleteUser(id) {
