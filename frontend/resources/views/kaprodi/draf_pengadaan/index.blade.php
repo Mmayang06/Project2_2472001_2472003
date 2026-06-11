@@ -108,12 +108,42 @@
                     <h3 class="font-bold text-[#20394a] text-lg">Review Draf Pengadaan dari Kepala Lab</h3>
                     <p class="text-sm text-gray-500">Berikut adalah daftar usulan pengadaan barang dari Kepala Laboratorium. Anda dapat meninjau detail barang yang diajukan serta menyetujui, menolak, atau memfinalisasi draf tersebut.</p>
                 </div>
-            </div>
-
-            <!-- Drafts List -->
+            </div>            <!-- Drafts List -->
             <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-[#c9ccc3]/30 flex justify-between items-center bg-[#f9f5ed]/30">
+                <div class="p-6 border-b border-[#c9ccc3]/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#f9f5ed]/30">
                     <h3 class="font-bold text-lg text-[#20394a]">Daftar Pengajuan</h3>
+                </div>
+
+                <!-- Filter & Search Bar -->
+                <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-white">
+                    <div class="flex flex-wrap gap-4 items-center w-full md:w-auto">
+                        <!-- Filter Tahun -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-semibold text-gray-500">Tahun:</span>
+                            <select id="filter-year" onchange="filterAndRender()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 bg-white shadow-sm cursor-pointer">
+                                <option value="all">Semua Tahun</option>
+                            </select>
+                        </div>
+                        
+                        <!-- Filter Status -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-semibold text-gray-500">Status:</span>
+                            <select id="filter-status" onchange="filterAndRender()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 bg-white shadow-sm cursor-pointer">
+                                <option value="all">Semua Status</option>
+                                <option value="perlu_review">Perlu Review</option>
+                                <option value="siap_finalisasi">Siap Finalisasi</option>
+                                <option value="disetujui">Disetujui</option>
+                                <option value="ditolak">Ditolak</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        <div class="relative w-full md:w-64">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input type="text" id="search-input" onkeyup="filterAndRender()" placeholder="Cari nomor/pengusul..." class="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 shadow-sm">
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="overflow-x-auto">
@@ -129,88 +159,167 @@
                                 <th class="px-6 py-4 text-right">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody class="divide-y divide-gray-100 text-sm">
-                            @forelse ($drafts as $draft)
-                                @php
-                                    // Calculate metrics from the items array
-                                    $jumlahItem = count($draft['items']);
-                                    $totalBiaya = 0;
-                                    $pendingCount = 0;
-                                    foreach ($draft['items'] as $item) {
-                                        $totalBiaya += ($item['jumlah'] * $item['harga']);
-                                        if ($item['status_persetujuan'] === 'pending') {
-                                            $pendingCount++;
-                                        }
-                                    }
-                                @endphp
-                            <tr class="hover:bg-gray-50/50 transition-colors">
-                                <td class="px-6 py-4 font-semibold text-[#20394a]">PO-{{ $draft['tahun_pengadaan'] }}-{{ str_pad($draft['id_draft'], 4, '0', STR_PAD_LEFT) }}</td>
-                                <td class="px-6 py-4 font-medium text-gray-700">{{ $draft['nama_pengaju'] ?? 'Kepala Lab' }}</td>
-                                <td class="px-6 py-4 text-gray-600">{{ $draft['tahun_pengadaan'] }}</td>
-                                <td class="px-6 py-4 font-medium text-gray-800">{{ $jumlahItem }} Item</td>
-                                <td class="px-6 py-4 font-semibold text-gray-700">Rp {{ number_format($totalBiaya, 0, ',', '.') }}</td>
-                                <td class="px-6 py-4 text-center">
-                                    @if($draft['status'] == 'diajukan')
-                                        @if($pendingCount > 0)
-                                        <span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">
-                                            <span class="w-2 h-2 rounded-full bg-amber-500"></span>
-                                            Perlu Review ({{ $pendingCount }})
-                                        </span>
-                                        @else
-                                        <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">
-                                            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
-                                            Siap Finalisasi
-                                        </span>
-                                        @endif
-                                    @elseif($draft['status'] == 'disetujui')
-                                    <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
-                                        Disetujui
-                                    </span>
-                                    @elseif($draft['status'] == 'ditolak')
-                                    <span class="inline-flex items-center gap-1.5 bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-bold border border-red-200">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
-                                        Ditolak
-                                    </span>
-                                    @else
-                                    <span class="inline-flex items-center gap-1.5 bg-gray-50 text-gray-700 px-3 py-1 rounded-full text-xs font-bold border border-gray-200">
-                                        {{ ucfirst($draft['status']) }}
-                                    </span>
-                                    @endif
-                                </td>
-                                <td class="px-6 py-4 text-right flex items-center justify-end gap-2">
-                                    @if($draft['status'] == 'diajukan')
-                                        @if($pendingCount > 0)
-                                        <a href="/kaprodi/draf-pengadaan/{{ $draft['id_draft'] }}/review" class="inline-flex items-center gap-1 px-4 py-2 bg-[#20394a] text-white hover:bg-[#6196aa] rounded-xl text-xs font-bold transition-all duration-200 shadow-sm cursor-pointer">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                                            Review Item
-                                        </a>
-                                        @else
-                                        <a href="/kaprodi/draf-pengadaan/{{ $draft['id_draft'] }}/finalize" class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-xs font-bold transition-all duration-200 shadow-sm cursor-pointer">
-                                            <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
-                                            Finalisasi Draf
-                                        </a>
-                                        @endif
-                                    @else
-                                    <a href="/kaprodi/draf-pengadaan/{{ $draft['id_draft'] }}/review" class="inline-flex items-center gap-1 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer">
-                                        <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-                                        Lihat Detail
-                                    </a>
-                                    @endif
-                                </td>
-                            </tr>
-                            @empty
-                            <tr>
-                                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
-                                    Belum ada draf pengadaan yang diajukan.
-                                </td>
-                            </tr>
-                            @endforelse
+                        <tbody id="drafts-tbody" class="divide-y divide-gray-100 text-sm">
+                            <!-- Data dynamically rendered by JS -->
                         </tbody>
                     </table>
                 </div>
             </div>
         </div>
     </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const drafts = @json($drafts);
+            const tbody = document.getElementById('drafts-tbody');
+
+            // Populate unique years in dropdown
+            const filterYear = document.getElementById('filter-year');
+            const years = [...new Set(drafts.map(d => d.tahun_pengadaan))].sort((a, b) => b - a);
+            years.forEach(year => {
+                const opt = document.createElement('option');
+                opt.value = year;
+                opt.textContent = year;
+                filterYear.appendChild(opt);
+            });
+
+            window.filterAndRender = () => {
+                const selectedYear = document.getElementById('filter-year').value;
+                const selectedStatus = document.getElementById('filter-status').value;
+                const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+
+                tbody.innerHTML = '';
+
+                let filtered = drafts.map(draft => {
+                    // Precompute draft metrics
+                    let totalBiaya = 0;
+                    let pendingCount = 0;
+                    draft.items.forEach(item => {
+                        totalBiaya += (item.jumlah * item.harga);
+                        if (item.status_persetujuan === 'pending') {
+                            pendingCount++;
+                        }
+                    });
+
+                    // Determine UI status category
+                    let statusCategory = draft.status; // 'disetujui', 'ditolak'
+                    if (draft.status === 'diajukan') {
+                        statusCategory = pendingCount > 0 ? 'perlu_review' : 'siap_finalisasi';
+                    }
+
+                    return {
+                        ...draft,
+                        totalBiaya,
+                        pendingCount,
+                        statusCategory,
+                        noPengajuan: `PO-${draft.tahun_pengadaan}-${draft.id_draft.toString().padStart(4, '0')}`
+                    };
+                });
+
+                // Apply Filters
+                if (selectedYear !== 'all') {
+                    filtered = filtered.filter(d => d.tahun_pengadaan.toString() === selectedYear);
+                }
+
+                if (selectedStatus !== 'all') {
+                    filtered = filtered.filter(d => d.statusCategory === selectedStatus);
+                }
+
+                if (searchQuery !== '') {
+                    filtered = filtered.filter(d => 
+                        d.noPengajuan.toLowerCase().includes(searchQuery) ||
+                        (d.nama_pengaju && d.nama_pengaju.toLowerCase().includes(searchQuery))
+                    );
+                }
+
+                if (filtered.length === 0) {
+                    tbody.innerHTML = `
+                        <tr>
+                            <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                Tidak ada draf pengadaan yang cocok dengan filter atau pencarian Anda.
+                            </td>
+                        </tr>
+                    `;
+                    return;
+                }
+
+                filtered.forEach(d => {
+                    let statusHtml = '';
+                    let actionHtml = '';
+
+                    if (d.status === 'diajukan') {
+                        if (d.pendingCount > 0) {
+                            statusHtml = `
+                                <span class="inline-flex items-center gap-1.5 bg-amber-50 text-amber-700 px-3 py-1 rounded-full text-xs font-bold border border-amber-200">
+                                    <span class="w-2 h-2 rounded-full bg-amber-500"></span>
+                                    Perlu Review (${d.pendingCount})
+                                </span>
+                            `;
+                            actionHtml = `
+                                <a href="/kaprodi/draf-pengadaan/${d.id_draft}/review" class="inline-flex items-center gap-1 px-4 py-2 bg-[#20394a] text-white hover:bg-[#6196aa] rounded-xl text-xs font-bold transition-all duration-200 shadow-sm cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                    Review Item
+                                </a>
+                            `;
+                        } else {
+                            statusHtml = `
+                                <span class="inline-flex items-center gap-1.5 bg-blue-50 text-blue-700 px-3 py-1 rounded-full text-xs font-bold border border-blue-200">
+                                    <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+                                    Siap Finalisasi
+                                </span>
+                            `;
+                            actionHtml = `
+                                <a href="/kaprodi/draf-pengadaan/${d.id_draft}/finalize" class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 text-white hover:bg-blue-700 rounded-xl text-xs font-bold transition-all duration-200 shadow-sm cursor-pointer">
+                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"/></svg>
+                                    Finalisasi Draf
+                                </a>
+                            `;
+                        }
+                    } else if (d.status === 'disetujui') {
+                        statusHtml = `
+                            <span class="inline-flex items-center gap-1.5 bg-emerald-50 text-emerald-700 px-3 py-1 rounded-full text-xs font-bold border border-emerald-200">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                Disetujui
+                            </span>
+                        `;
+                        actionHtml = `
+                            <a href="/kaprodi/draf-pengadaan/${d.id_draft}/review" class="inline-flex items-center gap-1 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                Lihat Detail
+                            </a>
+                        `;
+                    } else if (d.status === 'ditolak') {
+                        statusHtml = `
+                            <span class="inline-flex items-center gap-1.5 bg-red-50 text-red-700 px-3 py-1 rounded-full text-xs font-bold border border-red-200">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                Ditolak
+                            </span>
+                        `;
+                        actionHtml = `
+                            <a href="/kaprodi/draf-pengadaan/${d.id_draft}/review" class="inline-flex items-center gap-1 px-4 py-2 border border-gray-300 text-gray-700 hover:bg-gray-50 rounded-xl text-xs font-bold transition-all duration-200 cursor-pointer">
+                                <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                                Lihat Detail
+                            </a>
+                        `;
+                    }
+
+                    const tr = document.createElement('tr');
+                    tr.className = 'hover:bg-gray-50/50 transition-colors';
+                    tr.innerHTML = `
+                        <td class="px-6 py-4 font-semibold text-[#20394a]">${d.noPengajuan}</td>
+                        <td class="px-6 py-4 font-medium text-gray-700">${d.nama_pengaju || 'Kepala Lab'}</td>
+                        <td class="px-6 py-4 text-gray-600">${d.tahun_pengadaan}</td>
+                        <td class="px-6 py-4 font-medium text-gray-800">${d.items.length} Item</td>
+                        <td class="px-6 py-4 font-semibold text-gray-700">Rp ${d.totalBiaya.toLocaleString('id-ID')}</td>
+                        <td class="px-6 py-4 text-center">${statusHtml}</td>
+                        <td class="px-6 py-4 text-right flex items-center justify-end gap-2">${actionHtml}</td>
+                    `;
+                    tbody.appendChild(tr);
+                });
+            };
+
+            filterAndRender();
+        });
+    </script>
 </body>
 </html>

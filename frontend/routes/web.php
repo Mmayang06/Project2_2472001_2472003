@@ -43,6 +43,32 @@ Route::get('/', function () {
     return view('landing');
 });
 
+Route::get('/barang/info/{id}', function ($id) {
+    try {
+        $response = \Illuminate\Support\Facades\Http::get("http://localhost:3000/api/staf_admin/inventaris/{$id}");
+        $data = null;
+        if ($response->successful() && isset($response->json()['data'])) {
+            $data = $response->json()['data'];
+        }
+        return view('public_barang_info', [
+            'id' => $id,
+            'data' => $data,
+            'success' => $data !== null
+        ]);
+    } catch (\Exception $e) {
+        return view('public_barang_info', [
+            'id' => $id,
+            'data' => null,
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+});
+
+Route::get('/stafadmin/update_inventaris/{id}', function ($id) {
+    return view('stafadmin.update_inventaris', ['id' => $id]);
+});
+
 Route::get('/login', [AuthController::class, 'showLogin'])->name('login');
 Route::post('/login', [AuthController::class, 'login']);
 

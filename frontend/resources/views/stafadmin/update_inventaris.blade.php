@@ -98,34 +98,20 @@
                     </div>
                 </div>
 
-                <!-- Barcode Container -->
+                <!-- QR Code Container -->
                 <div class="bg-white rounded-xl border border-[#c9ccc3]/40 p-6 shadow-sm flex flex-col items-center">
-                    <h3 class="font-semibold text-lg text-[#20394a] mb-4">Label QR / Barcode</h3>
-                    <div class="bg-white p-4 border-2 border-dashed border-gray-300 rounded-lg w-full flex flex-col items-center justify-center group hover:border-[#6196aa] transition-colors cursor-pointer relative">
-                        <!-- Barcode SVG Placeholder -->
-                        <svg class="h-20 w-full text-black group-hover:opacity-50 transition-opacity" preserveAspectRatio="none" viewBox="0 0 100 30" fill="currentColor">
-                            <rect x="0" y="0" width="4" height="30"/>
-                            <rect x="6" y="0" width="2" height="30"/>
-                            <rect x="10" y="0" width="8" height="30"/>
-                            <rect x="20" y="0" width="4" height="30"/>
-                            <rect x="26" y="0" width="2" height="30"/>
-                            <rect x="30" y="0" width="10" height="30"/>
-                            <rect x="42" y="0" width="2" height="30"/>
-                            <rect x="46" y="0" width="6" height="30"/>
-                            <rect x="54" y="0" width="2" height="30"/>
-                            <rect x="58" y="0" width="8" height="30"/>
-                            <rect x="68" y="0" width="4" height="30"/>
-                            <rect x="74" y="0" width="6" height="30"/>
-                            <rect x="82" y="0" width="2" height="30"/>
-                            <rect x="86" y="0" width="10" height="30"/>
-                            <rect x="98" y="0" width="2" height="30"/>
-                        </svg>
-                        <p id="item-barcode-text" class="mt-2 text-xl font-mono tracking-widest text-black group-hover:opacity-50 transition-opacity">...</p>
+                    <h3 class="font-semibold text-lg text-[#20394a] mb-4">Label QR Code</h3>
+                    <div class="bg-white p-6 border-2 border-dashed border-gray-300 rounded-2xl w-full flex flex-col items-center justify-center group hover:border-[#6196aa] transition-all cursor-pointer relative shadow-inner">
+                        <!-- QR Code Image -->
+                        <div class="w-48 h-48 bg-gray-50 flex items-center justify-center rounded-xl p-2 border border-gray-100 shadow-sm relative group-hover:opacity-40 transition-opacity">
+                            <img id="item-qr-image" class="w-full h-full object-contain" src="" alt="QR Code">
+                        </div>
+                        <p id="item-barcode-text" class="mt-4 text-lg font-mono font-bold tracking-wider text-[#20394a] group-hover:opacity-40 transition-opacity">...</p>
                         
                         <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
-                            <button class="bg-[#20394a] text-white text-xs font-semibold px-4 py-2 rounded-lg shadow-lg flex items-center gap-2">
+                            <button onclick="printLabel()" class="bg-[#20394a] hover:bg-[#6196aa] text-white text-xs font-bold px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transition-transform active:scale-95">
                                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
-                                Cetak Label Baru
+                                Cetak QR Code
                             </button>
                         </div>
                     </div>
@@ -204,6 +190,71 @@
     </main>
 
     <script>
+        window.printLabel = () => {
+            const qrSrc = document.getElementById('item-qr-image').src;
+            const labelText = document.getElementById('item-barcode-text').textContent;
+            const itemName = document.getElementById('item-name-header').textContent;
+            
+            const printWindow = window.open('', '_blank');
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Print Label - ${labelText}</title>
+                    <style>
+                        body {
+                            font-family: 'Outfit', sans-serif;
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                            justify-content: center;
+                            height: 100vh;
+                            margin: 0;
+                            padding: 0;
+                        }
+                        .label-card {
+                            border: 2px solid #000;
+                            border-radius: 16px;
+                            padding: 24px;
+                            text-align: center;
+                            max-width: 300px;
+                            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                        }
+                        .qr-img {
+                            width: 200px;
+                            height: 200px;
+                            margin-bottom: 12px;
+                        }
+                        .name {
+                            font-weight: bold;
+                            font-size: 16px;
+                            margin-bottom: 4px;
+                            color: #20394a;
+                        }
+                        .code {
+                            font-family: monospace;
+                            font-size: 18px;
+                            letter-spacing: 1px;
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="label-card">
+                        <img class="qr-img" src="${qrSrc}" />
+                        <div class="name">${itemName}</div>
+                        <div class="code">${labelText}</div>
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            window.print();
+                            window.close();
+                        }
+                    <\/script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        };
+
         document.addEventListener('DOMContentLoaded', async () => {
             const itemId = "{{ $id }}";
             
@@ -218,6 +269,10 @@
                     document.getElementById('item-code-header').textContent = `Kode: ${data.nomor_label || 'N/A'}`;
                     document.getElementById('item-barcode-text').textContent = data.qr_code || data.nomor_label || 'N/A';
                     
+                    // Generate QR Code image source
+                    const scanUrl = `${window.location.protocol}//${window.location.host}/barang/info/${itemId}`;
+                    document.getElementById('item-qr-image').src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(scanUrl)}`;
+
                     const conditionEl = document.getElementById('unit-condition');
                     if (data.kondisi === 'baik') {
                         conditionEl.textContent = 'Bagus';
