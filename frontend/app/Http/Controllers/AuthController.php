@@ -46,6 +46,48 @@ class AuthController extends Controller
         ])->onlyInput('username');
     }
 
+    public function showRegister()
+    {
+        return view('register');
+    }
+
+    public function register(Request $request)
+    {
+        $request->validate([
+            'nama' => ['required'],
+            'email' => ['required', 'email'],
+            'password' => ['required', 'min:6'],
+            'role' => ['required'],
+        ]);
+
+        try {
+            $payload = [
+                'nama' => $request->nama,
+                'email' => $request->email,
+                'password' => $request->password,
+                'role' => $request->role,
+            ];
+
+            if ($request->filled('tahun_jabatan')) {
+                $payload['tahun_jabatan'] = $request->tahun_jabatan;
+            }
+
+            $response = \Illuminate\Support\Facades\Http::post('http://localhost:3000/api/register', $payload);
+
+            if ($response->successful() && $response->json('success')) {
+                return redirect('/login')->with('success', 'Registrasi berhasil. Silakan login.');
+            } else {
+                return back()->withErrors([
+                    'register' => $response->json('message') ?? 'Gagal melakukan registrasi.',
+                ])->onlyInput('nama', 'email', 'role');
+            }
+        } catch (\Exception $e) {
+            return back()->withErrors([
+                'register' => 'Gagal terhubung ke backend server.',
+            ])->onlyInput('nama', 'email', 'role');
+        }
+    }
+
     public function logout(Request $request)
     {
         $user = $request->session()->get('user');

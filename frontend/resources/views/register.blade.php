@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - Labventory</title>
+    <title>Register - Labventory</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     
     <style>
@@ -24,12 +24,13 @@
 
         body {
             background: linear-gradient(135deg, #e8ecef 0%, var(--concrete) 100%);
-            height: 100vh;
+            min-height: 100vh;
             display: flex;
             align-items: center;
             justify-content: center;
-            overflow: hidden;
+            overflow-x: hidden;
             position: relative;
+            padding: 20px 0;
         }
 
         .page-wrapper {
@@ -38,12 +39,12 @@
             display: flex;
             align-items: center;
             padding: 0 40px;
-            gap: 40px; /* gives space between button and form */
+            gap: 40px;
             z-index: 10;
         }
 
         .sidebar {
-            height: 450px; /* align with card height roughly */
+            height: 550px;
             display: flex;
             align-items: flex-start;
         }
@@ -55,7 +56,6 @@
             justify-content: space-between;
         }
 
-        /* CARD STYLE */
         .login-card {
             width: 440px;
             background-color: #ffffff;
@@ -112,12 +112,12 @@
             font-size: 46px;
             font-weight: 700;
             color: var(--noir);
-            margin-bottom: 40px;
+            margin-bottom: 30px;
             letter-spacing: -1.5px;
         }
 
         .form-group {
-            margin-bottom: 24px;
+            margin-bottom: 20px;
             position: relative;
         }
 
@@ -125,7 +125,7 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-end;
-            margin-bottom: 10px;
+            margin-bottom: 8px;
         }
 
         .form-labels label {
@@ -135,29 +135,24 @@
             opacity: 0.7;
         }
 
-        .forgot-password {
-            font-size: 12px;
-            color: var(--steel);
-            text-decoration: none;
-            font-weight: 500;
-            transition: color 0.3s;
-        }
-
-        .forgot-password:hover {
-            color: var(--denim);
-            text-decoration: underline;
-        }
-
         .form-control {
             width: 100%;
-            padding: 16px 20px;
+            padding: 14px 20px;
             background-color: #ffffff;
-            border: 2px solid var(--concrete); /* Light grey border */
+            border: 2px solid var(--concrete);
             border-radius: 12px;
             color: var(--noir);
             font-size: 15px;
             outline: none;
             transition: all 0.3s;
+        }
+
+        select.form-control {
+            cursor: pointer;
+            appearance: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2320394a' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E");
+            background-repeat: no-repeat;
+            background-position: right 15px center;
         }
 
         .form-control:focus {
@@ -355,12 +350,12 @@
                     Labventory
                 </a>
                 <div class="register-link">
-                    No account?<br>
-                    <a href="/register">Sign up</a>
+                    Already have an account?<br>
+                    <a href="/login">Sign in</a>
                 </div>
             </div>
 
-            <h2 class="title">Sign in</h2>
+            <h2 class="title">Sign up</h2>
 
             @if ($errors->any())
                 <div style="background: #fee2e2; color: #dc2626; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px;">
@@ -372,30 +367,51 @@
                 </div>
             @endif
 
-            @if (session('success'))
-                <div style="background: #d1fae5; color: #059669; padding: 12px; border-radius: 8px; margin-bottom: 20px; font-size: 14px; text-align: center;">
-                    {{ session('success') }}
-                </div>
-            @endif
-
-            <form action="{{ route('login') }}" method="POST">
+            <form action="{{ route('register') }}" method="POST">
                 @csrf
                 <div class="form-group">
                     <div class="form-labels">
-                        <label for="username">Username / Email</label>
+                        <label for="nama">Full Name</label>
                     </div>
-                    <input type="text" id="username" name="username" class="form-control" placeholder="Enter your username" required>
+                    <input type="text" id="nama" name="nama" class="form-control" placeholder="Enter your full name" value="{{ old('nama') }}" required>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-labels">
+                        <label for="email">Email Address</label>
+                    </div>
+                    <input type="email" id="email" name="email" class="form-control" placeholder="Enter your email address" value="{{ old('email') }}" required>
+                </div>
+
+                <div class="form-group">
+                    <div class="form-labels">
+                        <label for="role">Role</label>
+                    </div>
+                    <select id="role" name="role" class="form-control" required onchange="toggleTahunJabatan()">
+                        <option value="" disabled selected>Select your role</option>
+                        <option value="staflab" {{ old('role') == 'staflab' ? 'selected' : '' }}>Staf Lab</option>
+                        <option value="stafadmin" {{ old('role') == 'stafadmin' ? 'selected' : '' }}>Staf Admin</option>
+                        <option value="kaprodi" {{ old('role') == 'kaprodi' ? 'selected' : '' }}>Kaprodi</option>
+                        <option value="kalab" {{ old('role') == 'kalab' ? 'selected' : '' }}>Kepala Lab</option>
+                        <option value="administrator" {{ old('role') == 'administrator' ? 'selected' : '' }}>Administrator</option>
+                    </select>
+                </div>
+
+                <div class="form-group" id="tahun-jabatan-container" style="display: none;">
+                    <div class="form-labels">
+                        <label for="tahun_jabatan">Tahun Jabatan</label>
+                    </div>
+                    <input type="text" id="tahun_jabatan" name="tahun_jabatan" class="form-control" placeholder="Contoh: 2024-2025" value="{{ old('tahun_jabatan') }}">
                 </div>
 
                 <div class="form-group">
                     <div class="form-labels">
                         <label for="password">Password</label>
-                        <a href="#" class="forgot-password">Forgot Password?</a>
                     </div>
                     <input type="password" id="password" name="password" class="form-control" placeholder="••••••••" required>
                 </div>
 
-                <button type="submit" class="btn-submit">Sign in</button>
+                <button type="submit" class="btn-submit">Sign up</button>
             </form>
         </div>
 
@@ -407,11 +423,35 @@
             <div class="shape shape-3"></div>
             
             <svg class="main-svg" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-                <path d="M21 16.5c0 .38-.21.71-.53.88l-7.9 4.44c-.16.12-.36.18-.57.18-.21 0-.41-.06-.57-.18l-7.9-4.44A.991.991 0 0 1 3 16.5v-9c0-.38.21-.71.53-.88l7.9-4.44c.16-.12.36-.18.57-.18.21 0 .41.06.57.18l7.9 4.44c.32.17.53.5.53.88v9zM12 4.15L5.6 7.75 12 11.35l6.4-3.6L12 4.15zM5 15.91l6 3.38v-6.71L5 9.19v6.72zm14 0v-6.72l-6 3.39v6.71l6-3.38z"/>
+                <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
             </svg>
         </div>
 
         </div>
     </div>
+
+    <script>
+        function toggleTahunJabatan() {
+            var role = document.getElementById('role').value;
+            var container = document.getElementById('tahun-jabatan-container');
+            var input = document.getElementById('tahun_jabatan');
+
+            if (role === 'kaprodi' || role === 'kalab') {
+                container.style.display = 'block';
+                // Remove required so it doesn't block if user hides it later, 
+                // but we can add required here if we want it to be strictly required
+                input.required = true;
+            } else {
+                container.style.display = 'none';
+                input.required = false;
+                input.value = ''; // clear value if not needed
+            }
+        }
+
+        // Run on page load in case there's an old value after validation error
+        document.addEventListener('DOMContentLoaded', function() {
+            toggleTahunJabatan();
+        });
+    </script>
 </body>
 </html>
