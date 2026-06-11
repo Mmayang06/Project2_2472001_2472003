@@ -98,7 +98,19 @@ router.post('/minta_maintenance', authMiddleware, async (req, res) => {
             return res.status(400).json({ success: false, message: 'Kategori barang diperlukan' });
         }
 
-        const pesan = `Kalab meminta maintenance/perbaikan untuk inventaris: ${kategori}`;
+        // Cari ruangan tempat barang kategori ini yang rusak berada
+        const [roomsRows] = await db.query(`
+            SELECT DISTINCT r.nama_ruangan 
+            FROM barang_inventaris bi
+            JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
+            WHERE dp.nama_barang = ? AND bi.kondisi != 'baik'
+        `, [kategori]);
+
+        const roomNames = roomsRows.map(r => r.nama_ruangan).join(', ');
+        const lokasiKeterangan = roomNames ? ` di ruangan: ${roomNames}` : '';
+
+        const pesan = `Kalab meminta maintenance/perbaikan untuk inventaris: ${kategori}${lokasiKeterangan}`;
         await db.query(
             'INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)',
             ['staf_lab', pesan, 'warning', '/staf-lab/maintenance?ajukan=' + encodeURIComponent(kategori)]
