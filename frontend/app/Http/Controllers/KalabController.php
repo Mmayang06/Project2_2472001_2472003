@@ -53,7 +53,17 @@ class KalabController extends Controller
             $inventaris_rusak = $response->json('data');
         }
 
-        return view('kalab.tambah_draf', compact('inventaris_rusak'));
+        // Ambil data permintaan BHP dari staf lab
+        $bhpResponse = Http::withHeaders([
+            'Authorization' => 'Bearer ' . $token,
+        ])->get('http://localhost:3000/api/kalab/draf_pengadaan/permintaan_bhp');
+
+        $permintaan_bhp = [];
+        if ($bhpResponse->successful() && $bhpResponse->json('success')) {
+            $permintaan_bhp = $bhpResponse->json('data');
+        }
+
+        return view('kalab.tambah_draf', compact('inventaris_rusak', 'permintaan_bhp'));
     }
 
     public function simpanDraf(Request $request)

@@ -73,17 +73,48 @@
     </main>
 
     <script>
-        const inventarisRusak = @json($inventaris_rusak);
         let itemIndex = 0;
 
-        function getOptionsHTML() {
-            let options = '<option value="">-- Tidak menggantikan barang apapun --</option>';
-            inventarisRusak.forEach(inv => {
-                const label = inv.nomor_label ? inv.nomor_label : 'Belum berlabel';
-                const name = inv.nama_barang ? inv.nama_barang : 'Barang tidak diketahui';
-                options += `<option value="${inv.id_inventaris}">ID: ${inv.id_inventaris} - ${name} (${label}) - ${inv.kondisi}</option>`;
+        const permintaanBhp = @json($permintaan_bhp ?? []);
+        
+        function getPermintaanOptionsHTML() {
+            let options = '';
+            permintaanBhp.forEach(p => {
+                options += `<option value="${p.nama_barang}" data-jumlah="${p.jumlah}">BHP: ${p.nama_barang} (Stok Sekarang: ${p.stok_sekarang})</option>`;
             });
             return options;
+        }
+
+        function handleBarangChange(select, idx) {
+            const manualInput = document.getElementById(`manual-nama-${idx}`);
+            const hint = document.getElementById(`hint-${idx}`);
+            const jumlahInput = document.querySelector(`input[name="items[${idx}][jumlah]"]`);
+            const jenisSelect = document.querySelector(`select[name="items[${idx}][jenis_barang]"]`);
+
+            if (select.value === 'manual') {
+                manualInput.classList.remove('hidden');
+                manualInput.required = true;
+                manualInput.value = '';
+                hint.classList.add('hidden');
+            } else if (select.value === '') {
+                manualInput.classList.add('hidden');
+                manualInput.required = false;
+                manualInput.value = '';
+                hint.classList.add('hidden');
+            } else {
+                manualInput.classList.add('hidden');
+                manualInput.required = false;
+                manualInput.value = select.value;
+                
+                const selectedOption = select.options[select.selectedIndex];
+                const reqJumlah = selectedOption.getAttribute('data-jumlah');
+                
+                hint.classList.remove('hidden');
+                hint.innerHTML = `Stok yang dibutuhkan (diajukan Staf Lab): <strong>${reqJumlah} unit</strong>`;
+                
+                if (jumlahInput) jumlahInput.value = reqJumlah;
+                if (jenisSelect) jenisSelect.value = 'BHP';
+            }
         }
 
         function addItem() {
@@ -98,7 +129,13 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Nama Barang *</label>
-                            <input type="text" name="items[${itemIndex}][nama_barang]" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2 border">
+                            <select onchange="handleBarangChange(this, ${itemIndex})" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2 border">
+                                <option value="">-- Pilih dari Pengajuan Staf Lab --</option>
+                                ${getPermintaanOptionsHTML()}
+                                <option value="manual">++ Isi Manual / Barang Lain ++</option>
+                            </select>
+                            <input type="text" name="items[${itemIndex}][nama_barang]" id="manual-nama-${itemIndex}" placeholder="Ketik nama barang..." class="mt-2 w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2 border hidden">
+                            <p class="text-[11px] text-emerald-600 mt-1 hidden" id="hint-${itemIndex}"></p>
                         </div>
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Kategori *</label>
@@ -124,13 +161,6 @@
                         </div>
                     </div>
 
-                    <div class="bg-amber-50 p-3 rounded-lg border border-amber-100">
-                        <label class="block text-xs font-bold text-amber-800 mb-1">Menggantikan Inventaris? (Opsional)</label>
-                        <select name="items[${itemIndex}][id_inventaris_ganti]" class="w-full rounded-lg border-amber-200 shadow-sm focus:border-amber-400 focus:ring-amber-400 text-sm p-2 border bg-white">
-                            ${getOptionsHTML()}
-                        </select>
-                        <p class="text-[10px] text-amber-600 mt-1">Pilih jika pembelian ini bertujuan untuk menggantikan barang yang rusak/hilang.</p>
-                    </div>
                 </div>
             `;
 
