@@ -111,10 +111,17 @@
                         <span id="badge-unlabeled" class="bg-red-500 text-white text-[10px] font-bold px-2 py-0.5 rounded-full hidden">0</span>
                     </button>
                 </div>
-                <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="flex flex-col sm:flex-row items-center gap-3 w-full md:w-auto">
+                    <!-- Filter Ruangan -->
+                    <div id="filter-room-container" class="flex items-center gap-2 w-full sm:w-auto">
+                        <span class="text-sm font-semibold text-gray-500">Ruangan:</span>
+                        <select id="filter-room" onchange="filterAndRender()" class="pl-3 pr-8 py-2 w-full sm:w-auto border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 bg-white shadow-sm cursor-pointer">
+                            <option value="all">Semua Ruangan</option>
+                        </select>
+                    </div>
                     <div class="relative w-full md:w-64">
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        <input type="text" placeholder="Cari barang..." class="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#6196aa] text-gray-700">
+                        <input type="text" id="search-input" onkeyup="filterAndRender()" placeholder="Cari nama barang..." class="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 shadow-sm">
                     </div>
                 </div>
             </div>
@@ -311,10 +318,46 @@
                 }
             };
 
+            let filteredInventoryData = [];
+
+            window.filterAndRender = () => {
+                const selectedRoomId = document.getElementById('filter-room').value;
+                const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+
+                // Clone / Map to avoid mutating original list structure
+                filteredInventoryData = inventoryData.map(room => {
+                    const filteredBarang = room.barang.filter(item => {
+                        return item.nama_barang.toLowerCase().includes(searchQuery);
+                    });
+                    
+                    return {
+                        ...room,
+                        barang: filteredBarang
+                    };
+                });
+
+                // Filter by room ID if selected
+                if (selectedRoomId !== 'all') {
+                    filteredInventoryData = filteredInventoryData.filter(room => room.id.toString() === selectedRoomId);
+                }
+
+                renderData();
+            };
+
             const renderData = () => {
                 container.innerHTML = '';
                 
-                inventoryData.forEach((room, index) => {
+                let visibleRooms = 0;
+                
+                filteredInventoryData.forEach((room, index) => {
+                    const searchQuery = document.getElementById('search-input').value.trim();
+                    // If searching, hide rooms that have no matching items
+                    if (searchQuery !== '' && room.barang.length === 0) {
+                        return;
+                    }
+                    
+                    visibleRooms++;
+
                     if (!labPagination[index]) labPagination[index] = 1;
                     
                     const itemsPerPage = 4; // 1 row on xl screens
@@ -372,7 +415,7 @@
                                 <svg class="w-6 h-6 text-[#20394a]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"/></svg>
                                 <h3 class="font-bold text-lg text-[#20394a]">${room.nama}</h3>
                                 <div class="flex gap-2 ml-2 hidden md:flex">
-                                    <span class="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-full">${room.total_alat} alat</span>
+                                    <span class="px-2 py-0.5 bg-gray-200 text-gray-700 text-xs font-semibold rounded-full">${room.barang.length} jenis alat</span>
                                     <span class="text-xs text-gray-400 self-center">|</span>
                                     <span class="text-xs text-gray-500 self-center">${room.lokasi}</span>
                                 </div>
@@ -391,6 +434,10 @@
                     
                     container.insertAdjacentHTML('beforeend', groupHtml);
                 });
+
+                if (visibleRooms === 0) {
+                    container.innerHTML = '<div class="text-center py-12 text-gray-500 font-medium bg-white rounded-2xl border border-gray-200/50 shadow-sm">Tidak ada barang yang cocok dengan filter atau pencarian Anda.</div>';
+                }
             };
 
             let unlabeledData = [];
@@ -646,7 +693,18 @@
                     
                     if (resultAll.success && resultAll.data.length > 0) {
                         inventoryData = resultAll.data;
-                        renderData();
+                        
+                        // Populate filter dropdown
+                        const filterRoom = document.getElementById('filter-room');
+                        filterRoom.innerHTML = '<option value="all">Semua Ruangan</option>';
+                        inventoryData.forEach(room => {
+                            const opt = document.createElement('option');
+                            opt.value = room.id;
+                            opt.textContent = room.nama;
+                            filterRoom.appendChild(opt);
+                        });
+
+                        filterAndRender();
                     } else {
                         container.innerHTML = '<div class="text-center py-10 text-gray-500">Tidak ada data inventaris.</div>';
                     }

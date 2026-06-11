@@ -7,11 +7,9 @@ router.get('/', async (req, res) => {
         const query = `
             SELECT 
                 r.id_ruangan, r.nama_ruangan, r.lokasi, 
-                dp.id_detail, dp.nama_barang, dp.jenis_barang,
-                bi.id_inventaris, bi.nomor_label, bi.kondisi
+                bi.id_inventaris, bi.nomor_label, bi.kondisi, bi.nama_barang, bi.jenis_barang
             FROM ruangan r
             LEFT JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan AND bi.nomor_label IS NOT NULL
-            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             ORDER BY r.id_ruangan ASC, bi.nomor_label ASC
         `;
         
@@ -31,9 +29,10 @@ router.get('/', async (req, res) => {
             }
             if (row.id_inventaris) {
                 const r = rooms[row.id_ruangan];
-                if (!r.barang_map[row.id_detail]) {
-                    r.barang_map[row.id_detail] = {
-                        id_detail: row.id_detail,
+                const key = row.nama_barang || 'Barang';
+                if (!r.barang_map[key]) {
+                    r.barang_map[key] = {
+                        id_detail: key, // Keep using id_detail as key for the frontend to render
                         nama_barang: row.nama_barang,
                         jenis_barang: row.jenis_barang,
                         total_unit: 0,
@@ -41,14 +40,14 @@ router.get('/', async (req, res) => {
                         items: []
                     };
                 }
-                r.barang_map[row.id_detail].items.push({
+                r.barang_map[key].items.push({
                     id_inventaris: row.id_inventaris,
                     nomor_label: row.nomor_label,
                     kondisi: row.kondisi
                 });
-                r.barang_map[row.id_detail].total_unit++;
+                r.barang_map[key].total_unit++;
                 if (row.kondisi !== 'baik') {
-                    r.barang_map[row.id_detail].unit_rusak++;
+                    r.barang_map[key].unit_rusak++;
                 }
                 r.total_alat++;
             }
@@ -73,12 +72,11 @@ router.get('/belum-dilabeli', async (req, res) => {
             SELECT 
                 bi.id_inventaris,
                 bi.tanggal_penerimaan,
-                dp.nama_barang,
-                dp.jenis_barang,
+                bi.nama_barang,
+                bi.jenis_barang,
                 r.nama_ruangan,
                 r.lokasi
             FROM barang_inventaris bi
-            JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
             WHERE bi.nomor_label IS NULL
             ORDER BY bi.id_inventaris DESC
@@ -183,14 +181,11 @@ router.get('/:id', async (req, res) => {
         const query = `
             SELECT 
                 bi.id_inventaris, bi.nomor_label, bi.qr_code, bi.kondisi,
-                dp.id_detail, dp.nama_barang, dp.jenis_barang, dp.harga,
-                dr.tahun_pengadaan,
+                bi.nama_barang, bi.jenis_barang,
                 r.nama_ruangan as lokasi_ruangan,
                 r.lokasi as lokasi_detail
             FROM barang_inventaris bi
-            JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
-            LEFT JOIN draft_pengadaan dr ON dp.id_draft = dr.id_draft
             WHERE bi.id_inventaris = ?
         `;
         

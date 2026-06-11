@@ -113,13 +113,20 @@
             
             <!-- Filter & Search Bar -->
             <div class="flex flex-col md:flex-row justify-between items-center gap-4 pt-2 border-b border-gray-200 pb-4">
-                <div class="flex gap-4">
-                    <button id="tab-all" onclick="switchTab('all')" class="px-4 py-2 font-bold text-[#20394a] border-b-2 border-[#20394a] transition-all">Semua Inventaris</button>
+                <div class="flex flex-wrap gap-4 items-center w-full md:w-auto">
+                    <!-- Filter Ruangan -->
+                    <div class="flex items-center gap-2">
+                        <span class="text-sm font-semibold text-gray-500">Ruangan:</span>
+                        <select id="filter-room" onchange="filterAndRender()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 bg-white shadow-sm cursor-pointer">
+                            <option value="all">Semua Ruangan</option>
+                        </select>
+                    </div>
                 </div>
+                
                 <div class="flex items-center gap-3 w-full md:w-auto">
                     <div class="relative w-full md:w-64">
                         <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                        <input type="text" placeholder="Cari barang..." class="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-lg text-sm focus:outline-none focus:border-[#6196aa] text-gray-700">
+                        <input type="text" id="search-input" onkeyup="filterAndRender()" placeholder="Cari nama barang..." class="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 shadow-sm">
                     </div>
                 </div>
             </div>
@@ -299,10 +306,46 @@
                 }
             };
 
+            let filteredInventoryData = [];
+
+            window.filterAndRender = () => {
+                const selectedRoomId = document.getElementById('filter-room').value;
+                const searchQuery = document.getElementById('search-input').value.toLowerCase().trim();
+
+                // Clone / Map to avoid mutating original list structure
+                filteredInventoryData = inventoryData.map(room => {
+                    const filteredBarang = room.barang.filter(item => {
+                        return item.nama_barang.toLowerCase().includes(searchQuery);
+                    });
+                    
+                    return {
+                        ...room,
+                        barang: filteredBarang
+                    };
+                });
+
+                // Filter by room ID if selected
+                if (selectedRoomId !== 'all') {
+                    filteredInventoryData = filteredInventoryData.filter(room => room.id.toString() === selectedRoomId);
+                }
+
+                renderData();
+            };
+
             const renderData = () => {
                 container.innerHTML = '';
                 
-                inventoryData.forEach((room, index) => {
+                let visibleRooms = 0;
+                
+                filteredInventoryData.forEach((room, index) => {
+                    const searchQuery = document.getElementById('search-input').value.trim();
+                    // If searching, hide rooms that have no matching items
+                    if (searchQuery !== '' && room.barang.length === 0) {
+                        return;
+                    }
+                    
+                    visibleRooms++;
+
                     if (!labPagination[index]) labPagination[index] = 1;
                     
                     const itemsPerPage = 4; // 1 row on xl screens
@@ -379,269 +422,33 @@
                     
                     container.insertAdjacentHTML('beforeend', groupHtml);
                 });
-            };
 
-            let unlabeledData = [];
-
-            window.switchTab = (tab) => {
-                const tabAll = document.getElementById('tab-all');
-                const tabUnlabeled = document.getElementById('tab-unlabeled');
-                const containerAll = document.getElementById('inventory-container');
-                const containerUnlabeled = document.getElementById('unlabeled-container');
-
-                if (tab === 'all') {
-                    tabAll.classList.replace('text-gray-500', 'text-[#20394a]');
-                    tabAll.classList.replace('border-transparent', 'border-[#20394a]');
-                    tabAll.classList.add('font-bold');
-                    tabAll.classList.remove('font-medium');
-                    
-                    tabUnlabeled.classList.replace('text-[#20394a]', 'text-gray-500');
-                    tabUnlabeled.classList.replace('border-[#20394a]', 'border-transparent');
-                    tabUnlabeled.classList.add('font-medium');
-                    tabUnlabeled.classList.remove('font-bold');
-
-                    containerAll.classList.remove('hidden');
-                    containerUnlabeled.classList.add('hidden');
-                } else {
-                    tabUnlabeled.classList.replace('text-gray-500', 'text-[#20394a]');
-                    tabUnlabeled.classList.replace('border-transparent', 'border-[#20394a]');
-                    tabUnlabeled.classList.add('font-bold');
-                    tabUnlabeled.classList.remove('font-medium');
-                    
-                    tabAll.classList.replace('text-[#20394a]', 'text-gray-500');
-                    tabAll.classList.replace('border-[#20394a]', 'border-transparent');
-                    tabAll.classList.add('font-medium');
-                    tabAll.classList.remove('font-bold');
-
-                    containerAll.classList.add('hidden');
-                    containerUnlabeled.classList.remove('hidden');
-                }
-            };
-
-            const renderUnlabeledData = () => {
-                const tbody = document.getElementById('unlabeled-tbody');
-                const badge = document.getElementById('badge-unlabeled');
-                
-                if (unlabeledData.length > 0) {
-                    badge.textContent = unlabeledData.length;
-                    badge.classList.remove('hidden');
-                } else {
-                    badge.classList.add('hidden');
-                }
-
-                if (unlabeledData.length === 0) {
-                    tbody.innerHTML = '<tr><td colspan="4" class="px-6 py-8 text-center text-gray-500">Tidak ada barang yang belum dilabeli.</td></tr>';
-                    return;
-                }
-
-                let html = '';
-                unlabeledData.forEach(item => {
-                    const tgl = item.tanggal_penerimaan ? new Date(item.tanggal_penerimaan).toLocaleDateString('id-ID') : '-';
-                    html += `
-                    <tr class="hover:bg-gray-50/50 transition-colors">
-                        <td class="px-6 py-4">
-                            <div class="font-bold text-[#20394a]">#${item.id_inventaris}</div>
-                            <div class="text-xs text-gray-500 mt-1">${tgl}</div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <div class="font-bold text-gray-800">${item.nama_barang}</div>
-                            <div class="text-xs text-gray-500 mt-1">Kategori: ${item.jenis_barang}</div>
-                        </td>
-                        <td class="px-6 py-4 text-gray-600">${item.nama_ruangan ? item.nama_ruangan + ' (' + item.lokasi + ')' : '-'}</td>
-                        <td class="px-6 py-4 text-right">
-                            <button onclick="openVerifyModal(${item.id_inventaris})" class="text-xs font-bold text-white bg-[#6196aa] hover:bg-[#20394a] transition-colors px-3 py-2 rounded-lg shadow-sm">
-                                Berikan Label & QR
-                            </button>
-                        </td>
-                    </tr>
-                    `;
-                });
-                tbody.innerHTML = html;
-            };
-
-            window.handleQrUpload = (event) => {
-                const file = event.target.files[0];
-                if (!file) return;
-
-                const reader = new FileReader();
-                reader.onload = (e) => {
-                    const img = new Image();
-                    img.onload = () => {
-                        const canvas = document.getElementById('qr_canvas');
-                        const ctx = canvas.getContext('2d');
-                        canvas.width = img.width;
-                        canvas.height = img.height;
-                        ctx.drawImage(img, 0, 0, img.width, img.height);
-                        
-                        const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                        const code = jsQR(imageData.data, imageData.width, imageData.height, {
-                            inversionAttempts: "dontInvert",
-                        });
-                        
-                        if (code) {
-                            document.getElementById('modal_qr_univ').value = code.data;
-                            // Automatically trigger verification to save time
-                            document.getElementById('btn_verify_qr').click();
-                        } else {
-                            alert('Tidak ada QR Code yang terdeteksi pada gambar. Silakan coba gambar lain yang lebih jelas, atau ketik kode teksnya secara manual.');
-                        }
-                        
-                        // Reset file input so same file can be selected again if needed
-                        event.target.value = '';
-                    };
-                    img.src = e.target.result;
-                };
-                reader.readAsDataURL(file);
-            };
-
-            window.openVerifyModal = (id) => {
-                document.getElementById('modal_qr_id_inventaris').value = id;
-                document.getElementById('modal_qr_univ').value = '';
-                document.getElementById('verifyQrModal').classList.remove('hidden');
-                document.getElementById('verifyQrModal').classList.add('flex');
-            };
-
-            window.closeVerifyModal = () => {
-                document.getElementById('verifyQrModal').classList.add('hidden');
-                document.getElementById('verifyQrModal').classList.remove('flex');
-            };
-
-            window.openAssignModal = (id, qr) => {
-                document.getElementById('modal_assign_id_inventaris').value = id;
-                document.getElementById('modal_assign_qr_univ').value = qr;
-                document.getElementById('modal_nomor_label').value = '';
-                document.getElementById('assignLabelModal').classList.remove('hidden');
-                document.getElementById('assignLabelModal').classList.add('flex');
-            };
-
-            window.closeAssignModal = () => {
-                document.getElementById('assignLabelModal').classList.add('hidden');
-                document.getElementById('assignLabelModal').classList.remove('flex');
-            };
-
-            window.showSuccessModal = (msg) => {
-                document.getElementById('successModalMsg').textContent = msg;
-                document.getElementById('successModal').classList.remove('hidden');
-                document.getElementById('successModal').classList.add('flex');
-            };
-            
-            window.closeSuccessModal = () => {
-                document.getElementById('successModal').classList.add('hidden');
-                document.getElementById('successModal').classList.remove('flex');
-            };
-
-            window.showDuplicateModal = (oldLabel, suggestion) => {
-                document.getElementById('dup-old-label').textContent = oldLabel;
-                document.getElementById('dup-suggestion').textContent = suggestion;
-                document.getElementById('duplicateModal').classList.remove('hidden');
-                document.getElementById('duplicateModal').classList.add('flex');
-            };
-
-            window.closeDuplicateModal = () => {
-                document.getElementById('duplicateModal').classList.add('hidden');
-                document.getElementById('duplicateModal').classList.remove('flex');
-            };
-
-            window.useSuggestionLabel = () => {
-                const suggestion = document.getElementById('dup-suggestion').textContent;
-                document.getElementById('modal_nomor_label').value = suggestion;
-                closeDuplicateModal();
-                document.getElementById('btn_assign_label').click();
-            };
-
-            window.handleVerifyQr = async (e) => {
-                e.preventDefault();
-                const id = document.getElementById('modal_qr_id_inventaris').value;
-                const qr_univ = document.getElementById('modal_qr_univ').value;
-
-                document.getElementById('btn_verify_qr').disabled = true;
-                document.getElementById('btn_verify_qr').innerText = 'Memverifikasi...';
-
-                try {
-                    const response = await fetch(`http://localhost:3000/api/staf_admin/inventaris/verify-qr/${id}`, {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ qr_univ })
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        closeVerifyModal();
-                        openAssignModal(id, qr_univ);
-                    } else {
-                        alert(result.message || 'QR tidak valid');
-                    }
-                } catch (error) {
-                    console.error(error);
-                    alert('Terjadi kesalahan jaringan');
-                } finally {
-                    document.getElementById('btn_verify_qr').disabled = false;
-                    document.getElementById('btn_verify_qr').innerText = 'Verifikasi QR';
-                }
-            };
-
-            window.handleAssignLabel = async (e) => {
-                if (e) e.preventDefault();
-                const id = document.getElementById('modal_assign_id_inventaris').value;
-                const nomor_label = document.getElementById('modal_nomor_label').value;
-                const qr_univ = document.getElementById('modal_assign_qr_univ').value;
-
-                if (!nomor_label || nomor_label.trim() === '') {
-                    alert('Nomor label wajib diisi!');
-                    return;
-                }
-
-                document.getElementById('btn_assign_label').disabled = true;
-                document.getElementById('btn_assign_label').innerText = 'Menyimpan...';
-
-                try {
-                    const response = await fetch(`http://localhost:3000/api/staf_admin/inventaris/update-label/${id}`, {
-                        method: 'PUT',
-                        headers: {
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify({ nomor_label, qr_univ })
-                    });
-                    const result = await response.json();
-                    if (result.success) {
-                        closeAssignModal();
-                        showSuccessModal(result.message || 'Nomor label berhasil disimpan');
-                        fetchData(); // Reload both tabs
-                    } else if (result.isDuplicate) {
-                        showDuplicateModal(nomor_label, result.suggestion);
-                    } else {
-                        alert(result.message || 'Gagal update label');
-                    }
-                } catch (error) {
-                    console.error(error);
-                    alert('Terjadi kesalahan jaringan');
-                } finally {
-                    document.getElementById('btn_assign_label').disabled = false;
-                    document.getElementById('btn_assign_label').innerText = 'Simpan Label';
+                if (visibleRooms === 0) {
+                    container.innerHTML = '<div class="text-center py-12 text-gray-500 font-medium bg-white rounded-2xl border border-gray-200/50 shadow-sm">Tidak ada barang yang cocok dengan filter atau pencarian Anda.</div>';
                 }
             };
 
             const fetchData = async () => {
                 try {
-                    const [resAll, resUnlabeled] = await Promise.all([
-                        fetch('http://localhost:3000/api/staf_admin/inventaris'),
-                        fetch('http://localhost:3000/api/staf_admin/inventaris/belum-dilabeli')
-                    ]);
+                    const response = await fetch('http://localhost:3000/api/staf_admin/inventaris');
+                    const result = await response.json();
                     
-                    const resultAll = await resAll.json();
-                    const resultUnlabeled = await resUnlabeled.json();
-                    
-                    if (resultAll.success && resultAll.data.length > 0) {
-                        inventoryData = resultAll.data;
-                        renderData();
+                    if (result.success && result.data.length > 0) {
+                        inventoryData = result.data;
+                        
+                        // Populate filter dropdown
+                        const filterRoom = document.getElementById('filter-room');
+                        filterRoom.innerHTML = '<option value="all">Semua Ruangan</option>';
+                        inventoryData.forEach(room => {
+                            const opt = document.createElement('option');
+                            opt.value = room.id;
+                            opt.textContent = room.nama;
+                            filterRoom.appendChild(opt);
+                        });
+
+                        filterAndRender();
                     } else {
                         container.innerHTML = '<div class="text-center py-10 text-gray-500">Tidak ada data inventaris.</div>';
-                    }
-
-                    if (resultUnlabeled.success) {
-                        unlabeledData = resultUnlabeled.data;
-                        renderUnlabeledData();
                     }
                 } catch (error) {
                     console.error('Error fetching inventory:', error);
