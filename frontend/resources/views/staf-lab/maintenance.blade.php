@@ -190,25 +190,31 @@
 
             
             <!-- Alert Barang Rusak -->
-            <div id="alert-barang-rusak" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-5 items-center justify-between shadow-sm">
-                <div class="flex items-center gap-4">
-                    <div class="p-3 bg-rose-100 text-rose-600 rounded-xl">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+            <div id="alert-barang-rusak" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-5 flex-col gap-4 shadow-sm">
+                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
+                    <div class="flex items-center gap-4">
+                        <div class="p-3 bg-rose-100 text-rose-600 rounded-xl">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                            </svg>
+                        </div>
+                        <div>
+                            <h4 class="text-sm font-bold text-rose-800">Peringatan: Terdapat Inventaris Rusak</h4>
+                            <p class="text-xs text-rose-600 mt-1" id="alert-rusak-text">Ada beberapa barang yang membutuhkan perbaikan segera.</p>
+                        </div>
+                    </div>
+                    <button onclick="openFormModal()" class="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all duration-200">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                         </svg>
-                    </div>
-                    <div>
-                        <h4 class="text-sm font-bold text-rose-800">Peringatan: Terdapat Inventaris Rusak</h4>
-                        <p class="text-xs text-rose-600 mt-1" id="alert-rusak-text">Ada beberapa barang yang membutuhkan perbaikan segera.</p>
-                    </div>
+                        Catat Maintenance
+                    </button>
                 </div>
-                <button onclick="openFormModal()" class="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all duration-200">
-                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                    </svg>
-                    Catat Maintenance
-                </button>
+                <!-- Rincian Lokasi Barang Rusak -->
+                <div id="damaged-items-details" class="w-full border-t border-rose-200/60 pt-3 text-xs text-rose-700">
+                    <!-- Akan dimuat oleh JS -->
+                </div>
             </div>
 
             <!-- Summary Cards -->
@@ -384,6 +390,12 @@
             <!-- Modal Body -->
             <form id="maintenance-form" onsubmit="handleFormSubmit(event)" class="p-6 space-y-5">
 
+                <!-- Info Permintaan Maintenance dari Kalab -->
+                <div id="info-minta-maintenance" class="hidden bg-amber-50 border border-amber-200 rounded-xl p-4 flex flex-col gap-2">
+                    <p class="text-xs font-bold text-amber-800 uppercase tracking-wider">Permintaan Perbaikan Kalab</p>
+                    <p class="text-xs text-amber-700 font-medium leading-relaxed" id="info-minta-maintenance-text"></p>
+                </div>
+
                 <!-- Row 1: Aset & Teknisi -->
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
@@ -434,18 +446,15 @@
                         <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Kondisi Sebelum</label>
                         <select id="f-kondisi-sebelum" class="w-full border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm bg-white">
                             <option value="Baik">Baik</option>
-                            <option value="Perlu Perhatian" selected>Perlu Perhatian</option>
-                            <option value="Rusak Ringan">Rusak Ringan</option>
-                            <option value="Rusak Berat">Rusak Berat</option>
+                            <option value="Rusak" selected>Rusak</option>
                         </select>
                     </div>
                     <div>
                         <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Kondisi Sesudah</label>
                         <select id="f-kondisi-sesudah" class="w-full border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm bg-white">
                             <option value="Baik" selected>Baik</option>
-                            <option value="Perlu Perhatian">Perlu Perhatian</option>
-                            <option value="Rusak Ringan">Rusak Ringan</option>
-                            <option value="Rusak Berat">Rusak Berat</option>
+                            <option value="Rusak">Rusak</option>
+                            <option value="Perlu Diganti">Perlu Diganti</option>
                         </select>
                     </div>
                 </div>
@@ -755,16 +764,54 @@
 
         
         function checkBrokenItems() {
-            const brokenCount = Object.values(assetConditions).filter(c => c === 'Rusak Berat' || c === 'Rusak Ringan' || c === 'Perlu Perhatian').length;
+            const brokenItems = rawInventarisData.filter(item => 
+                item.kondisi === 'rusak_ringan' || 
+                item.kondisi === 'rusak_berat' || 
+                item.kondisi === 'perlu_perhatian'
+            );
+            const brokenCount = brokenItems.length;
             const alertBox = document.getElementById('alert-barang-rusak');
+            const detailsContainer = document.getElementById('damaged-items-details');
+
             if (brokenCount > 0) {
                 document.getElementById('alert-rusak-text').textContent = `Terdapat ${brokenCount} barang inventaris yang membutuhkan perbaikan segera.`;
+                
+                detailsContainer.innerHTML = `
+                    <div class="mt-2 font-bold text-rose-800">Daftar Aset Bermasalah & Lokasinya:</div>
+                    <ul class="mt-2 space-y-2 font-medium text-rose-700">
+                        ${brokenItems.map(item => {
+                            const name = item.nama_barang || 'Aset';
+                            const label = item.nomor_label || 'Tanpa Label';
+                            const room = item.nama_ruangan || 'Tanpa Ruangan';
+                            const condStr = kondisiMap[item.kondisi] || item.kondisi;
+                            return `<li class="flex items-center justify-between gap-4 py-1 border-b border-rose-100/50 last:border-0">
+                                <span>&bull; ${name} (${label}) - Kondisi: <strong>${condStr}</strong> di <strong>${room}</strong></span>
+                                <button type="button" onclick="openFormForAsset('${item.id_inventaris}')" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg shadow-sm transition-all duration-200 shrink-0">
+                                    Catat Maintenance
+                                </button>
+                            </li>`;
+                        }).join('')}
+                    </ul>
+                `;
+
                 alertBox.classList.remove('hidden');
                 alertBox.classList.add('flex');
             } else {
                 alertBox.classList.add('hidden');
                 alertBox.classList.remove('flex');
+                detailsContainer.innerHTML = '';
             }
+        }
+
+        function openFormForAsset(id_inventaris) {
+            openFormModal();
+            setTimeout(() => {
+                const select = document.getElementById('f-asset');
+                if (select) {
+                    select.value = id_inventaris;
+                    select.dispatchEvent(new Event('change'));
+                }
+            }, 100);
         }
 
         function updateStats() {
@@ -1070,18 +1117,102 @@
             renderBhpStockList();
             renderAssetConditionList();
             updateStats();
+            checkBrokenItems();
+
+            // Tambahkan event listener untuk merespon perubahan pilihan aset
+            const selectEl = document.getElementById('f-asset');
+            if (selectEl) {
+                selectEl.addEventListener('change', function() {
+                    const opt = this.options[this.selectedIndex];
+                    if (!opt) return;
+                    const kondisi = opt.getAttribute('data-kondisi');
+                    if (kondisi) {
+                        const kondisiSebelumMap = {
+                            'baik': 'Baik',
+                            'rusak_ringan': 'Rusak',
+                            'rusak_berat': 'Rusak'
+                        };
+                        const mappedVal = kondisiSebelumMap[kondisi] || 'Baik';
+                        const selectSebelum = document.getElementById('f-kondisi-sebelum');
+                        if (selectSebelum) {
+                            selectSebelum.value = mappedVal;
+                        }
+                    }
+                });
+            }
+
+            // Tambahkan event listener untuk merubah tombol submit berdasarkan kondisi sesudah
+            const selectSesudah = document.getElementById('f-kondisi-sesudah');
+            if (selectSesudah) {
+                selectSesudah.addEventListener('change', function() {
+                    const submitBtn = document.querySelector('#maintenance-form [type=submit]');
+                    if (this.value === 'Perlu Diganti') {
+                        submitBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> Ajukan Penggantian`;
+                        submitBtn.classList.remove('bg-[#20394a]', 'hover:bg-[#6196aa]');
+                        submitBtn.classList.add('bg-rose-600', 'hover:bg-rose-700');
+                    } else {
+                        submitBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg> Simpan Log`;
+                        submitBtn.classList.remove('bg-rose-600', 'hover:bg-rose-700');
+                        submitBtn.classList.add('bg-[#20394a]', 'hover:bg-[#6196aa]');
+                    }
+                });
+            }
 
             const urlParams = new URLSearchParams(window.location.search);
             const ajukan = urlParams.get('ajukan');
             if (ajukan) {
                 openFormModal();
+
+                // Tampilkan info ruangan tempat barang kategori ini yang rusak berada
+                const damagedItems = rawInventarisData.filter(item => 
+                    item.nama_barang && 
+                    (item.nama_barang.toLowerCase().trim().includes(ajukan.toLowerCase().trim()) ||
+                     ajukan.toLowerCase().trim().includes(item.nama_barang.toLowerCase().trim())) && 
+                    item.kondisi !== 'baik'
+                );
+
+                const infoBox = document.getElementById('info-minta-maintenance');
+                const infoText = document.getElementById('info-minta-maintenance-text');
+
+                if (damagedItems.length > 0) {
+                    const roomInfo = damagedItems.map(item => {
+                        const label = item.nomor_label || 'Tanpa Label';
+                        const room = item.nama_ruangan || 'Tanpa Ruangan';
+                        const condStr = kondisiMap[item.kondisi] || item.kondisi;
+                        return `<strong>${label}</strong> (Kondisi: ${condStr}) di <strong>${room}</strong>`;
+                    }).join(', ');
+                    infoText.innerHTML = `Barang <strong>${ajukan}</strong> yang membutuhkan perbaikan berada di: ${roomInfo}.`;
+                    infoBox.classList.remove('hidden');
+                } else {
+                    infoBox.classList.add('hidden');
+                }
+
                 setTimeout(() => {
-                    const select = document.getElementById('f-inventaris');
-                    for(let i=0; i < select.options.length; i++) {
-                        if(select.options[i].text.toLowerCase().includes(ajukan.toLowerCase())) {
-                            select.selectedIndex = i;
-                            break;
+                    const select = document.getElementById('f-asset');
+                    if (select) {
+                        let selected = false;
+                        for(let i=0; i < select.options.length; i++) {
+                            const opt = select.options[i];
+                            const text = opt.text.toLowerCase();
+                            const kondisi = opt.getAttribute('data-kondisi');
+                            if ((text.includes(ajukan.toLowerCase().trim()) || ajukan.toLowerCase().trim().includes(text)) && kondisi !== 'baik') {
+                                select.selectedIndex = i;
+                                selected = true;
+                                break;
+                            }
                         }
+                        if (!selected) {
+                            for(let i=0; i < select.options.length; i++) {
+                                const opt = select.options[i];
+                                const text = opt.text.toLowerCase();
+                                if (text.includes(ajukan.toLowerCase().trim()) || ajukan.toLowerCase().trim().includes(text)) {
+                                    select.selectedIndex = i;
+                                    break;
+                                }
+                            }
+                        }
+                        // Manually trigger change to update Kondisi Sebelum field
+                        select.dispatchEvent(new Event('change'));
                     }
                 }, 500);
             }

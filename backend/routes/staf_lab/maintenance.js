@@ -69,16 +69,13 @@ router.post('/', async (req, res) => {
         return res.status(400).json({ success: false, message: 'Field wajib tidak boleh kosong' });
     }
 
-    
     // Mapping frontend values to ENUM values
     let mapped_setelah = 'baik';
-    if (kondisi_setelah === 'Rusak Ringan' || kondisi_setelah === 'rusak_ringan' || kondisi_setelah === 'Perlu Perhatian' || kondisi_setelah === 'perlu_perhatian') mapped_setelah = 'rusak_ringan';
-    if (kondisi_setelah === 'Rusak Berat' || kondisi_setelah === 'rusak_berat') mapped_setelah = 'rusak_berat';
+    if (kondisi_setelah === 'Rusak' || kondisi_setelah === 'rusak' || kondisi_setelah === 'Perlu Diganti') mapped_setelah = 'rusak_berat';
 
     let mapped_sebelum = 'baik';
     if (kondisi_sebelum) {
-        if (kondisi_sebelum === 'Rusak Ringan' || kondisi_sebelum === 'rusak_ringan' || kondisi_sebelum === 'Perlu Perhatian' || kondisi_sebelum === 'perlu_perhatian') mapped_sebelum = 'rusak_ringan';
-        if (kondisi_sebelum === 'Rusak Berat' || kondisi_sebelum === 'rusak_berat') mapped_sebelum = 'rusak_berat';
+        if (kondisi_sebelum === 'Rusak' || kondisi_sebelum === 'rusak') mapped_sebelum = 'rusak_berat';
     }
 
     const conn = await db.getConnection();
@@ -117,14 +114,29 @@ router.post('/', async (req, res) => {
 
         await conn.query('UPDATE barang_inventaris SET kondisi = ? WHERE id_inventaris = ?', [mapped_setelah, id_inventaris]);
 
-        if (kondisi_setelah === 'rusak' || kondisi_setelah === 'rusak_berat') {
-            const [inv] = await conn.query('SELECT nomor_label FROM barang_inventaris WHERE id_inventaris = ?', [id_inventaris]);
+        if (kondisi_setelah === 'rusak' || kondisi_setelah === 'Rusak' || kondisi_setelah === 'rusak_berat' || kondisi_setelah === 'Perlu Diganti') {
+            const [inv] = await conn.query(`
+                SELECT bi.nomor_label, dp.nama_barang 
+                FROM barang_inventaris bi 
+                LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail 
+                WHERE bi.id_inventaris = ?
+            `, [id_inventaris]);
             const no_label = inv[0] ? inv[0].nomor_label : id_inventaris;
-            const pesan = `Peringatan: Barang dengan label ${no_label} dilaporkan dalam kondisi ${kondisi_setelah.replace('_', ' ').toUpperCase()}.`;
-            await conn.query(
-                `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
-                ['kalab', pesan, 'warning', '/kalab/inventaris']
-            );
+            const nama_barang = inv[0] && inv[0].nama_barang ? inv[0].nama_barang : 'Barang';
+            
+            if (kondisi_setelah === 'Perlu Diganti') {
+                const pesan = `Staf Lab mengajukan penggantian inventaris untuk ${nama_barang} (Label: ${no_label}) yang rusak dan perlu diganti.`;
+                await conn.query(
+                    `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
+                    ['kalab', pesan, 'warning', '/kalab/tambah-draf']
+                );
+            } else {
+                const pesan = `Peringatan: Barang dengan label ${no_label} dilaporkan dalam kondisi ${kondisi_setelah.replace('_', ' ').toUpperCase()}.`;
+                await conn.query(
+                    `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
+                    ['kalab', pesan, 'warning', '/kalab/inventaris']
+                );
+            }
         }
 
         await conn.commit();
@@ -137,7 +149,6 @@ router.post('/', async (req, res) => {
         conn.release();
     }
 });
-
 
 // POST /api/staf_lab/maintenance/ajukan_pengganti
 router.post('/ajukan_pengganti', async (req, res) => {
@@ -163,4 +174,3 @@ router.post('/ajukan_pengganti', async (req, res) => {
 });
 
 module.exports = router;
-
