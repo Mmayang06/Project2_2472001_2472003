@@ -64,6 +64,26 @@ app.post('/api/login', async (req, res) => {
     }
 });
 
+// Register API
+app.post('/api/register', async (req, res) => {
+    const { nama, email, password, role, tahun_jabatan } = req.body;
+    try {
+        const [existing] = await db.query('SELECT id_user FROM user WHERE email = ? OR nama = ?', [email, nama]);
+        if (existing.length > 0) {
+            return res.status(400).json({ success: false, message: 'Email atau username sudah terdaftar.' });
+        }
+        
+        await db.query(
+            'INSERT INTO user (nama, email, password, role, tahun_jabatan) VALUES (?, ?, ?, ?, ?)',
+            [nama, email, password, role, tahun_jabatan || null]
+        );
+        res.json({ success: true, message: 'Registrasi berhasil' });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Terjadi kesalahan pada server.' });
+    }
+});
+
 // Logout API
 app.post('/api/logout', async (req, res) => {
     const { id_user } = req.body;
