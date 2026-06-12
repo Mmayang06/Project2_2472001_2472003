@@ -56,7 +56,7 @@
                 <div>
                     <h1 class="text-xl font-bold tracking-tight">Lab<span class="text-[#6196aa]">ventory</span></h1>
                     <span class="text-xs text-[#c9ccc3] tracking-wide block">Portal Staf Administrasi</span>
-                    <span class="text-[10px] text-emerald-400 font-semibold tracking-wide block mt-1">Staf Admin</span>
+                    <span class="text-[10px] text-emerald-400 font-semibold tracking-wide block mt-1">{{ session('user')['username'] ?? 'Staf Admin' }}</span>
                 </div>
             </a>
             <a href="/profile" title="Edit Profil" class="p-2 bg-[#6196aa]/10 text-[#6196aa] hover:bg-[#6196aa] hover:text-[#f9f5ed] rounded-lg transition-colors shadow-sm ml-2 shrink-0">
