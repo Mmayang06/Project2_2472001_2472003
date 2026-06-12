@@ -373,7 +373,7 @@
                         const urlUpdate = '/stafadmin/update-inventaris/' + item.id_detail;
                         
                         cardsHtml += `
-                        <div onclick="openGroupModal(${index}, ${item.id_detail})" class="cursor-pointer block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
+                        <div onclick="openGroupModal(${index}, '${item.id_detail.replace(/'/g, "\\'")}')" class="cursor-pointer block bg-white/30 backdrop-blur-lg border border-white/40 rounded-xl overflow-hidden hover:-translate-y-1 hover:scale-[1.02] hover:border-[#6196aa] hover:shadow-xl transition-all duration-300 group relative">
                             ${badgeHtml}
                             <div class="aspect-square bg-[#f9f5ed]/50 backdrop-blur-sm w-full flex items-center justify-center p-6 relative">
                                 <svg class="w-20 h-20 text-[#6196aa]/80 group-hover:text-[#6196aa] group-hover:scale-105 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
@@ -462,7 +462,7 @@
             };
 
             window.openGroupModal = (roomIndex, detailId) => {
-                const room = inventoryData[roomIndex];
+                const room = filteredInventoryData[roomIndex];
                 const group = room.barang.find(b => b.id_detail === detailId);
                 if (!group) return;
 

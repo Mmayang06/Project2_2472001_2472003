@@ -44,7 +44,6 @@ router.get('/', async (req, res) => {
     }
 });
 
-// Update Status Pengadaan
 router.put('/:id/status', async (req, res) => {
     try {
         const { id } = req.params;
@@ -58,10 +57,9 @@ router.put('/:id/status', async (req, res) => {
     }
 });
 
-// Cek Nomor Label
 router.post('/cek-label', async (req, res) => {
     try {
-        const { labels } = req.body; // Array of string labels
+        const { labels } = req.body;
         if (!labels || labels.length === 0) return res.json({ success: true, valid: true });
 
         const placeholders = labels.map(() => '?').join(',');
@@ -78,7 +76,6 @@ router.post('/cek-label', async (req, res) => {
     }
 });
 
-// Proses Terima Barang
 router.post('/terima', async (req, res) => {
     const connection = await db.getConnection();
     try {
@@ -86,11 +83,13 @@ router.post('/terima', async (req, res) => {
         
         await connection.beginTransaction();
 
-        // 1. Get Storage ID
         const [storage] = await connection.query('SELECT id_ruangan FROM ruangan WHERE nama_ruangan = "Storage" LIMIT 1');
         const storage_id = storage[0] ? storage[0].id_ruangan : null;
 
-        // 2. Update ruangan di detail pengadaan jika ada
+        const [det] = await connection.query('SELECT nama_barang, jenis_barang FROM detail_pengadaan WHERE id_detail = ?', [id_detail]);
+        if (det.length === 0) throw new Error('Detail not found');
+        const { nama_barang, jenis_barang } = det[0];
+
         if (id_ruangan) {
             await connection.query('UPDATE detail_pengadaan SET id_ruangan = ? WHERE id_detail = ?', [id_ruangan, id_detail]);
         }
@@ -98,7 +97,6 @@ router.post('/terima', async (req, res) => {
         let qtyRemaining = parseInt(input_qty) || 1;
         const qr_univ = 'UNIV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
         
-        // Find ALL labs with broken items of this type (excluding Storage)
         const [brokenLabs] = await connection.query(`
             SELECT r.id_ruangan, COUNT(bi.id_inventaris) as broken_count
             FROM ruangan r 
@@ -109,59 +107,47 @@ router.post('/terima', async (req, res) => {
             GROUP BY r.id_ruangan
         `, [storage_id, id_detail]);
 
-        // First, allocate to the explicitly selected room (if any, up to its broken count)
         if (id_ruangan && id_ruangan != storage_id) {
             const selectedLabData = brokenLabs.find(l => l.id_ruangan == id_ruangan);
             const selectedBrokenCount = selectedLabData ? selectedLabData.broken_count : 0;
-            // If the user selected a lab that has no broken items, we still allocate all of it to that lab 
-            // ONLY if there are no other broken labs, OR if they explicitly chose it despite the warning.
-            // Wait, the requirement says "utamain leb lain ya, kl di lab lain ngga ada barang dengan nama itu yang rusak baru dimasukin ke storage".
-            // So we give to the selected lab ONLY up to its broken count, or if there's no broken count but they chose it, we allocate everything.
-            // Let's stick to the popup logic: the selected lab gets UP TO its broken count. 
-            // If the lab has 0 broken count, it gets 0 (since it shouldn't replace anything), UNLESS they chose Storage.
-            // Actually, if they chose a lab, they want items there. If there are 0 broken items, they want to ADD items to the lab.
-            // So the selected lab gets the items. BUT if they exceed broken count, the EXCESS goes to other labs/storage.
             const allocateToSelected = (selectedBrokenCount > 0) ? Math.min(qtyRemaining, selectedBrokenCount) : qtyRemaining;
             
             for (let i = 0; i < allocateToSelected; i++) {
                 await connection.query(
-                    'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
-                    [null, qr_univ, 'baik', id_ruangan, id_detail, tanggal_penerimaan]
+                    'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan, nama_barang, jenis_barang) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                    [null, qr_univ, 'baik', id_ruangan, id_detail, tanggal_penerimaan, nama_barang, jenis_barang]
                 );
             }
             qtyRemaining -= allocateToSelected;
             
             if (selectedLabData) {
-                selectedLabData.broken_count = 0; // Mark as fulfilled
+                selectedLabData.broken_count = 0;
             }
         }
 
-        // Second, allocate remaining to OTHER labs with broken items
         for (const lab of brokenLabs) {
             if (qtyRemaining <= 0) break;
             if (lab.broken_count > 0) {
                 const allocateToLab = Math.min(qtyRemaining, lab.broken_count);
                 for (let i = 0; i < allocateToLab; i++) {
                     await connection.query(
-                        'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
-                        [null, qr_univ, 'baik', lab.id_ruangan, id_detail, tanggal_penerimaan]
+                        'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan, nama_barang, jenis_barang) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                        [null, qr_univ, 'baik', lab.id_ruangan, id_detail, tanggal_penerimaan, nama_barang, jenis_barang]
                     );
                 }
                 qtyRemaining -= allocateToLab;
             }
         }
 
-        // Third, allocate any absolute remainder to Storage (or fallback to id_ruangan if no storage)
         if (qtyRemaining > 0) {
             for (let i = 0; i < qtyRemaining; i++) {
                 await connection.query(
-                    'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan) VALUES (?, ?, ?, ?, ?, ?)',
-                    [null, qr_univ, 'baik', storage_id || id_ruangan, id_detail, tanggal_penerimaan]
+                    'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan, nama_barang, jenis_barang) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+                    [null, qr_univ, 'baik', storage_id || id_ruangan, id_detail, tanggal_penerimaan, nama_barang, jenis_barang]
                 );
             }
         }
 
-        // 3. Cek jumlah total yang diterima vs jumlah dipesan
         const [detailRows] = await connection.query('SELECT jumlah FROM detail_pengadaan WHERE id_detail = ?', [id_detail]);
         const jumlah_total = detailRows[0].jumlah;
         
@@ -190,10 +176,8 @@ router.get('/ruangan-rekomendasi/:id_detail', async (req, res) => {
     try {
         const { id_detail } = req.params;
 
-        // Get Storage room
         const [storage] = await db.query('SELECT id_ruangan, nama_ruangan FROM ruangan WHERE nama_ruangan = "Storage" LIMIT 1');
         
-        // Get Labs with ANY broken items (excluding Storage)
         const [labsWithBroken] = await db.query(`
             SELECT DISTINCT r.id_ruangan, r.nama_ruangan 
             FROM ruangan r 
@@ -201,7 +185,6 @@ router.get('/ruangan-rekomendasi/:id_detail', async (req, res) => {
             WHERE bi.kondisi != 'baik' AND r.nama_ruangan != 'Storage'
         `);
 
-        // Get Labs with SPECIFIC broken items of the same id_barang
         const [recommendedLabs] = await db.query(`
             SELECT r.id_ruangan, r.nama_ruangan, COUNT(bi.id_inventaris) as broken_count
             FROM ruangan r 

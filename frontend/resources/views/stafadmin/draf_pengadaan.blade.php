@@ -254,7 +254,7 @@
                                                     </td>
                                                     <td class="px-4 py-3 text-right">
                                                         @if(!empty($item['link_pembelian']))
-                                                        <a href="{{ $item['link_pembelian'] }}" target="_blank" class="text-[11px] font-bold text-[#6196aa] border border-[#6196aa] hover:bg-[#6196aa] hover:text-white transition-colors px-2 py-1 rounded shadow-sm inline-block">
+                                                        <a href="{{ $item['link_pembelian'] }}" target="_blank" class="text-[11px] font-bold text-[#6196aa] border border-[#6196aa] hover:bg-[#6196aa] hover:text-white transition-colors px-2 py-1 rounded shadow-sm inline-block whitespace-nowrap">
                                                             Link Beli
                                                         </a>
                                                         @else
