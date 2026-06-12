@@ -69,9 +69,11 @@
                         <h3 class="text-sm font-semibold text-denim mb-4 uppercase tracking-wider">QR Code Label</h3>
                         @php
                             $qrText = $data['qr_code'] ?? $data['nomor_label'] ?? 'No Data';
+                            $localIp = gethostbyname(gethostname());
+                            $qrUrl = isset($data['id_inventaris']) ? "http://{$localIp}:8000/barang/info/" . $data['id_inventaris'] : $qrText;
                         @endphp
                         <div class="relative group mx-auto w-fit cursor-pointer" onclick="printQR()">
-                            <img id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ urlencode($qrText) }}" alt="QR Code" class="w-32 h-32 border border-concrete/20 rounded-md p-1 bg-white shadow-sm transition-opacity group-hover:opacity-30">
+                            <img id="qr-image" src="https://api.qrserver.com/v1/create-qr-code/?size=150x150&data={{ urlencode($qrUrl) }}" alt="QR Code" class="w-32 h-32 border border-concrete/20 rounded-md p-1 bg-white shadow-sm transition-opacity group-hover:opacity-30">
                             <div class="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
                                 <span class="bg-denim text-white text-xs font-bold px-3 py-1.5 rounded-md flex items-center gap-1.5 shadow-md">
                                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg>
