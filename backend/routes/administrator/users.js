@@ -23,6 +23,8 @@ function getRoleLabel(role) {
     return labels[role] || role;
 }
 
+let etherealAccount = null;
+
 // Buat transporter — pakai Gmail jika sudah dikonfigurasi, fallback ke Ethereal
 async function createTransporter() {
     if (process.env.EMAIL_USER && process.env.EMAIL_USER !== 'email_gmail_anda@gmail.com') {
@@ -35,14 +37,16 @@ async function createTransporter() {
         });
     }
     // Mode simulasi: gunakan Ethereal fake SMTP
-    const testAccount = await nodemailer.createTestAccount();
+    if (!etherealAccount) {
+        etherealAccount = await nodemailer.createTestAccount();
+    }
     return nodemailer.createTransport({
         host: 'smtp.ethereal.email',
         port: 587,
         secure: false,
         auth: {
-            user: testAccount.user,
-            pass: testAccount.pass,
+            user: etherealAccount.user,
+            pass: etherealAccount.pass,
         },
     });
 }
@@ -59,7 +63,7 @@ router.get('/', async (req, res) => {
 
 // Tambah pengguna baru (password digenerate otomatis & dikirim via email)
 router.post('/', async (req, res) => {
-    const { nama, email, role } = req.body;
+    const { nama, email, role, password: inputPassword } = req.body;
     try {
         // Cek apakah email sudah terdaftar
         const [existing] = await db.query('SELECT id_user FROM user WHERE email = ?', [email]);
@@ -67,8 +71,8 @@ router.post('/', async (req, res) => {
             return res.status(400).json({ success: false, message: 'Email sudah terdaftar.' });
         }
 
-        // Generate password acak otomatis
-        const password = generateRandomPassword(10);
+        // Gunakan password input atau generate jika kosong
+        const password = inputPassword || generateRandomPassword(10);
         const roleLabel = getRoleLabel(role);
 
         await db.query(
@@ -102,7 +106,7 @@ router.post('/', async (req, res) => {
                         <p style="color: #555; font-size: 14px; line-height: 1.7; margin: 0 0 24px;">
                             Administrator telah mendaftarkan akun Anda ke sistem <strong>Labventory</strong> 
                             sebagai <strong style="color: #20394a;">${roleLabel}</strong>. 
-                            Berikut adalah informasi login Anda:
+                            Silakan gunakan email ini sebagai <strong>username</strong> beserta <strong>password</strong> berikut untuk masuk:
                         </p>
 
                         <!-- Credentials Box -->
@@ -159,28 +163,24 @@ router.post('/', async (req, res) => {
             `
         };
 
-        let emailSent = false;
-        let previewUrl = null;
-        try {
-            const transporter = await createTransporter();
-            const info = await transporter.sendMail(mailOptions);
-            emailSent = true;
-            // Jika pakai Ethereal, cetak link preview ke console
-            previewUrl = nodemailer.getTestMessageUrl(info);
-            if (previewUrl) {
-                console.log('📧 [SIMULASI EMAIL] Preview URL:', previewUrl);
-            }
-        } catch (mailErr) {
-            console.warn('⚠️  Gagal mengirim email ke ' + email + ':', mailErr.message);
-        }
-
         res.json({
             success: true,
-            message: emailSent
-                ? 'User berhasil ditambahkan dan email notifikasi telah dikirim.'
-                : 'User berhasil ditambahkan.',
-            ...(previewUrl && { previewUrl }),
-            generatedPassword: password  // untuk keperluan simulasi/debug
+            message: 'User berhasil ditambahkan. Email sedang diproses di latar belakang.',
+            generatedPassword: inputPassword ? null : password
+        });
+
+        // Kirim email notifikasi secara asinkron (background)
+        setImmediate(async () => {
+            try {
+                const transporter = await createTransporter();
+                const info = await transporter.sendMail(mailOptions);
+                const previewUrl = nodemailer.getTestMessageUrl(info);
+                if (previewUrl) {
+                    console.log('📧 [SIMULASI EMAIL] Pendaftaran ' + email + ' | Preview URL:', previewUrl);
+                }
+            } catch (mailErr) {
+                console.warn('⚠️ Gagal mengirim email ke ' + email + ':', mailErr.message);
+            }
         });
 
     } catch (e) {
@@ -252,27 +252,24 @@ router.post('/:id/reset-password', async (req, res) => {
             `
         };
 
-        let emailSent = false;
-        let previewUrl = null;
-        try {
-            const transporter = await createTransporter();
-            const info = await transporter.sendMail(mailOptions);
-            emailSent = true;
-            previewUrl = nodemailer.getTestMessageUrl(info);
-            if (previewUrl) {
-                console.log('📧 [SIMULASI EMAIL RESET] Preview URL:', previewUrl);
-            }
-        } catch (mailErr) {
-            console.warn('⚠️ Gagal mengirim email reset ke ' + user.email + ':', mailErr.message);
-        }
-
         res.json({ 
             success: true, 
-            message: emailSent 
-                ? 'Password berhasil direset dan email telah dikirim.' 
-                : 'Password berhasil direset.',
-            ...(previewUrl && { previewUrl }),
+            message: 'Password berhasil direset. Email sedang diproses.',
             generatedPassword: newPassword
+        });
+
+        // Kirim email secara asinkron
+        setImmediate(async () => {
+            try {
+                const transporter = await createTransporter();
+                const info = await transporter.sendMail(mailOptions);
+                const previewUrl = nodemailer.getTestMessageUrl(info);
+                if (previewUrl) {
+                    console.log('📧 [SIMULASI EMAIL RESET] ' + user.email + ' | Preview URL:', previewUrl);
+                }
+            } catch (mailErr) {
+                console.warn('⚠️ Gagal mengirim email reset ke ' + user.email + ':', mailErr.message);
+            }
         });
     } catch (e) {
         res.status(500).json({ success: false, message: 'Gagal mereset password: ' + e.message });
