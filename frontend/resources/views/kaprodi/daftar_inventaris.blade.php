@@ -141,6 +141,7 @@
                         <tr class="bg-white text-gray-500 uppercase tracking-wider text-xs font-bold border-b border-gray-200 shadow-sm">
                             <th class="px-6 py-4">Nomor Label</th>
                             <th class="px-6 py-4">Kondisi</th>
+                            <th class="px-6 py-4 text-right">Aksi</th>
                         </tr>
                     </thead>
                     <tbody id="modal-group-tbody" class="divide-y divide-gray-100 bg-white">
@@ -381,6 +382,11 @@
                                 <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-bold border ${condClass}">
                                     ${condText}
                                 </span>
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <a href="/detail-inventaris/${it.id_inventaris}" class="text-xs font-bold text-[#6196aa] border border-[#6196aa] hover:bg-[#6196aa] hover:text-white transition-colors px-4 py-2 rounded-lg shadow-sm inline-block">
+                                    Lihat Unit
+                                </a>
                             </td>
                         </tr>
                     `;

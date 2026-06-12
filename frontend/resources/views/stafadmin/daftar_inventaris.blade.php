@@ -750,7 +750,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4 text-right">
-                                <a href="/stafadmin/update-inventaris/${it.id_inventaris}" class="text-xs font-bold text-[#6196aa] border border-[#6196aa] hover:bg-[#6196aa] hover:text-white transition-colors px-4 py-2 rounded-lg shadow-sm inline-block">
+                                <a href="/detail-inventaris/${it.id_inventaris}" class="text-xs font-bold text-[#6196aa] border border-[#6196aa] hover:bg-[#6196aa] hover:text-white transition-colors px-4 py-2 rounded-lg shadow-sm inline-block">
                                     Lihat Unit
                                 </a>
                             </td>

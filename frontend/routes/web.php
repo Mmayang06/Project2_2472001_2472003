@@ -68,6 +68,28 @@ Route::get('/barang/info/{id}', function ($id) {
     }
 });
 
+Route::get('/detail-inventaris/{id}', function ($id) {
+    try {
+        $response = \Illuminate\Support\Facades\Http::get("http://localhost:3000/api/staf_admin/inventaris/{$id}");
+        $data = null;
+        if ($response->successful() && isset($response->json()['data'])) {
+            $data = $response->json()['data'];
+        }
+        return view('detail_inventaris', [
+            'id' => $id,
+            'data' => $data,
+            'success' => $data !== null
+        ]);
+    } catch (\Exception $e) {
+        return view('detail_inventaris', [
+            'id' => $id,
+            'data' => null,
+            'success' => false,
+            'error' => $e->getMessage()
+        ]);
+    }
+});
+
 Route::get('/stafadmin/update_inventaris/{id}', function ($id) {
     return view('stafadmin.update_inventaris', ['id' => $id]);
 });
