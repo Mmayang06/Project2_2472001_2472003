@@ -41,6 +41,28 @@ router.get('/', async (req, res) => {
     }
 });
 
+// GET /api/staf_lab/maintenance/perlu-diganti — daftar aset yang perlu diganti (kondisi = rusak_berat)
+router.get('/perlu-diganti', async (req, res) => {
+    try {
+        const query = `
+            SELECT bi.id_inventaris, bi.nomor_label, bi.kondisi,
+                   dp.nama_barang, dp.jenis_barang,
+                   r.nama_ruangan, r.lokasi,
+                   (SELECT MAX(tanggal) FROM pemeliharaan WHERE id_inventaris = bi.id_inventaris AND kondisi_setelah = 'rusak_berat') as tanggal_dilaporkan
+            FROM barang_inventaris bi
+            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
+            WHERE bi.kondisi = 'rusak_berat'
+            ORDER BY tanggal_dilaporkan DESC, bi.id_inventaris DESC
+        `;
+        const [rows] = await db.query(query);
+        res.json({ success: true, data: rows });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 // GET /api/staf_lab/maintenance/inventaris — daftar aset untuk dropdown form
 router.get('/inventaris', async (req, res) => {
     try {

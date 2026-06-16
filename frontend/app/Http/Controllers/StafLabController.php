@@ -189,4 +189,22 @@ class StafLabController extends Controller
             'message' => $response->json('message') ?? 'Terjadi kesalahan saat mengganti inventaris',
         ], $response->status() >= 400 ? $response->status() : 500);
     }
+
+    public function perluDiganti(Request $request)
+    {
+        $response = Http::get("{$this->apiUrl}/staf_lab/maintenance/perlu-diganti");
+        $inventResponse = Http::get("{$this->apiUrl}/staf_lab/maintenance/inventaris");
+
+        $perluDigantiData = [];
+        $inventarisData = [];
+
+        if ($response->successful() && $response->json('success')) {
+            $perluDigantiData = $response->json('data');
+        }
+        if ($inventResponse->successful() && $inventResponse->json('success')) {
+            $inventarisData = $inventResponse->json('data');
+        }
+
+        return view('staf-lab.perlu_diganti', compact('perluDigantiData', 'inventarisData'));
+    }
 }

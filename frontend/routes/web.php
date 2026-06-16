@@ -37,6 +37,10 @@ Route::middleware(['checkRole:staflab'])->group(function () {
     
     // Ganti barang inventaris rusak dengan unit dari storage
     Route::post('/staf-lab/maintenance/ganti', [StafLabController::class, 'replaceInventory']);
+
+    // Barang perlu diganti
+    Route::get('/staf-lab/perlu-diganti', [StafLabController::class, 'perluDiganti']);
+    Route::get('/staf_lab/perlu-diganti', [StafLabController::class, 'perluDiganti']);
 });
 
 
