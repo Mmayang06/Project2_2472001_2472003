@@ -46,7 +46,8 @@ router.get('/perlu-diganti', async (req, res) => {
     try {
         const query = `
             SELECT bi.id_inventaris, bi.nomor_label, bi.kondisi,
-                   dp.nama_barang, dp.jenis_barang,
+                   COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang,
+                   COALESCE(bi.jenis_barang, dp.jenis_barang) AS jenis_barang,
                    r.nama_ruangan, r.lokasi,
                    (SELECT MAX(tanggal) FROM pemeliharaan WHERE id_inventaris = bi.id_inventaris AND kondisi_setelah = 'rusak_berat') as tanggal_dilaporkan,
                    (SELECT COUNT(*) FROM notifikasi WHERE pesan LIKE CONCAT('%', bi.nomor_label, '%') AND role_target = 'kalab') as sudah_diajukan
@@ -69,7 +70,8 @@ router.get('/inventaris', async (req, res) => {
     try {
         const [rows] = await db.query(`
             SELECT bi.id_inventaris, bi.nomor_label, bi.kondisi,
-                   dp.nama_barang, dp.jenis_barang,
+                   COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang,
+                   COALESCE(bi.jenis_barang, dp.jenis_barang) AS jenis_barang,
                    r.nama_ruangan
             FROM barang_inventaris bi
             LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail

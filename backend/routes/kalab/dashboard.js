@@ -55,7 +55,7 @@ router.get('/', authMiddleware, async (req, res) => {
 
         // 6. Rincian Inventaris Rusak
         const [rincianRusak] = await db.query(`
-            SELECT COALESCE(dp.nama_barang, 'Tidak Diketahui') as kategori, COUNT(bi.id_inventaris) as jumlah
+            SELECT COALESCE(bi.nama_barang, dp.nama_barang, 'Tidak Diketahui') as kategori, COUNT(bi.id_inventaris) as jumlah
             FROM barang_inventaris bi
             LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             WHERE bi.kondisi != 'baik'
@@ -102,9 +102,9 @@ router.post('/minta_maintenance', authMiddleware, async (req, res) => {
         const [roomsRows] = await db.query(`
             SELECT DISTINCT r.nama_ruangan 
             FROM barang_inventaris bi
-            JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
-            WHERE dp.nama_barang = ? AND bi.kondisi != 'baik'
+            WHERE COALESCE(bi.nama_barang, dp.nama_barang) = ? AND bi.kondisi != 'baik'
         `, [kategori]);
 
         const roomNames = roomsRows.map(r => r.nama_ruangan).join(', ');

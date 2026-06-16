@@ -169,6 +169,19 @@
                         </thead>
                         <tbody class="divide-y divide-gray-100 text-sm" id="broken-table-body">
                             @forelse($perluDigantiData as $item)
+                            @php
+                                $hasReplacement = false;
+                                foreach ($inventarisData ?? [] as $inv) {
+                                    if (
+                                        isset($inv['kondisi']) && strtolower(trim($inv['kondisi'])) === 'baik' &&
+                                        isset($inv['nama_ruangan']) && strtolower(trim($inv['nama_ruangan'])) === 'storage' &&
+                                        isset($inv['nama_barang']) && strtolower(trim($inv['nama_barang'])) === strtolower(trim($item['nama_barang']))
+                                    ) {
+                                        $hasReplacement = true;
+                                        break;
+                                    }
+                                }
+                            @endphp
                             <tr class="hover:bg-gray-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-[#20394a] font-mono">{{ $item['nomor_label'] }}</td>
                                 <td class="px-6 py-4">
@@ -185,7 +198,7 @@
                                     {{ $item['tanggal_dilaporkan'] ? \Carbon\Carbon::parse($item['tanggal_dilaporkan'])->translatedFormat('d F Y') : 'Baru saja' }}
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    @if(isset($item['sudah_diajukan']) && $item['sudah_diajukan'] > 0)
+                                    @if(!$hasReplacement && isset($item['sudah_diajukan']) && $item['sudah_diajukan'] > 0)
                                     <button disabled class="px-3 py-2 bg-gray-400 text-white rounded-xl text-xs font-bold shadow-sm inline-flex items-center gap-1.5 cursor-not-allowed">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />

@@ -101,9 +101,9 @@ router.post('/terima', async (req, res) => {
             SELECT r.id_ruangan, COUNT(bi.id_inventaris) as broken_count
             FROM ruangan r 
             JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan 
-            JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             WHERE bi.kondisi != 'baik' AND r.id_ruangan != ?
-              AND dp.nama_barang = (SELECT nama_barang FROM detail_pengadaan WHERE id_detail = ?)
+              AND COALESCE(bi.nama_barang, dp.nama_barang) = (SELECT nama_barang FROM detail_pengadaan WHERE id_detail = ?)
             GROUP BY r.id_ruangan
         `, [storage_id, id_detail]);
 
@@ -125,20 +125,7 @@ router.post('/terima', async (req, res) => {
             }
         }
 
-        for (const lab of brokenLabs) {
-            if (qtyRemaining <= 0) break;
-            if (lab.broken_count > 0) {
-                const allocateToLab = Math.min(qtyRemaining, lab.broken_count);
-                for (let i = 0; i < allocateToLab; i++) {
-                    await connection.query(
-                        'INSERT INTO barang_inventaris (nomor_label, qr_code, kondisi, id_ruangan, id_penggunaan, tanggal_penerimaan, nama_barang, jenis_barang) VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
-                        [null, qr_univ, 'baik', lab.id_ruangan, id_detail, tanggal_penerimaan, nama_barang, jenis_barang]
-                    );
-                }
-                qtyRemaining -= allocateToLab;
-            }
-        }
-
+        // Leftover units go straight to storage instead of distributing to other broken labs
         if (qtyRemaining > 0) {
             for (let i = 0; i < qtyRemaining; i++) {
                 await connection.query(
@@ -189,9 +176,9 @@ router.get('/ruangan-rekomendasi/:id_detail', async (req, res) => {
             SELECT r.id_ruangan, r.nama_ruangan, COUNT(bi.id_inventaris) as broken_count
             FROM ruangan r 
             JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan 
-            JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             WHERE bi.kondisi != 'baik' AND r.nama_ruangan != 'Storage'
-              AND dp.nama_barang = (SELECT nama_barang FROM detail_pengadaan WHERE id_detail = ?)
+              AND COALESCE(bi.nama_barang, dp.nama_barang) = (SELECT nama_barang FROM detail_pengadaan WHERE id_detail = ?)
             GROUP BY r.id_ruangan, r.nama_ruangan
         `, [id_detail]);
 

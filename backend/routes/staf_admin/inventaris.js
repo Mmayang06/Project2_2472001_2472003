@@ -7,9 +7,12 @@ router.get('/', async (req, res) => {
         const query = `
             SELECT 
                 r.id_ruangan, r.nama_ruangan, r.lokasi, 
-                bi.id_inventaris, bi.nomor_label, bi.kondisi, bi.nama_barang, bi.jenis_barang
+                bi.id_inventaris, bi.nomor_label, bi.kondisi, 
+                COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang, 
+                COALESCE(bi.jenis_barang, dp.jenis_barang) AS jenis_barang
             FROM ruangan r
             LEFT JOIN barang_inventaris bi ON r.id_ruangan = bi.id_ruangan AND bi.nomor_label IS NOT NULL
+            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             ORDER BY r.id_ruangan ASC, bi.nomor_label ASC
         `;
         
@@ -72,11 +75,12 @@ router.get('/belum-dilabeli', async (req, res) => {
             SELECT 
                 bi.id_inventaris,
                 bi.tanggal_penerimaan,
-                bi.nama_barang,
-                bi.jenis_barang,
+                COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang,
+                COALESCE(bi.jenis_barang, dp.jenis_barang) AS jenis_barang,
                 r.nama_ruangan,
                 r.lokasi
             FROM barang_inventaris bi
+            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
             WHERE bi.nomor_label IS NULL
             ORDER BY bi.id_inventaris DESC
@@ -181,10 +185,12 @@ router.get('/:id', async (req, res) => {
         const query = `
             SELECT 
                 bi.id_inventaris, bi.nomor_label, bi.qr_code, bi.kondisi,
-                bi.nama_barang, bi.jenis_barang,
+                COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang,
+                COALESCE(bi.jenis_barang, dp.jenis_barang) AS jenis_barang,
                 r.nama_ruangan as lokasi_ruangan,
                 r.lokasi as lokasi_detail
             FROM barang_inventaris bi
+            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
             WHERE bi.id_inventaris = ?
         `;

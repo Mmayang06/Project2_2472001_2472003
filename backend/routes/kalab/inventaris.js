@@ -21,7 +21,8 @@ const authMiddleware = (req, res, next) => {
 router.get('/rusak', authMiddleware, async (req, res) => {
     try {
         const [items] = await db.query(`
-            SELECT bi.id_inventaris, bi.nomor_label, bi.kondisi, r.nama_ruangan, dp.nama_barang
+            SELECT bi.id_inventaris, bi.nomor_label, bi.kondisi, r.nama_ruangan, 
+                   COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang
             FROM barang_inventaris bi
             LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
             LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
