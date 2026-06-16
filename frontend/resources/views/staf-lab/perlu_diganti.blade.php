@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Barang Perlu Diganti - Labventory</title>
+    <title>Inventori yang Perlu Diganti - Labventory</title>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -88,18 +88,12 @@
                 </svg>
                 Riwayat Penggunaan BHP
             </a>
-            <a href="{{ url('/staf-lab/maintenance') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 text-[#c9ccc3] hover:bg-[#6196aa]/10 hover:text-white cursor-pointer">
+            <a href="{{ url('/staf-lab/maintenance') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 bg-[#6196aa] text-white shadow-lg cursor-pointer">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31-2.37-2.37.996.608 2.296.07 2.572-1.065z" />
                     <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                 </svg>
                 Log Maintenance
-            </a>
-            <a href="{{ url('/staf-lab/perlu-diganti') }}" class="w-full flex items-center gap-3 px-4 py-3.5 rounded-xl font-medium text-sm transition-all duration-200 bg-[#6196aa] text-white shadow-lg cursor-pointer">
-                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                </svg>
-                Barang Perlu Diganti
             </a>
         </nav>
 
@@ -121,13 +115,13 @@
         <!-- Top Navbar -->
         <header class="bg-white/80 backdrop-blur-md border-b border-[#c9ccc3]/40 h-20 px-6 md:px-8 flex items-center justify-between sticky top-0 z-30">
             <div>
-                <h2 class="text-xl font-bold text-[#20394a]">Daftar Barang Perlu Diganti</h2>
+                <h2 class="text-xl font-bold text-[#20394a]">Daftar Inventori yang Perlu Diganti</h2>
                 <div class="text-xs text-gray-500 flex items-center gap-2 mt-0.5">
                     <a href="/staf-lab/home" class="hover:text-[#6196aa]">Dashboard</a>
                     <span>/</span>
                     <a href="/staf-lab/maintenance" class="hover:text-[#6196aa]">Log Maintenance</a>
                     <span>/</span>
-                    <span class="font-medium text-[#20394a]">Barang Perlu Diganti</span>
+                    <span class="font-medium text-[#20394a]">Inventori yang Perlu Diganti</span>
                 </div>
             </div>
             <div class="flex items-center gap-4">
@@ -144,11 +138,11 @@
 
             <div class="bg-[#20394a] text-white rounded-2xl p-6 shadow-sm border border-[#6196aa]/20 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                 <div>
-                    <h3 class="font-bold text-lg">Kelola Penggantian Unit Inventaris</h3>
-                    <p class="text-xs text-[#c9ccc3] mt-1">Daftar unit barang yang dilaporkan rusak berat dan membutuhkan penggantian dari ruangan Storage.</p>
+                    <h3 class="font-bold text-lg">Kelola Penggantian Inventori</h3>
+                    <p class="text-xs text-[#c9ccc3] mt-1">Daftar unit inventori yang dilaporkan rusak berat dan membutuhkan penggantian dari ruangan Storage.</p>
                 </div>
                 <div class="bg-white/10 px-4 py-2 rounded-xl text-center border border-white/10 shrink-0">
-                    <span class="text-xs text-[#c9ccc3] uppercase tracking-wider block">Barang Bermasalah</span>
+                    <span class="text-xs text-[#c9ccc3] uppercase tracking-wider block">Inventori Bermasalah</span>
                     <span class="text-2xl font-bold" id="total-count">{{ count($perluDigantiData) }}</span>
                 </div>
             </div>
@@ -201,7 +195,7 @@
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" />
                                         </svg>
                                     </div>
-                                    Tidak ada barang inventaris yang perlu diganti saat ini.
+                                    Tidak ada inventori yang perlu diganti saat ini.
                                 </td>
                             </tr>
                             @endforelse
@@ -259,6 +253,37 @@
         </div>
     </div>
 
+    <!-- ======================================================
+         MODAL: Barang Tidak Ada di Storage (Popup Pengadaan)
+    ====================================================== -->
+    <div id="modal-not-found" class="fixed inset-0 z-50 bg-[#030706]/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl border border-[#c9ccc3]/40 shadow-2xl relative transform scale-95 transition-transform duration-300">
+            <div class="p-6 text-center">
+                <div class="w-16 h-16 bg-amber-50 text-amber-500 rounded-full flex items-center justify-center mx-auto mb-4 border border-amber-100 shadow-inner">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </div>
+                <h3 class="text-lg font-bold text-[#20394a] mb-2">Barang yang baru tidak ada di storage</h3>
+                <p class="text-xs text-gray-500 mb-6 leading-relaxed">
+                    Unit pengganti untuk <strong><span id="nf-barang-name">–</span></strong> tidak tersedia di Storage. Anda dapat mengajukan usulan pengadaan barang baru kepada Kepala Laboratorium (Kalab).
+                </p>
+                
+                <div class="flex gap-3">
+                    <button type="button" onclick="closeNotFoundModal()" class="flex-1 py-3 bg-[#c9ccc3]/30 hover:bg-[#c9ccc3]/50 text-gray-700 rounded-xl text-sm font-semibold transition-all duration-200">
+                        Batal
+                    </button>
+                    <button type="button" id="btn-ajukan-kalab" class="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+                        </svg>
+                        Ajukan ke Kalab
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- SCRIPTS -->
     <script>
         // ======================================================
@@ -286,14 +311,6 @@
 
         // Modal Replacement Logic
         function openReplaceModal(idInventaris, nomorLabel, namaBarang, namaRuangan) {
-            document.getElementById('r-rusak-id').value = idInventaris;
-            document.getElementById('r-rusak-name-display').textContent = namaBarang;
-            document.getElementById('r-rusak-label-display').textContent = nomorLabel;
-            document.getElementById('r-rusak-room-display').textContent = namaRuangan;
-
-            const selectPengganti = document.getElementById('r-pengganti');
-            selectPengganti.innerHTML = '<option value="">-- Pilih Unit Pengganti --</option>';
-
             // Filter pengganti dari Storage yang dalam kondisi baik dan nama_barang-nya cocok
             const replacementUnits = rawInventarisData.filter(item => 
                 item.kondisi === 'baik' && 
@@ -304,19 +321,32 @@
             );
 
             if (replacementUnits.length === 0) {
-                const opt = document.createElement('option');
-                opt.value = "";
-                opt.disabled = true;
-                opt.textContent = "Tidak ada unit pengganti yang cocok & tersedia di Storage";
-                selectPengganti.appendChild(opt);
-            } else {
-                replacementUnits.forEach(item => {
-                    const opt = document.createElement('option');
-                    opt.value = item.id_inventaris;
-                    opt.textContent = `${item.nomor_label} (Kondisi: Baik di Storage)`;
-                    selectPengganti.appendChild(opt);
-                });
+                document.getElementById('nf-barang-name').textContent = namaBarang;
+                
+                const btnAjukan = document.getElementById('btn-ajukan-kalab');
+                btnAjukan.onclick = () => submitPengajuanKalab(namaBarang);
+                
+                const modalNf = document.getElementById('modal-not-found');
+                modalNf.classList.remove('hidden');
+                modalNf.classList.add('flex');
+                setTimeout(() => modalNf.querySelector('div').classList.replace('scale-95', 'scale-100'), 10);
+                return;
             }
+
+            document.getElementById('r-rusak-id').value = idInventaris;
+            document.getElementById('r-rusak-name-display').textContent = namaBarang;
+            document.getElementById('r-rusak-label-display').textContent = nomorLabel;
+            document.getElementById('r-rusak-room-display').textContent = namaRuangan;
+
+            const selectPengganti = document.getElementById('r-pengganti');
+            selectPengganti.innerHTML = '<option value="">-- Pilih Unit Pengganti --</option>';
+
+            replacementUnits.forEach(item => {
+                const opt = document.createElement('option');
+                opt.value = item.id_inventaris;
+                opt.textContent = `${item.nomor_label} (Kondisi: Baik di Storage)`;
+                selectPengganti.appendChild(opt);
+            });
 
             const modal = document.getElementById('modal-replacement');
             modal.classList.remove('hidden');
@@ -328,6 +358,46 @@
             const modal = document.getElementById('modal-replacement');
             modal.querySelector('div').classList.replace('scale-100', 'scale-95');
             setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 150);
+        }
+
+        function closeNotFoundModal() {
+            const modal = document.getElementById('modal-not-found');
+            modal.querySelector('div').classList.replace('scale-100', 'scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 150);
+        }
+
+        async function submitPengajuanKalab(namaBarang) {
+            const btn = document.getElementById('btn-ajukan-kalab');
+            btn.disabled = true;
+            btn.textContent = 'Mengajukan...';
+            
+            try {
+                const resp = await fetch('/staf-lab/maintenance/ajukan-pengganti', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        nama_barang: namaBarang,
+                        jumlah: 1
+                    })
+                });
+                const result = await resp.json();
+                
+                if (result.success) {
+                    showToast('Pengajuan draf pengadaan berhasil dikirim ke Kalab!');
+                    closeNotFoundModal();
+                } else {
+                    showToast(result.message || 'Gagal mengajukan ke Kalab.', true);
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Terjadi kesalahan koneksi.', true);
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> Ajukan ke Kalab`;
+            }
         }
 
         async function handleReplacementSubmit(e) {
@@ -396,6 +466,12 @@
         document.getElementById('modal-replacement').addEventListener('click', function(e) {
             if (e.target === this) {
                 closeReplaceModal();
+            }
+        });
+
+        document.getElementById('modal-not-found').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeNotFoundModal();
             }
         });
     </script>

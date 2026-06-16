@@ -207,4 +207,29 @@ class StafLabController extends Controller
 
         return view('staf-lab.perlu_diganti', compact('perluDigantiData', 'inventarisData'));
     }
+
+    public function ajukanPengganti(Request $request)
+    {
+        $request->validate([
+            'nama_barang' => 'required|string',
+            'jumlah'      => 'required|integer|min:1',
+        ]);
+
+        $response = Http::post("{$this->apiUrl}/staf_lab/maintenance/ajukan_pengganti", [
+            'nama_barang' => $request->nama_barang,
+            'jumlah'      => $request->jumlah,
+        ]);
+
+        if ($response->successful() && $response->json('success')) {
+            return response()->json([
+                'success' => true,
+                'message' => $response->json('message'),
+            ]);
+        }
+
+        return response()->json([
+            'success' => false,
+            'message' => $response->json('message') ?? 'Terjadi kesalahan saat mengajukan ke Kalab',
+        ], $response->status() >= 400 ? $response->status() : 500);
+    }
 }

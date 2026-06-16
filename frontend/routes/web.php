@@ -41,6 +41,7 @@ Route::middleware(['checkRole:staflab'])->group(function () {
     // Barang perlu diganti
     Route::get('/staf-lab/perlu-diganti', [StafLabController::class, 'perluDiganti']);
     Route::get('/staf_lab/perlu-diganti', [StafLabController::class, 'perluDiganti']);
+    Route::post('/staf-lab/maintenance/ajukan-pengganti', [StafLabController::class, 'ajukanPengganti']);
 });
 
 
