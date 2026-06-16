@@ -141,7 +141,7 @@ router.post('/', async (req, res) => {
 
         if (kondisi_setelah === 'rusak' || kondisi_setelah === 'Rusak' || kondisi_setelah === 'rusak_berat' || kondisi_setelah === 'Perlu Diganti') {
             const [inv] = await conn.query(`
-                SELECT bi.nomor_label, dp.nama_barang 
+                SELECT bi.nomor_label, COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang 
                 FROM barang_inventaris bi 
                 LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail 
                 WHERE bi.id_inventaris = ?
@@ -220,7 +220,7 @@ router.post('/ganti_inventaris', async (req, res) => {
 
         // 1. Get info of damaged item
         const [rusakRows] = await conn.query(`
-            SELECT bi.nomor_label, bi.kondisi, dp.nama_barang, bi.id_ruangan
+            SELECT bi.nomor_label, bi.kondisi, COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang, bi.id_ruangan
             FROM barang_inventaris bi
             LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             WHERE bi.id_inventaris = ?

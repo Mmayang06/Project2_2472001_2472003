@@ -1233,22 +1233,7 @@
                 });
             }
 
-            // Tambahkan event listener untuk merubah tombol submit berdasarkan kondisi sesudah
-            const selectSesudah = document.getElementById('f-kondisi-sesudah');
-            if (selectSesudah) {
-                selectSesudah.addEventListener('change', function() {
-                    const submitBtn = document.querySelector('#maintenance-form [type=submit]');
-                    if (this.value === 'Perlu Diganti') {
-                        submitBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" /></svg> Ajukan Penggantian`;
-                        submitBtn.classList.remove('bg-[#20394a]', 'hover:bg-[#6196aa]');
-                        submitBtn.classList.add('bg-rose-600', 'hover:bg-rose-700');
-                    } else {
-                        submitBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7" /></svg> Simpan Log`;
-                        submitBtn.classList.remove('bg-rose-600', 'hover:bg-rose-700');
-                        submitBtn.classList.add('bg-[#20394a]', 'hover:bg-[#6196aa]');
-                    }
-                });
-            }
+            // Tombol submit tetap menggunakan teks default "Simpan Log" untuk semua kondisi
 
             const urlParams = new URLSearchParams(window.location.search);
             const ajukan = urlParams.get('ajukan');
