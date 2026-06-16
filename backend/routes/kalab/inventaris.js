@@ -36,4 +36,24 @@ router.get('/rusak', authMiddleware, async (req, res) => {
     }
 });
 
+// GET /api/kalab/inventaris/semua_barang_dropdown
+router.get('/semua_barang_dropdown', authMiddleware, async (req, res) => {
+    try {
+        const [inv] = await db.query(`
+            SELECT DISTINCT COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang
+            FROM barang_inventaris bi
+            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            WHERE COALESCE(bi.nama_barang, dp.nama_barang) IS NOT NULL
+            ORDER BY nama_barang ASC
+        `);
+        const [bhp] = await db.query(`
+            SELECT nama_bhp FROM bhp ORDER BY nama_bhp ASC
+        `);
+        return res.json({ success: true, data: { inventaris: inv, bhp: bhp } });
+    } catch (error) {
+        console.error(error);
+        return res.status(500).json({ success: false, message: 'Server error' });
+    }
+});
+
 module.exports = router;

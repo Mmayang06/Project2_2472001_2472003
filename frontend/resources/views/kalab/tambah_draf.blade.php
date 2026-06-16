@@ -36,7 +36,7 @@
         <div class="mx-auto font-bold text-lg">Buat Draf Pengadaan Baru</div>
     </header>
 
-    <main class="max-w-4xl mx-auto p-6 md:p-8 mt-4">
+    <main class="max-w-4xl mx-auto p-6 md:p-8 mt-4 mb-32">
         
         <form action="/kalab/simpan-draf" method="POST" class="bg-white rounded-2xl shadow-sm border border-[#c9ccc3]/30 overflow-hidden" id="draftForm">
             @csrf
@@ -75,17 +75,41 @@
     <script>
         let itemIndex = 0;
 
+        const inventarisRusak = @json($inventaris_rusak ?? []);
         const permintaanBhp = @json($permintaan_bhp ?? []);
+        const semuaBarang = @json($semua_barang ?? ['inventaris' => [], 'bhp' => []]);
         
         function getPermintaanOptionsHTML() {
-            let options = '';
+            let options = '<optgroup label="Barang Rusak (Dari Sistem)">';
+            inventarisRusak.forEach(p => {
+                options += `<option value="${p.nama_barang}" data-jumlah="1" data-tipe="Inventaris" data-id-inventaris="${p.id_inventaris}">Inventaris: ${p.nama_barang} (Label: ${p.nomor_label})</option>`;
+            });
+            options += '</optgroup>';
+
+            options += '<optgroup label="Permintaan Tambahan Staf Lab (BHP)">';
             permintaanBhp.forEach(p => {
-                if (p.tipe === 'Inventaris') {
-                    options += `<option value="${p.nama_barang}" data-jumlah="${p.jumlah}" data-tipe="Inventaris" data-id-inventaris="${p.id_inventaris || ''}">Inventaris: ${p.nama_barang} ${p.no_label ? '(Label: ' + p.no_label + ')' : ''}</option>`;
-                } else {
-                    options += `<option value="${p.nama_barang}" data-jumlah="${p.jumlah}" data-tipe="BHP">BHP: ${p.nama_barang} (Stok Sekarang: ${p.stok_sekarang})</option>`;
+                if (p.tipe === 'BHP') {
+                    options += `<option value="${p.nama_barang}" data-jumlah="${p.jumlah}" data-tipe="BHP">BHP: ${p.nama_barang} (Stok: ${p.stok_sekarang})</option>`;
                 }
             });
+            options += '</optgroup>';
+
+            options += '<optgroup label="Pilihan Barang Lainnya (Inventaris)">';
+            if (semuaBarang.inventaris) {
+                semuaBarang.inventaris.forEach(b => {
+                    options += `<option value="${b.nama_barang}" data-jumlah="1" data-tipe="Inventaris">Inventaris: ${b.nama_barang}</option>`;
+                });
+            }
+            options += '</optgroup>';
+
+            options += '<optgroup label="Pilihan Barang Lainnya (BHP)">';
+            if (semuaBarang.bhp) {
+                semuaBarang.bhp.forEach(b => {
+                    options += `<option value="${b.nama_bhp}" data-jumlah="1" data-tipe="BHP">BHP: ${b.nama_bhp}</option>`;
+                });
+            }
+            options += '</optgroup>';
+            
             return options;
         }
 
@@ -146,7 +170,7 @@
                         <div>
                             <label class="block text-xs font-medium text-gray-500 mb-1">Nama Barang *</label>
                             <select onchange="handleBarangChange(this, ${itemIndex})" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2 border">
-                                <option value="">-- Pilih dari Pengajuan Staf Lab --</option>
+                                <option value="">-- Pilih Barang --</option>
                                 ${getPermintaanOptionsHTML()}
                                 <option value="manual">++ Isi Manual / Barang Lain ++</option>
                             </select>

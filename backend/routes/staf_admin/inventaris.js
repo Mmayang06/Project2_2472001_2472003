@@ -15,9 +15,9 @@ router.get('/', async (req, res) => {
             LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             ORDER BY r.id_ruangan ASC, bi.nomor_label ASC
         `;
-        
+
         const [rows] = await db.query(query);
-        
+
         // Group rows by room
         const rooms = {};
         for (let row of rows) {
@@ -55,13 +55,13 @@ router.get('/', async (req, res) => {
                 r.total_alat++;
             }
         }
-        
+
         // Convert barang_map to barang array
         for (let roomId in rooms) {
             rooms[roomId].barang = Object.values(rooms[roomId].barang_map);
             delete rooms[roomId].barang_map;
         }
-        
+
         return res.json({ success: true, data: Object.values(rooms) });
     } catch (error) {
         console.error(error);
@@ -97,14 +97,14 @@ router.post('/verify-qr/:id', async (req, res) => {
     try {
         const { id } = req.params;
         const { qr_univ } = req.body;
-        
+
         const [inv] = await db.query('SELECT qr_code FROM barang_inventaris WHERE id_inventaris = ?', [id]);
         if (inv.length === 0) return res.status(404).json({ success: false, message: 'Barang tidak ditemukan' });
-        
+
         if (inv[0].qr_code !== qr_univ) {
             return res.json({ success: false, message: 'QR Universitas tidak valid! Pastikan anda memasukkan QR yang benar.' });
         }
-        
+
         return res.json({ success: true, message: 'QR Valid' });
     } catch (error) {
         console.error(error);
@@ -116,16 +116,16 @@ router.put('/update-label/:id', async (req, res) => {
     try {
         const { id } = req.params;
         let { nomor_label, qr_univ } = req.body;
-        
+
         // Bersihkan label: kapitalisasi dan hapus SEMUA spasi
         nomor_label = (nomor_label || '').replace(/\s+/g, '').toUpperCase();
         if (!nomor_label) {
             return res.json({ success: false, message: 'Nomor label tidak boleh kosong' });
         }
-        
+
         const [inv] = await db.query('SELECT qr_code FROM barang_inventaris WHERE id_inventaris = ?', [id]);
         if (inv.length === 0) return res.status(404).json({ success: false, message: 'Barang tidak ditemukan' });
-        
+
         if (inv[0].qr_code !== qr_univ) {
             return res.json({ success: false, message: 'QR Universitas tidak valid! Pastikan anda memasukkan QR yang benar.' });
         }
@@ -139,13 +139,13 @@ router.put('/update-label/:id', async (req, res) => {
             // Generate suggestion
             let suggestedLabel = '';
             const match = nomor_label.match(/^(.*?)(\d+)$/);
-            
+
             if (match) {
                 const prefix = match[1];
                 let numStr = match[2];
                 let numLen = numStr.length;
                 let num = parseInt(numStr, 10);
-                
+
                 while (true) {
                     num++;
                     suggestedLabel = prefix + num.toString().padStart(numLen, '0');
@@ -162,11 +162,11 @@ router.put('/update-label/:id', async (req, res) => {
                 }
             }
 
-            return res.json({ 
-                success: false, 
-                isDuplicate: true, 
+            return res.json({
+                success: false,
+                isDuplicate: true,
                 suggestion: suggestedLabel,
-                message: 'Nomor label sudah digunakan' 
+                message: 'Nomor label sudah digunakan'
             });
         }
 
@@ -181,7 +181,7 @@ router.put('/update-label/:id', async (req, res) => {
 router.get('/:id', async (req, res) => {
     try {
         const { id } = req.params;
-        
+
         const query = `
             SELECT 
                 bi.id_inventaris, bi.nomor_label, bi.qr_code, bi.kondisi,
@@ -194,13 +194,13 @@ router.get('/:id', async (req, res) => {
             LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
             WHERE bi.id_inventaris = ?
         `;
-        
+
         const [rows] = await db.query(query, [id]);
-        
+
         if (rows.length === 0) {
             return res.status(404).json({ success: false, message: 'Barang tidak ditemukan.' });
         }
-        
+
         return res.json({ success: true, data: rows[0] });
     } catch (error) {
         console.error(error);
