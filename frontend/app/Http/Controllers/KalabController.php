@@ -73,7 +73,7 @@ class KalabController extends Controller
         $payload = [
             'tahun_pengadaan' => $request->tahun_pengadaan,
             'action' => $request->action, // 'simpan_draft' atau 'ajukan'
-            'items' => $request->items, // array of items dari frontend
+            'items' => is_array($request->items) ? array_values($request->items) : [],
         ];
 
         $response = Http::withHeaders([

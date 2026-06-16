@@ -48,7 +48,8 @@ router.get('/perlu-diganti', async (req, res) => {
             SELECT bi.id_inventaris, bi.nomor_label, bi.kondisi,
                    dp.nama_barang, dp.jenis_barang,
                    r.nama_ruangan, r.lokasi,
-                   (SELECT MAX(tanggal) FROM pemeliharaan WHERE id_inventaris = bi.id_inventaris AND kondisi_setelah = 'rusak_berat') as tanggal_dilaporkan
+                   (SELECT MAX(tanggal) FROM pemeliharaan WHERE id_inventaris = bi.id_inventaris AND kondisi_setelah = 'rusak_berat') as tanggal_dilaporkan,
+                   (SELECT COUNT(*) FROM notifikasi WHERE pesan LIKE CONCAT('%', bi.nomor_label, '%') AND role_target = 'kalab') as sudah_diajukan
             FROM barang_inventaris bi
             LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
@@ -152,11 +153,19 @@ router.post('/', async (req, res) => {
                     `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
                     ['kalab', pesan, 'warning', '/kalab/tambah-draf']
                 );
+                await conn.query(
+                    `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
+                    ['staf_lab', pesan, 'warning', '/staf-lab/perlu-diganti']
+                );
             } else {
                 const pesan = `Peringatan: Barang dengan label ${no_label} dilaporkan dalam kondisi ${kondisi_setelah.replace('_', ' ').toUpperCase()}.`;
                 await conn.query(
                     `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
                     ['kalab', pesan, 'warning', '/kalab/inventaris']
+                );
+                await conn.query(
+                    `INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)`,
+                    ['staf_lab', pesan, 'warning', '/staf-lab/maintenance']
                 );
             }
         }

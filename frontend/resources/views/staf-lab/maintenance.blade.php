@@ -175,7 +175,6 @@
                     <span class="text-[10px] text-gray-400" id="current-time">–</span>
                 </div>
                 
-                @include('components.notification_bell')
                 <a href="{{ url('/staf-lab/perlu-diganti') }}" class="flex items-center gap-2 px-4 py-2.5 bg-amber-500 hover:bg-amber-600 text-white text-sm font-semibold rounded-xl shadow-md transition-all duration-200">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
@@ -188,6 +187,7 @@
                     </svg>
                     Catat Maintenance
                 </button>
+                @include('components.notification_bell')
             </div>
         </header>
 
@@ -196,32 +196,7 @@
 
             
             <!-- Alert Barang Rusak -->
-            <div id="alert-barang-rusak" class="hidden bg-rose-50 border border-rose-200 rounded-2xl p-5 flex-col gap-4 shadow-sm">
-                <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 w-full">
-                    <div class="flex items-center gap-4">
-                        <div class="p-3 bg-rose-100 text-rose-600 rounded-xl">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-                            </svg>
-                        </div>
-                        <div>
-                            <h4 class="text-sm font-bold text-rose-800">Peringatan: Terdapat Inventaris Rusak</h4>
-                            <p class="text-xs text-rose-600 mt-1" id="alert-rusak-text">Ada beberapa barang yang membutuhkan perbaikan segera.</p>
-                        </div>
-                    </div>
-                    <button onclick="openFormModal()" class="flex items-center gap-2 px-4 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold rounded-xl shadow-sm transition-all duration-200">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
-                            <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                        </svg>
-                        Catat Maintenance
-                    </button>
-                </div>
-                <!-- Rincian Lokasi Barang Rusak -->
-                <div id="damaged-items-details" class="w-full border-t border-rose-200/60 pt-3 text-xs text-rose-700">
-                    <!-- Akan dimuat oleh JS -->
-                </div>
-            </div>
+            <!-- Alert Barang Rusak ditiadakan (dialihkan ke notifikasi) -->
 
             <!-- Summary Cards -->
             <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
@@ -810,43 +785,7 @@
 
         
         function checkBrokenItems() {
-            const brokenItems = rawInventarisData.filter(item => 
-                item.kondisi === 'rusak_ringan' || 
-                item.kondisi === 'rusak_berat' || 
-                item.kondisi === 'perlu_perhatian'
-            );
-            const brokenCount = brokenItems.length;
-            const alertBox = document.getElementById('alert-barang-rusak');
-            const detailsContainer = document.getElementById('damaged-items-details');
-
-            if (brokenCount > 0) {
-                document.getElementById('alert-rusak-text').textContent = `Terdapat ${brokenCount} barang inventaris yang membutuhkan perbaikan segera.`;
-                
-                detailsContainer.innerHTML = `
-                    <div class="mt-2 font-bold text-rose-800">Daftar Aset Bermasalah & Lokasinya:</div>
-                    <ul class="mt-2 space-y-2 font-medium text-rose-700">
-                        ${brokenItems.map(item => {
-                            const name = item.nama_barang || 'Aset';
-                            const label = item.nomor_label || 'Tanpa Label';
-                            const room = item.nama_ruangan || 'Tanpa Ruangan';
-                            const condStr = kondisiMap[item.kondisi] || item.kondisi;
-                            return `<li class="flex items-center justify-between gap-4 py-1 border-b border-rose-100/50 last:border-0">
-                                <span>&bull; ${name} (${label}) - Kondisi: <strong>${condStr}</strong> di <strong>${room}</strong></span>
-                                <button type="button" onclick="openFormForAsset('${item.id_inventaris}')" class="px-3 py-1 bg-rose-600 hover:bg-rose-700 text-white text-[10px] font-bold rounded-lg shadow-sm transition-all duration-200 shrink-0">
-                                    Catat Maintenance
-                                </button>
-                            </li>`;
-                        }).join('')}
-                    </ul>
-                `;
-
-                alertBox.classList.remove('hidden');
-                alertBox.classList.add('flex');
-            } else {
-                alertBox.classList.add('hidden');
-                alertBox.classList.remove('flex');
-                detailsContainer.innerHTML = '';
-            }
+            // Logika alert box ditiadakan, notifikasi dikirim langsung via backend
         }
 
         function openFormForAsset(id_inventaris) {

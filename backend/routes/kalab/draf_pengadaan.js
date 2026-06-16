@@ -190,8 +190,15 @@ router.post('/', authMiddleware, async (req, res) => {
             draftId = draftResult.insertId;
         }
 
-        if (items && items.length > 0) {
-            for (const item of items) {
+        let itemsArray = [];
+        if (Array.isArray(items)) {
+            itemsArray = items;
+        } else if (items && typeof items === 'object') {
+            itemsArray = Object.values(items);
+        }
+
+        if (itemsArray && itemsArray.length > 0) {
+            for (const item of itemsArray) {
                 const id_inventaris_ganti = item.id_inventaris_ganti || null;
 
                 try {

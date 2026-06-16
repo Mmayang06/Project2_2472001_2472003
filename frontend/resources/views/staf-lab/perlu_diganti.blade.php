@@ -129,6 +129,12 @@
                     <span class="text-xs font-semibold text-[#20394a]" id="current-date">–</span>
                     <span class="text-[10px] text-gray-400" id="current-time">–</span>
                 </div>
+                <a href="{{ url('/staf-lab/maintenance') }}" class="flex items-center gap-2 px-4 py-2.5 bg-[#20394a] hover:bg-[#6196aa] text-white text-sm font-semibold rounded-xl shadow-md transition-all duration-200">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
+                    </svg>
+                    Kembali ke Log Maintenance
+                </a>
                 @include('components.notification_bell')
             </div>
         </header>
@@ -179,12 +185,21 @@
                                     {{ $item['tanggal_dilaporkan'] ? \Carbon\Carbon::parse($item['tanggal_dilaporkan'])->translatedFormat('d F Y') : 'Baru saja' }}
                                 </td>
                                 <td class="px-6 py-4 text-right">
+                                    @if(isset($item['sudah_diajukan']) && $item['sudah_diajukan'] > 0)
+                                    <button disabled class="px-3 py-2 bg-gray-400 text-white rounded-xl text-xs font-bold shadow-sm inline-flex items-center gap-1.5 cursor-not-allowed">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                        </svg>
+                                        Unit sedang diajukan ke kalab
+                                    </button>
+                                    @else
                                     <button onclick="openReplaceModal({{ $item['id_inventaris'] }}, '{{ addslashes($item['nomor_label']) }}', '{{ addslashes($item['nama_barang']) }}', '{{ addslashes($item['nama_ruangan'] ?? 'Tanpa Ruangan') }}')" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all duration-200 inline-flex items-center gap-1.5">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                         </svg>
                                         Ganti Unit
                                     </button>
+                                    @endif
                                 </td>
                             </tr>
                             @empty
@@ -324,7 +339,7 @@
                 document.getElementById('nf-barang-name').textContent = namaBarang;
                 
                 const btnAjukan = document.getElementById('btn-ajukan-kalab');
-                btnAjukan.onclick = () => submitPengajuanKalab(namaBarang);
+                btnAjukan.onclick = () => submitPengajuanKalab(namaBarang, nomorLabel);
                 
                 const modalNf = document.getElementById('modal-not-found');
                 modalNf.classList.remove('hidden');
@@ -366,7 +381,7 @@
             setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 150);
         }
 
-        async function submitPengajuanKalab(namaBarang) {
+        async function submitPengajuanKalab(namaBarang, nomorLabel) {
             const btn = document.getElementById('btn-ajukan-kalab');
             btn.disabled = true;
             btn.textContent = 'Mengajukan...';
@@ -380,7 +395,8 @@
                     },
                     body: JSON.stringify({
                         nama_barang: namaBarang,
-                        jumlah: 1
+                        jumlah: 1,
+                        nomor_label: nomorLabel
                     })
                 });
                 const result = await resp.json();
@@ -388,6 +404,9 @@
                 if (result.success) {
                     showToast('Pengajuan draf pengadaan berhasil dikirim ke Kalab!');
                     closeNotFoundModal();
+                    setTimeout(() => {
+                        window.location.reload();
+                    }, 1200);
                 } else {
                     showToast(result.message || 'Gagal mengajukan ke Kalab.', true);
                 }
