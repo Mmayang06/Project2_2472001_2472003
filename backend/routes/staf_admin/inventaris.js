@@ -75,6 +75,7 @@ router.get('/belum-dilabeli', async (req, res) => {
             SELECT 
                 bi.id_inventaris,
                 bi.tanggal_penerimaan,
+                bi.qr_code,
                 COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang,
                 COALESCE(bi.jenis_barang, dp.jenis_barang) AS jenis_barang,
                 r.nama_ruangan,

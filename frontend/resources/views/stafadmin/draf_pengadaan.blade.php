@@ -272,12 +272,19 @@
                                                         </select>
                                                     </td>
                                                     <td class="px-4 py-3 text-right">
+                                                        @if(!empty($item['qr_univ']))
+                                                        <button onclick="openShowQrModal('{{ $item['qr_univ'] }}')" class="text-[11px] font-bold text-white bg-[#6196aa] border border-[#6196aa] hover:bg-[#20394a] transition-colors px-2 py-1 rounded shadow-sm inline-block whitespace-nowrap mr-1 mb-1">
+                                                            Lihat QR
+                                                        </button>
+                                                        @endif
                                                         @if(!empty($item['link_pembelian']))
                                                         <a href="{{ $item['link_pembelian'] }}" target="_blank" class="text-[11px] font-bold text-[#6196aa] border border-[#6196aa] hover:bg-[#6196aa] hover:text-white transition-colors px-2 py-1 rounded shadow-sm inline-block whitespace-nowrap">
                                                             Link Beli
                                                         </a>
                                                         @else
+                                                        @if(empty($item['qr_univ']))
                                                         <span class="text-[11px] text-gray-400">-</span>
+                                                        @endif
                                                         @endif
                                                     </td>
                                                 </tr>
@@ -608,11 +615,49 @@
             
             <div class="flex gap-3">
                 <button onclick="downloadQrUniv('{{ session('qr_univ') }}')" class="w-full px-4 py-2 border border-[#c9ccc3] text-[#20394a] rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">Download QR</button>
-                <button onclick="document.getElementById('qrUnivModal').remove()" class="w-full px-4 py-2 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">Tutup</button>
+                <button onclick="document.getElementById('qrUnivModal').classList.add('hidden')" class="w-full px-4 py-2 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">Tutup</button>
             </div>
         </div>
     </div>
+    
+    <!-- Floating button to reopen QR modal -->
+    <button onclick="document.getElementById('qrUnivModal').classList.remove('hidden')" class="fixed bottom-6 right-6 bg-[#6196aa] text-white px-4 py-3 rounded-full shadow-2xl hover:bg-[#20394a] transition-all z-40 flex items-center gap-2 group">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" /></svg>
+        <span class="font-bold text-sm">Lihat QR Terakhir</span>
+    </button>
+    @endif
+    
+    <!-- Standalone Show QR Modal -->
+    <div id="showQrModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden p-6 text-center relative">
+            <h3 class="text-xl font-bold text-[#20394a] mb-2">QR Otorisasi Universitas</h3>
+            <p class="text-sm text-gray-500 mb-4">Berikut adalah QR Otorisasi dari Universitas untuk pemberian label barang ini.</p>
+            
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 mb-6">
+                <span class="block text-xs text-gray-500 mb-1">Kode QR Universitas:</span>
+                <span id="showQrCodeText" class="text-2xl font-mono font-bold text-[#20394a]"></span>
+            </div>
+            
+            <div class="flex gap-3">
+                <button id="btnDownloadQrStandalone" class="w-full px-4 py-2 border border-[#c9ccc3] text-[#20394a] rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">Download QR</button>
+                <button onclick="closeShowQrModal()" class="w-full px-4 py-2 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <script>
+        function openShowQrModal(qr) {
+            document.getElementById('showQrCodeText').innerText = qr;
+            document.getElementById('btnDownloadQrStandalone').onclick = () => downloadQrUniv(qr);
+            document.getElementById('showQrModal').classList.remove('hidden');
+            document.getElementById('showQrModal').classList.add('flex');
+        }
+
+        function closeShowQrModal() {
+            document.getElementById('showQrModal').classList.add('hidden');
+            document.getElementById('showQrModal').classList.remove('flex');
+        }
+
         async function downloadQrUniv(qr) {
             try {
                 // Generate QR code using public API
@@ -635,6 +680,5 @@
             }
         }
     </script>
-    @endif
 </body>
 </html>

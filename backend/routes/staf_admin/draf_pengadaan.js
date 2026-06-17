@@ -28,7 +28,8 @@ router.get('/', async (req, res) => {
                     dp.status_pengadaan,
                     dp.link_pembelian,
                     r.nama_ruangan as tujuan_lab,
-                    (SELECT COUNT(*) FROM barang_inventaris bi WHERE bi.id_penggunaan = dp.id_detail) as jumlah_diterima
+                    (SELECT COUNT(*) FROM barang_inventaris bi WHERE bi.id_penggunaan = dp.id_detail) as jumlah_diterima,
+                    (SELECT qr_code FROM barang_inventaris bi WHERE bi.id_penggunaan = dp.id_detail AND bi.nomor_label IS NULL LIMIT 1) as qr_univ
                 FROM detail_pengadaan dp
                 LEFT JOIN ruangan r ON dp.id_ruangan = r.id_ruangan
                 WHERE dp.id_draft = ?

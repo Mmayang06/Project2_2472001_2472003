@@ -265,6 +265,24 @@
         </div>
     </div>
 
+    <!-- Show QR Modal -->
+    <div id="showQrModal" class="fixed inset-0 z-[70] hidden items-center justify-center bg-black/50 backdrop-blur-sm">
+        <div class="bg-white rounded-2xl shadow-xl w-full max-w-sm mx-4 overflow-hidden p-6 text-center relative">
+            <h3 class="text-xl font-bold text-[#20394a] mb-2">QR Otorisasi Universitas</h3>
+            <p class="text-sm text-gray-500 mb-4">Berikut adalah QR Otorisasi dari Universitas untuk pemberian label barang ini.</p>
+            
+            <div class="p-4 bg-gray-50 rounded-xl border border-gray-200 mb-6">
+                <span class="block text-xs text-gray-500 mb-1">Kode QR Universitas:</span>
+                <span id="showQrCodeText" class="text-2xl font-mono font-bold text-[#20394a]"></span>
+            </div>
+            
+            <div class="flex gap-3">
+                <button id="btnDownloadQr" class="w-full px-4 py-2 border border-[#c9ccc3] text-[#20394a] rounded-xl text-sm font-semibold hover:bg-gray-50 transition-colors">Download QR</button>
+                <button onclick="closeShowQrModal()" class="w-full px-4 py-2 bg-[#20394a] text-white rounded-xl text-sm font-semibold hover:bg-[#6196aa] shadow-lg transition-colors">Tutup</button>
+            </div>
+        </div>
+    </div>
+
     <script>
         document.addEventListener('DOMContentLoaded', async () => {
             const container = document.getElementById('inventory-container');
@@ -508,6 +526,9 @@
                         </td>
                         <td class="px-6 py-4 text-gray-600">${item.nama_ruangan ? item.nama_ruangan + ' (' + item.lokasi + ')' : '-'}</td>
                         <td class="px-6 py-4 text-right">
+                            <button onclick="openShowQrModal('${item.qr_code}')" class="text-xs font-bold text-[#6196aa] border border-[#6196aa] hover:bg-[#6196aa] hover:text-white transition-colors px-3 py-2 rounded-lg shadow-sm mr-2">
+                                Lihat QR
+                            </button>
                             <button onclick="openVerifyModal(${item.id_inventaris})" class="text-xs font-bold text-white bg-[#6196aa] hover:bg-[#20394a] transition-colors px-3 py-2 rounded-lg shadow-sm">
                                 Berikan Label & QR
                             </button>
@@ -606,6 +627,39 @@
                 document.getElementById('modal_nomor_label').value = suggestion;
                 closeDuplicateModal();
                 document.getElementById('btn_assign_label').click();
+            };
+
+            window.openShowQrModal = (qr) => {
+                document.getElementById('showQrCodeText').innerText = qr;
+                document.getElementById('btnDownloadQr').onclick = () => downloadQrUniv(qr);
+                document.getElementById('showQrModal').classList.remove('hidden');
+                document.getElementById('showQrModal').classList.add('flex');
+            };
+
+            window.closeShowQrModal = () => {
+                document.getElementById('showQrModal').classList.add('hidden');
+                document.getElementById('showQrModal').classList.remove('flex');
+            };
+
+            window.downloadQrUniv = async (qr) => {
+                try {
+                    const response = await fetch(`https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=${qr}`);
+                    if (!response.ok) throw new Error('Network response was not ok');
+                    const blob = await response.blob();
+                    
+                    const url = window.URL.createObjectURL(blob);
+                    const element = document.createElement('a');
+                    element.style.display = 'none';
+                    element.href = url;
+                    element.download = 'QR_Universitas_' + qr + '.png';
+                    document.body.appendChild(element);
+                    element.click();
+                    document.body.removeChild(element);
+                    window.URL.revokeObjectURL(url);
+                } catch (error) {
+                    console.error(error);
+                    alert('Gagal mendownload gambar QR Code. Silakan coba lagi.');
+                }
             };
 
             window.handleVerifyQr = async (e) => {
