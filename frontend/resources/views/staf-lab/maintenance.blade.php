@@ -384,6 +384,7 @@
                         <select id="f-asset" required class="w-full border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm bg-white">
                             <option value="">-- Pilih Aset --</option>
                             @foreach($inventarisData as $inv)
+                                @if(!empty($inv['nomor_label']))
                                 <option value="{{ $inv['id_inventaris'] }}"
                                     data-label="{{ $inv['nomor_label'] }}"
                                     data-kondisi="{{ $inv['kondisi'] ?? 'baik' }}">
@@ -391,6 +392,7 @@
                                     @if(!empty($inv['nama_barang'])) — {{ $inv['nama_barang'] }}@endif
                                     @if(!empty($inv['nama_ruangan'])) ({{ $inv['nama_ruangan'] }})@endif
                                 </option>
+                                @endif
                             @endforeach
                             @if(empty($inventarisData))
                                 <option disabled>Tidak ada aset tersedia</option>

@@ -65,7 +65,9 @@ router.get('/perlu-diganti', async (req, res) => {
     }
 });
 
-// GET /api/staf_lab/maintenance/inventaris — daftar aset untuk dropdown form
+// GET /api/staf_lab/maintenance/inventaris — daftar aset untuk dropdown form dan penggantian
+// Hanya mengambil unit yang sudah berlabel (nomor_label IS NOT NULL)
+// Barang di storage yang belum dilabeli tidak dapat digunakan sebagai pengganti sampai dilabeli terlebih dahulu
 router.get('/inventaris', async (req, res) => {
     try {
         const [rows] = await db.query(`
@@ -233,9 +235,13 @@ router.post('/ganti_inventaris', async (req, res) => {
 
         const rusakItem = rusakRows[0];
 
-        // 2. Get info of replacement item
+        // 2. Get info of replacement item — including nama_barang for validation
         const [gantiRows] = await conn.query(`
-            SELECT nomor_label, kondisi FROM barang_inventaris WHERE id_inventaris = ?
+            SELECT bi.nomor_label, bi.kondisi,
+                   COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang
+            FROM barang_inventaris bi
+            LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            WHERE bi.id_inventaris = ?
         `, [id_inventaris_pengganti]);
 
         if (gantiRows.length === 0) {
@@ -245,8 +251,37 @@ router.post('/ganti_inventaris', async (req, res) => {
 
         const gantiItem = gantiRows[0];
 
+        // 2b. Validate that the replacement item has the same nama_barang as the damaged item
+        const namaRusak = (rusakItem.nama_barang || '').toLowerCase().trim();
+        const namaPengganti = (gantiItem.nama_barang || '').toLowerCase().trim();
+        if (namaRusak && namaPengganti && namaRusak !== namaPengganti) {
+            await conn.rollback();
+            return res.status(400).json({
+                success: false,
+                message: `Tidak bisa mengganti: barang rusak (${rusakItem.nama_barang}) berbeda jenis dengan barang pengganti (${gantiItem.nama_barang})`
+            });
+        }
+
+        // 2c. Validate that the replacement item has been labeled (nomor_label must exist)
+        if (!gantiItem.nomor_label) {
+            await conn.rollback();
+            return res.status(400).json({
+                success: false,
+                message: 'Barang pengganti belum memiliki nomor label. Silakan labeli barang tersebut terlebih dahulu sebelum digunakan sebagai pengganti.'
+            });
+        }
+
+        // 2d. Validate that the replacement item is in good condition
+        if (gantiItem.kondisi !== 'baik') {
+            await conn.rollback();
+            return res.status(400).json({
+                success: false,
+                message: 'Barang pengganti harus dalam kondisi baik'
+            });
+        }
+
         // 3. Insert maintenance log
-        const keteranganLog = `Mengganti barang dengan unit baru dari storage (Label unit pengganti: ${gantiItem.nomor_label}).`;
+        const keteranganLog = `Mengganti barang dengan unit baru dari storage ${gantiItem.nomor_label ? `(Label unit pengganti: ${gantiItem.nomor_label})` : '(Unit baru belum dilabeli)'}.`;
         const [mainResult] = await conn.query(
             `INSERT INTO pemeliharaan (id_inventaris, id_user, jenis_maintenance, tanggal, kondisi_sebelum, kondisi_setelah, status, keterangan)
              VALUES (?, ?, ?, CURDATE(), ?, ?, ?, ?)`,

@@ -170,17 +170,24 @@
                         <tbody class="divide-y divide-gray-100 text-sm" id="broken-table-body">
                             @forelse($perluDigantiData as $item)
                             @php
+                                // Cek apakah sudah ada pengajuan aktif ke kalab (tanpa ada pengganti)
                                 $hasReplacement = false;
                                 foreach ($inventarisData ?? [] as $inv) {
+                                    $isInStorage = isset($inv['nama_ruangan']) && strtolower(trim($inv['nama_ruangan'])) === 'storage';
+                                    $isInSameRoom = isset($inv['nama_ruangan']) && isset($item['nama_ruangan']) &&
+                                                   strtolower(trim($inv['nama_ruangan'])) === strtolower(trim($item['nama_ruangan']));
                                     if (
                                         isset($inv['kondisi']) && strtolower(trim($inv['kondisi'])) === 'baik' &&
-                                        isset($inv['nama_ruangan']) && strtolower(trim($inv['nama_ruangan'])) === 'storage' &&
-                                        isset($inv['nama_barang']) && strtolower(trim($inv['nama_barang'])) === strtolower(trim($item['nama_barang']))
+                                        ($isInStorage || $isInSameRoom) &&
+                                        isset($inv['nama_barang']) &&
+                                        strtolower(trim($inv['nama_barang'])) === strtolower(trim($item['nama_barang']))
                                     ) {
                                         $hasReplacement = true;
                                         break;
                                     }
                                 }
+                                // Sudah diajukan ke kalab tapi belum ada pengganti
+                                $sudahDiajukan = !$hasReplacement && isset($item['sudah_diajukan']) && $item['sudah_diajukan'] > 0;
                             @endphp
                             <tr class="hover:bg-gray-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-[#20394a] font-mono">{{ $item['nomor_label'] }}</td>
@@ -198,15 +205,22 @@
                                     {{ $item['tanggal_dilaporkan'] ? \Carbon\Carbon::parse($item['tanggal_dilaporkan'])->translatedFormat('d F Y') : 'Baru saja' }}
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    @if(!$hasReplacement && isset($item['sudah_diajukan']) && $item['sudah_diajukan'] > 0)
-                                    <button disabled class="px-3 py-2 bg-gray-400 text-white rounded-xl text-xs font-bold shadow-sm inline-flex items-center gap-1.5 cursor-not-allowed">
+                                    @if($sudahDiajukan)
+                                    {{-- Sudah diajukan ke kalab tapi pengganti belum tersedia --}}
+                                    <button
+                                        onclick="openReplaceModal({{ $item['id_inventaris'] }}, '{{ addslashes($item['nomor_label']) }}', '{{ addslashes($item['nama_barang']) }}', '{{ addslashes($item['nama_ruangan'] ?? 'Tanpa Ruangan') }}')"
+                                        class="px-3 py-2 bg-amber-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all duration-200 inline-flex items-center gap-1.5"
+                                        title="Pengajuan sudah ada ke Kalab. Klik untuk cek atau ganti jika sudah tersedia.">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
-                                        Unit sedang diajukan ke kalab
+                                        Cek Status / Ganti
                                     </button>
                                     @else
-                                    <button onclick="openReplaceModal({{ $item['id_inventaris'] }}, '{{ addslashes($item['nomor_label']) }}', '{{ addslashes($item['nama_barang']) }}', '{{ addslashes($item['nama_ruangan'] ?? 'Tanpa Ruangan') }}')" class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all duration-200 inline-flex items-center gap-1.5">
+                                    {{-- Belum ada pengajuan, atau sudah ada pengganti tersedia --}}
+                                    <button
+                                        onclick="openReplaceModal({{ $item['id_inventaris'] }}, '{{ addslashes($item['nomor_label']) }}', '{{ addslashes($item['nama_barang']) }}', '{{ addslashes($item['nama_ruangan'] ?? 'Tanpa Ruangan') }}')"
+                                        class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all duration-200 inline-flex items-center gap-1.5">
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
                                         </svg>
@@ -339,13 +353,13 @@
 
         // Modal Replacement Logic
         function openReplaceModal(idInventaris, nomorLabel, namaBarang, namaRuangan) {
-            // Filter pengganti dari Storage yang dalam kondisi baik dan nama_barang-nya cocok
+            // Filter pengganti dari Storage atau ruangan yang sama yang dalam kondisi baik dan nama_barang-nya cocok
             const replacementUnits = rawInventarisData.filter(item => 
                 item.kondisi === 'baik' && 
                 item.nama_barang && 
                 item.nama_barang.toLowerCase().trim() === namaBarang.toLowerCase().trim() &&
                 item.nama_ruangan && 
-                item.nama_ruangan.toLowerCase().trim() === 'storage'
+                (item.nama_ruangan.toLowerCase().trim() === 'storage' || item.nama_ruangan.toLowerCase().trim() === namaRuangan.toLowerCase().trim())
             );
 
             if (replacementUnits.length === 0) {
@@ -372,7 +386,7 @@
             replacementUnits.forEach(item => {
                 const opt = document.createElement('option');
                 opt.value = item.id_inventaris;
-                opt.textContent = `${item.nomor_label} (Kondisi: Baik di Storage)`;
+                opt.textContent = `${item.nomor_label || 'Barang Baru (Belum Dilabeli) #' + item.id_inventaris} (Kondisi: Baik)`;
                 selectPengganti.appendChild(opt);
             });
 
