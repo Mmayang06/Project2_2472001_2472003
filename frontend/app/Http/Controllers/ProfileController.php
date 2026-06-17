@@ -41,7 +41,10 @@ class ProfileController extends Controller
         $request->validate([
             'nama' => ['required'],
             'email' => ['required', 'email'],
-            // Password opsional, hanya jika diisi
+            'password' => ['nullable', 'min:6', 'confirmed'],
+        ], [
+            'password.confirmed' => 'Konfirmasi password tidak cocok.',
+            'password.min' => 'Password minimal 6 karakter.'
         ]);
 
         $payload = [

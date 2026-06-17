@@ -169,10 +169,45 @@
             </div>
         </div>
 
+        <!-- Filter & Search Bar -->
+        <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm p-6 flex flex-col md:flex-row justify-between items-center gap-4">
+            <div class="flex flex-wrap gap-4 items-center w-full md:w-auto">
+                <!-- Filter Tahun -->
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-gray-500">Tahun:</span>
+                    <select id="filter-year" onchange="filterDrafts()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 bg-white shadow-sm cursor-pointer">
+                        <option value="all">Semua Tahun</option>
+                        @foreach(collect($drafts)->pluck('tahun_pengadaan')->unique()->sortDesc() as $tahun)
+                            <option value="{{ $tahun }}">{{ $tahun }}</option>
+                        @endforeach
+                    </select>
+                </div>
+                
+                <!-- Filter Status -->
+                <div class="flex items-center gap-2">
+                    <span class="text-sm font-semibold text-gray-500">Status:</span>
+                    <select id="filter-status" onchange="filterDrafts()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 bg-white shadow-sm cursor-pointer">
+                        <option value="all">Semua Status</option>
+                        <option value="draft">Draft</option>
+                        <option value="diajukan">Diajukan</option>
+                        <option value="disetujui">Disetujui</option>
+                        <option value="ditolak">Ditolak</option>
+                    </select>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-3 w-full md:w-auto">
+                <div class="relative w-full md:w-64">
+                    <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    <input type="text" id="search-input" onkeyup="filterDrafts()" placeholder="Cari nomor draf..." class="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 shadow-sm">
+                </div>
+            </div>
+        </div>
+
         <!-- Draft Cards List -->
         <div class="w-full space-y-6">
             @forelse ($drafts as $draft)
-                <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm overflow-hidden flex flex-col">
+                <div class="draft-card bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm overflow-hidden flex flex-col" data-tahun="{{ $draft['tahun_pengadaan'] }}" data-status="{{ $draft['status'] }}" data-nodraf="{{ str_pad($draft['id_draft'], 4, '0', STR_PAD_LEFT) }}">
                     <!-- Draft Header -->
                     <div class="bg-gray-50 border-b border-[#c9ccc3]/30 p-5 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                         <div>
@@ -322,6 +357,11 @@
                     </a>
                 </div>
             @endforelse
+            <div id="empty-filter-state" style="display: none;" class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm p-12 text-center flex-col justify-center items-center">
+                <svg class="w-16 h-16 mx-auto text-gray-300 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                <h3 class="text-xl font-bold text-[#20394a] mb-2">Tidak Ada Draf yang Ditemukan</h3>
+                <p class="text-gray-500 max-w-md mx-auto">Tidak ada draf pengadaan yang cocok dengan filter atau pencarian Anda.</p>
+            </div>
         </div>
 
     </main>
@@ -396,6 +436,41 @@
     </div>
 
     <script>
+        function filterDrafts() {
+            const yearFilter = document.getElementById('filter-year').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const searchInput = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            const cards = document.querySelectorAll('.draft-card');
+            let visibleCount = 0;
+
+            cards.forEach(card => {
+                const year = card.getAttribute('data-tahun');
+                const status = card.getAttribute('data-status');
+                const noDraf = card.getAttribute('data-nodraf').toLowerCase();
+
+                let matchYear = (yearFilter === 'all' || year === yearFilter);
+                let matchStatus = (statusFilter === 'all' || status === statusFilter);
+                let matchSearch = (searchInput === '' || noDraf.includes(searchInput));
+
+                if (matchYear && matchStatus && matchSearch) {
+                    card.style.display = 'flex';
+                    visibleCount++;
+                } else {
+                    card.style.display = 'none';
+                }
+            });
+
+            const emptyState = document.getElementById('empty-filter-state');
+            if (emptyState) {
+                if (visibleCount === 0 && cards.length > 0) {
+                    emptyState.style.display = 'flex';
+                } else {
+                    emptyState.style.display = 'none';
+                }
+            }
+        }
+
         function openEditModal(id, nama, jenis, jumlah, harga, link) {
             document.getElementById('editForm').action = '/kalab/draf-pengadaan/item/' + id;
             document.getElementById('edit_nama_barang').value = nama;
