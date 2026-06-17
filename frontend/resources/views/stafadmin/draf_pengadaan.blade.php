@@ -157,8 +157,43 @@
 
             <!-- Drafts List -->
             <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm overflow-hidden">
-                <div class="p-6 border-b border-[#c9ccc3]/30 flex justify-between items-center bg-[#f9f5ed]/30">
+                <div class="p-6 border-b border-[#c9ccc3]/30 flex flex-col md:flex-row justify-between items-start md:items-center gap-4 bg-[#f9f5ed]/30">
                     <h3 class="font-bold text-lg text-[#20394a]">Daftar Pengadaan</h3>
+                </div>
+
+                <!-- Filter & Search Bar -->
+                <div class="p-6 border-b border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4 bg-white">
+                    <div class="flex flex-wrap gap-4 items-center w-full md:w-auto">
+                        <!-- Filter Tahun -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-semibold text-gray-500">Tahun:</span>
+                            <select id="filter-year" onchange="filterDrafts()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 bg-white shadow-sm cursor-pointer">
+                                <option value="all">Semua Tahun</option>
+                                @foreach(collect($drafts)->pluck('tahun_pengadaan')->unique()->sortDesc() as $tahun)
+                                    <option value="{{ $tahun }}">{{ $tahun }}</option>
+                                @endforeach
+                            </select>
+                        </div>
+                        
+                        <!-- Filter Status -->
+                        <div class="flex items-center gap-2">
+                            <span class="text-sm font-semibold text-gray-500">Status:</span>
+                            <select id="filter-status" onchange="filterDrafts()" class="pl-3 pr-8 py-2 border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 bg-white shadow-sm cursor-pointer">
+                                <option value="all">Semua Status</option>
+                                <option value="draft">Draft</option>
+                                <option value="diajukan">Diajukan</option>
+                                <option value="disetujui">Disetujui</option>
+                                <option value="ditolak">Ditolak</option>
+                            </select>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 w-full md:w-auto">
+                        <div class="relative w-full md:w-64">
+                            <svg class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                            <input type="text" id="search-input" onkeyup="filterDrafts()" placeholder="Cari nomor/pengaju..." class="pl-9 pr-4 py-2 w-full border border-gray-300 rounded-xl text-sm focus:outline-none focus:border-[#6196aa] text-gray-700 shadow-sm">
+                        </div>
+                    </div>
                 </div>
                 
                 <div class="overflow-x-auto">
@@ -184,7 +219,7 @@
                                     }
                                 @endphp
                             <!-- Main Row -->
-                            <tr class="hover:bg-gray-50/50 transition-colors cursor-pointer" onclick="toggleAccordion({{ $draft['id_draft'] }})">
+                            <tr class="draft-row hover:bg-gray-50/50 transition-colors cursor-pointer" onclick="toggleAccordion({{ $draft['id_draft'] }})" data-id="{{ $draft['id_draft'] }}" data-tahun="{{ $draft['tahun_pengadaan'] }}" data-status="{{ strtolower($draft['status_draft']) }}" data-nodraf="po-{{ $draft['tahun_pengadaan'] }}-{{ str_pad($draft['id_draft'], 4, '0', STR_PAD_LEFT) }}" data-pengaju="{{ strtolower($draft['nama_pengaju'] ?? 'kepala lab') }}">
                                 <td class="px-6 py-4 font-semibold text-[#20394a]">
                                     PO-{{ $draft['tahun_pengadaan'] }}-{{ str_pad($draft['id_draft'], 4, '0', STR_PAD_LEFT) }}
                                 </td>
@@ -305,6 +340,11 @@
                                 </td>
                             </tr>
                             @endforelse
+                            <tr id="empty-filter-state-row" style="display: none;">
+                                <td colspan="7" class="px-6 py-8 text-center text-gray-500">
+                                    Tidak ada draf pengadaan yang cocok dengan filter atau pencarian Anda.
+                                </td>
+                            </tr>
 
                         </tbody>
                     </table>
@@ -395,6 +435,50 @@
     <meta name="csrf-token" content="{{ csrf_token() }}">
 
     <script>
+        function filterDrafts() {
+            const yearFilter = document.getElementById('filter-year').value;
+            const statusFilter = document.getElementById('filter-status').value;
+            const searchInput = document.getElementById('search-input').value.toLowerCase().trim();
+            
+            const rows = document.querySelectorAll('.draft-row');
+            let visibleCount = 0;
+
+            rows.forEach(row => {
+                const year = row.getAttribute('data-tahun');
+                const status = row.getAttribute('data-status');
+                const noDraf = row.getAttribute('data-nodraf');
+                const pengaju = row.getAttribute('data-pengaju');
+                const id = row.getAttribute('data-id');
+
+                let matchYear = (yearFilter === 'all' || year === yearFilter);
+                let matchStatus = (statusFilter === 'all' || status === statusFilter);
+                let matchSearch = (searchInput === '' || noDraf.includes(searchInput) || pengaju.includes(searchInput));
+
+                const accordionRow = document.getElementById('accordion-' + id);
+
+                if (matchYear && matchStatus && matchSearch) {
+                    row.style.display = '';
+                    visibleCount++;
+                } else {
+                    row.style.display = 'none';
+                    if(accordionRow) {
+                        accordionRow.classList.add('hidden');
+                        const icon = document.getElementById('icon-' + id)?.querySelector('svg');
+                        if(icon) icon.classList.remove('rotate-180');
+                    }
+                }
+            });
+
+            const emptyState = document.getElementById('empty-filter-state-row');
+            if (emptyState) {
+                if (visibleCount === 0 && rows.length > 0) {
+                    emptyState.style.display = '';
+                } else {
+                    emptyState.style.display = 'none';
+                }
+            }
+        }
+
         function toggleAccordion(id) {
             const accordion = document.getElementById('accordion-' + id);
             const icon = document.getElementById('icon-' + id).querySelector('svg');
