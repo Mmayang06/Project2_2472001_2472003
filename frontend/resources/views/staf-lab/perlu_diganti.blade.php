@@ -386,7 +386,7 @@
             replacementUnits.forEach(item => {
                 const opt = document.createElement('option');
                 opt.value = item.id_inventaris;
-                opt.textContent = `${item.nomor_label || 'Barang Baru (Belum Dilabeli) #' + item.id_inventaris} (Kondisi: Baik)`;
+                opt.textContent = `${item.nama_barang || 'Barang #' + item.id_inventaris} (Kondisi: Baik)`;
                 selectPengganti.appendChild(opt);
             });
 
