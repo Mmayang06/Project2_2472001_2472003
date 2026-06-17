@@ -55,6 +55,7 @@ router.get('/perlu-diganti', async (req, res) => {
             LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
             WHERE bi.kondisi = 'rusak_berat'
+              AND bi.nomor_label IS NOT NULL
             ORDER BY tanggal_dilaporkan DESC, bi.id_inventaris DESC
         `;
         const [rows] = await db.query(query);
@@ -64,6 +65,7 @@ router.get('/perlu-diganti', async (req, res) => {
         res.status(500).json({ success: false, message: 'Server error' });
     }
 });
+
 
 // GET /api/staf_lab/maintenance/inventaris — daftar aset untuk dropdown form dan penggantian
 // Hanya mengambil unit yang sudah berlabel (nomor_label IS NOT NULL)
@@ -289,14 +291,24 @@ router.post('/ganti_inventaris', async (req, res) => {
         );
         const id_pemeliharaan = mainResult.insertId;
 
-        // 4. Update condition of damaged item to 'baik'
-        await conn.query('UPDATE barang_inventaris SET kondisi = ? WHERE id_inventaris = ?', ['baik', id_inventaris_rusak]);
+        // 4. Ambil nomor_label barang rusak untuk dipindahkan ke pengganti
+        const nomorLabelRusak = rusakItem.nomor_label;
 
-        // 5. Delete replacement item from database
-        await conn.query('DELETE FROM barang_inventaris WHERE id_inventaris = ?', [id_inventaris_pengganti]);
+        // 5. PERTAMA: Kosongkan nomor_label barang rusak dulu (lepas dari UNIQUE key)
+        //    Tetap di ruangan yang sama agar tidak melanggar FK id_ruangan (NOT NULL)
+        await conn.query(
+            'UPDATE barang_inventaris SET nomor_label = NULL, kondisi = ? WHERE id_inventaris = ?',
+            ['rusak_berat', id_inventaris_rusak]
+        );
+
+        // 6. BARU: Barang pengganti ambil alih nomor_label + pindah ke ruangan barang rusak
+        await conn.query(
+            'UPDATE barang_inventaris SET id_ruangan = ?, nomor_label = ?, kondisi = ? WHERE id_inventaris = ?',
+            [rusakItem.id_ruangan, nomorLabelRusak, 'baik', id_inventaris_pengganti]
+        );
 
         await conn.commit();
-        res.json({ success: true, message: 'Barang berhasil diganti dan status diupdate menjadi Baik', id_pemeliharaan });
+        res.json({ success: true, message: 'Barang berhasil diganti. Unit pengganti mengambil alih label dan ruangan, unit lama ditandai rusak berat.', id_pemeliharaan });
     } catch (error) {
         await conn.rollback();
         console.error(error);
