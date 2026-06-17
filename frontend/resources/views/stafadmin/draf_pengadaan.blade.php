@@ -114,19 +114,44 @@
 
         <div class="p-6 md:p-8 flex-grow overflow-y-auto w-full mx-auto space-y-6 max-w-7xl">
             
+            @php
+                $totalDraf = count($drafts);
+                $disetujui = 0;
+                $menunggu = 0;
+                foreach($drafts as $d) {
+                    if(isset($d['status_draft']) && strtolower($d['status_draft']) == 'disetujui') {
+                        $disetujui++;
+                    }
+                    if(isset($d['status_draft']) && strtolower($d['status_draft']) == 'diajukan') {
+                        $menunggu++;
+                    }
+                }
+            @endphp
             <!-- Summary Stats -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm">
-                    <span class="text-sm font-semibold text-gray-500 block mb-2">Total Draf (Bulan Ini)</span>
-                    <span class="text-3xl font-bold text-[#20394a]">12</span>
+                <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm overflow-hidden">
+                    <div class="p-4 border-b border-[#c9ccc3]/30 bg-[#f9f5ed]/30">
+                        <span class="text-sm font-bold text-[#20394a] block">Total Draf (Bulan Ini)</span>
+                    </div>
+                    <div class="p-6">
+                        <span class="text-3xl font-bold text-[#20394a]">{{ $totalDraf }}</span>
+                    </div>
                 </div>
-                <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm border-b-4 border-b-emerald-500">
-                    <span class="text-sm font-semibold text-gray-500 block mb-2">Disetujui Kaprodi</span>
-                    <span class="text-3xl font-bold text-emerald-600">8</span>
+                <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm border-b-4 border-b-emerald-500 overflow-hidden">
+                    <div class="p-4 border-b border-[#c9ccc3]/30 bg-[#f9f5ed]/30">
+                        <span class="text-sm font-bold text-[#20394a] block">Disetujui Kaprodi</span>
+                    </div>
+                    <div class="p-6">
+                        <span class="text-3xl font-bold text-emerald-600">{{ $disetujui }}</span>
+                    </div>
                 </div>
-                <div class="bg-white rounded-2xl p-6 border border-[#c9ccc3]/30 shadow-sm border-b-4 border-b-amber-500">
-                    <span class="text-sm font-semibold text-gray-500 block mb-2">Menunggu Persetujuan</span>
-                    <span class="text-3xl font-bold text-amber-600">4</span>
+                <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm border-b-4 border-b-amber-500 overflow-hidden">
+                    <div class="p-4 border-b border-[#c9ccc3]/30 bg-[#f9f5ed]/30">
+                        <span class="text-sm font-bold text-[#20394a] block">Menunggu Persetujuan</span>
+                    </div>
+                    <div class="p-6">
+                        <span class="text-3xl font-bold text-amber-600">{{ $menunggu }}</span>
+                    </div>
                 </div>
             </div>
 
@@ -134,12 +159,6 @@
             <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm overflow-hidden">
                 <div class="p-6 border-b border-[#c9ccc3]/30 flex justify-between items-center bg-[#f9f5ed]/30">
                     <h3 class="font-bold text-lg text-[#20394a]">Daftar Pengadaan</h3>
-                    <div class="flex gap-2 text-sm font-medium">
-                        <button class="px-3 py-1.5 bg-white border border-[#c9ccc3] rounded-md text-[#20394a] shadow-sm flex items-center gap-1">
-                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            Export
-                        </button>
-                    </div>
                 </div>
                 
                 <div class="overflow-x-auto">
