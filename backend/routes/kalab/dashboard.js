@@ -35,11 +35,14 @@ router.get('/', authMiddleware, async (req, res) => {
         const drafDisetujui = drafDisetujuiRow[0].count;
 
         // 4. Total Inventaris dan Inventaris Rusak
+        // Hanya unit yang masih berlabel (nomor_label IS NOT NULL) yang dihitung sebagai aset aktif.
+        // Unit yang sudah diganti akan kehilangan nomor_label (jadi NULL) sehingga tidak terhitung lagi.
         const [invStatsRow] = await db.query(`
             SELECT 
                 COUNT(*) AS total_inventaris,
-                SUM(CASE WHEN kondisi != 'baik' THEN 1 ELSE 0 END) AS inventaris_rusak
+                SUM(CASE WHEN kondisi != 'baik' AND nomor_label IS NOT NULL THEN 1 ELSE 0 END) AS inventaris_rusak
             FROM barang_inventaris
+            WHERE nomor_label IS NOT NULL
         `);
         const totalInventaris = invStatsRow[0].total_inventaris || 0;
         const inventarisRusak = invStatsRow[0].inventaris_rusak || 0;
@@ -53,12 +56,13 @@ router.get('/', authMiddleware, async (req, res) => {
             LIMIT 5
         `, [userId]);
 
-        // 6. Rincian Inventaris Rusak
+        // 6. Rincian Inventaris Rusak (hanya unit aktif/berlabel)
         const [rincianRusak] = await db.query(`
             SELECT COALESCE(bi.nama_barang, dp.nama_barang, 'Tidak Diketahui') as kategori, COUNT(bi.id_inventaris) as jumlah
             FROM barang_inventaris bi
             LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
             WHERE bi.kondisi != 'baik'
+              AND bi.nomor_label IS NOT NULL
             GROUP BY kategori
         `);
 

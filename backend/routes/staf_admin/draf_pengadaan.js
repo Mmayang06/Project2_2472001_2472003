@@ -84,18 +84,86 @@ router.post('/terima', async (req, res) => {
         
         await connection.beginTransaction();
 
+        const [det] = await connection.query('SELECT nama_barang, jenis_barang, jumlah FROM detail_pengadaan WHERE id_detail = ?', [id_detail]);
+        if (det.length === 0) throw new Error('Detail not found');
+        const { nama_barang, jenis_barang, jumlah: jumlah_total } = det[0];
+
+        const qtyDiterima = parseInt(input_qty) || jumlah_total;
+
+        // ============================================================
+        // PERCABANGAN: BHP vs Inventori
+        // BHP = barang habis pakai, stok langsung ditambah tanpa label
+        // ============================================================
+        if (jenis_barang && jenis_barang.trim().toUpperCase() === 'BHP') {
+            // Cari BHP yang namanya paling cocok di tabel bhp
+            const [bhpRows] = await connection.query(
+                'SELECT id_bhp, nama_bhp, stok FROM bhp WHERE LOWER(TRIM(nama_bhp)) = LOWER(TRIM(?)) LIMIT 1',
+                [nama_barang]
+            );
+
+            if (bhpRows.length === 0) {
+                // Coba pencarian partial jika exact match tidak ditemukan
+                const [bhpPartial] = await connection.query(
+                    'SELECT id_bhp, nama_bhp, stok FROM bhp WHERE LOWER(nama_bhp) LIKE ? LIMIT 1',
+                    [`%${nama_barang.toLowerCase().trim()}%`]
+                );
+                if (bhpPartial.length === 0) {
+                    await connection.rollback();
+                    return res.status(404).json({
+                        success: false,
+                        message: `BHP dengan nama "${nama_barang}" tidak ditemukan di daftar BHP. Pastikan nama barang di draf sesuai dengan nama BHP yang terdaftar.`
+                    });
+                }
+                bhpRows.push(bhpPartial[0]);
+            }
+
+            const bhp = bhpRows[0];
+
+            // Tambah stok BHP langsung
+            await connection.query(
+                'UPDATE bhp SET stok = stok + ? WHERE id_bhp = ?',
+                [qtyDiterima, bhp.id_bhp]
+            );
+
+            // Update status pengadaan
+            const [countExisting] = await connection.query(
+                'SELECT COALESCE(SUM(jumlah_penerimaan), 0) AS sudah FROM penerimaan_bhp WHERE id_detail = ?',
+                [id_detail]
+            );
+            // Catat penerimaan BHP di tabel penerimaan_bhp jika ada, atau langsung update status
+            // Cek apakah tabel penerimaan_bhp ada (opsional), jika tidak ada langsung update status
+            const sudahDiterima = (countExisting[0]?.sudah || 0) + qtyDiterima;
+            const newStatus = sudahDiterima >= jumlah_total ? 'telah_diterima' : 'penerimaan_sebagian';
+            await connection.query(
+                'UPDATE detail_pengadaan SET status_pengadaan = ? WHERE id_detail = ?',
+                [newStatus, id_detail]
+            );
+
+            // Kirim notifikasi ke Staf Lab bahwa stok BHP bertambah
+            await connection.query(
+                'INSERT INTO notifikasi (role_target, pesan, tipe, link) VALUES (?, ?, ?, ?)',
+                ['staf_lab', `Stok BHP "${bhp.nama_bhp}" telah ditambah sebanyak ${qtyDiterima} unit. Stok sekarang: ${bhp.stok + qtyDiterima}.`, 'info', '/staf-lab/bhp']
+            );
+
+            await connection.commit();
+            return res.json({
+                success: true,
+                message: `Stok BHP "${bhp.nama_bhp}" berhasil ditambah sebanyak ${qtyDiterima} unit.`,
+                is_bhp: true
+            });
+        }
+
+        // ============================================================
+        // INVENTORI BIASA: alur lama (masuk barang_inventaris, perlu label)
+        // ============================================================
         const [storage] = await connection.query('SELECT id_ruangan FROM ruangan WHERE nama_ruangan = "Storage" LIMIT 1');
         const storage_id = storage[0] ? storage[0].id_ruangan : null;
-
-        const [det] = await connection.query('SELECT nama_barang, jenis_barang FROM detail_pengadaan WHERE id_detail = ?', [id_detail]);
-        if (det.length === 0) throw new Error('Detail not found');
-        const { nama_barang, jenis_barang } = det[0];
 
         if (id_ruangan) {
             await connection.query('UPDATE detail_pengadaan SET id_ruangan = ? WHERE id_detail = ?', [id_ruangan, id_detail]);
         }
 
-        let qtyRemaining = parseInt(input_qty) || 1;
+        let qtyRemaining = qtyDiterima;
         const qr_univ = 'UNIV-' + Math.random().toString(36).substring(2, 8).toUpperCase();
         
         const [brokenLabs] = await connection.query(`
@@ -120,13 +188,8 @@ router.post('/terima', async (req, res) => {
                 );
             }
             qtyRemaining -= allocateToSelected;
-            
-            if (selectedLabData) {
-                selectedLabData.broken_count = 0;
-            }
         }
 
-        // Leftover units go straight to storage instead of distributing to other broken labs
         if (qtyRemaining > 0) {
             for (let i = 0; i < qtyRemaining; i++) {
                 await connection.query(
@@ -136,9 +199,6 @@ router.post('/terima', async (req, res) => {
             }
         }
 
-        const [detailRows] = await connection.query('SELECT jumlah FROM detail_pengadaan WHERE id_detail = ?', [id_detail]);
-        const jumlah_total = detailRows[0].jumlah;
-        
         const [countRows] = await connection.query('SELECT COUNT(*) as count FROM barang_inventaris WHERE id_penggunaan = ?', [id_detail]);
         const jumlah_diterima = countRows[0].count;
 
@@ -150,11 +210,11 @@ router.post('/terima', async (req, res) => {
         await connection.query('UPDATE detail_pengadaan SET status_pengadaan = ? WHERE id_detail = ?', [newStatus, id_detail]);
 
         await connection.commit();
-        return res.json({ success: true, message: 'Barang berhasil diterima', qr_univ: qr_univ });
+        return res.json({ success: true, message: 'Barang berhasil diterima', qr_univ: qr_univ, is_bhp: false });
     } catch (error) {
         await connection.rollback();
         console.error(error);
-        return res.status(500).json({ success: false, message: 'Gagal memproses penerimaan.' });
+        return res.status(500).json({ success: false, message: 'Gagal memproses penerimaan: ' + error.message });
     } finally {
         connection.release();
     }

@@ -222,11 +222,13 @@ router.post('/ganti_inventaris', async (req, res) => {
     try {
         await conn.beginTransaction();
 
-        // 1. Get info of damaged item
+        // 1. Get info of damaged item (including room name for the log)
         const [rusakRows] = await conn.query(`
-            SELECT bi.nomor_label, bi.kondisi, COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang, bi.id_ruangan
+            SELECT bi.nomor_label, bi.kondisi, COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang, bi.id_ruangan,
+                   r.nama_ruangan
             FROM barang_inventaris bi
             LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
             WHERE bi.id_inventaris = ?
         `, [id_inventaris_rusak]);
 
@@ -237,12 +239,14 @@ router.post('/ganti_inventaris', async (req, res) => {
 
         const rusakItem = rusakRows[0];
 
-        // 2. Get info of replacement item — including nama_barang for validation
+        // 2. Get info of replacement item — including nama_barang and room for validation & log
         const [gantiRows] = await conn.query(`
             SELECT bi.nomor_label, bi.kondisi,
-                   COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang
+                   COALESCE(bi.nama_barang, dp.nama_barang) AS nama_barang,
+                   r.nama_ruangan
             FROM barang_inventaris bi
             LEFT JOIN detail_pengadaan dp ON bi.id_penggunaan = dp.id_detail
+            LEFT JOIN ruangan r ON bi.id_ruangan = r.id_ruangan
             WHERE bi.id_inventaris = ?
         `, [id_inventaris_pengganti]);
 
@@ -282,8 +286,13 @@ router.post('/ganti_inventaris', async (req, res) => {
             });
         }
 
-        // 3. Insert maintenance log
-        const keteranganLog = `Mengganti barang dengan unit baru dari storage ${gantiItem.nomor_label ? `(Label unit pengganti: ${gantiItem.nomor_label})` : '(Unit baru belum dilabeli)'}.`;
+        // 3. Insert maintenance log — mencatat barang apa, ruangan mana, dan label pengganti
+        const namaBarangLog     = rusakItem.nama_barang || 'Barang';
+        const ruanganRusakLog   = rusakItem.nama_ruangan || 'Ruangan tidak diketahui';
+        const labelRusakLog     = rusakItem.nomor_label || '-';
+        const labelPenggantiLog = gantiItem.nomor_label || '-';
+        const asalPenggantiLog  = gantiItem.nama_ruangan || 'Storage';
+        const keteranganLog = `Penggantian unit ${namaBarangLog} (Label: ${labelRusakLog}) yang rusak berat di ${ruanganRusakLog}. Unit pengganti (Label: ${labelPenggantiLog}) diambil dari ${asalPenggantiLog} dan dipindahkan ke ${ruanganRusakLog}. Unit lama ditandai rusak berat tanpa label.`;
         const [mainResult] = await conn.query(
             `INSERT INTO pemeliharaan (id_inventaris, id_user, jenis_maintenance, tanggal, kondisi_sebelum, kondisi_setelah, status, keterangan)
              VALUES (?, ?, ?, CURDATE(), ?, ?, ?, ?)`,

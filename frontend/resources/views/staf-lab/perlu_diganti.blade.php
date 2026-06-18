@@ -153,6 +153,25 @@
                 </div>
             </div>
 
+            <!-- Panduan Status -->
+            <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm p-4">
+                <p class="text-xs font-bold text-gray-500 uppercase tracking-wider mb-3">Panduan Status Tombol</p>
+                <div class="flex flex-wrap gap-5">
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-[#6196aa] inline-block shrink-0"></span>
+                        <span class="text-xs text-gray-600"><strong>Cek Ketersediaan</strong> – Klik untuk cek apakah ada unit pengganti di Storage</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-amber-500 inline-block shrink-0"></span>
+                        <span class="text-xs text-gray-600"><strong>Cek Status / Ganti</strong> – Sudah diajukan ke Kalab, klik untuk cek apakah unit sudah tersedia</span>
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <span class="w-3 h-3 rounded-full bg-emerald-600 inline-block shrink-0"></span>
+                        <span class="text-xs text-gray-600"><strong>Ganti Unit</strong> – Unit pengganti tersedia & sudah dilabeli, siap untuk diganti</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Table Card -->
             <div class="bg-white rounded-2xl border border-[#c9ccc3]/30 shadow-sm overflow-hidden">
                 <div class="overflow-x-auto">
@@ -170,24 +189,7 @@
                         <tbody class="divide-y divide-gray-100 text-sm" id="broken-table-body">
                             @forelse($perluDigantiData as $item)
                             @php
-                                // Cek apakah sudah ada pengajuan aktif ke kalab (tanpa ada pengganti)
-                                $hasReplacement = false;
-                                foreach ($inventarisData ?? [] as $inv) {
-                                    $isInStorage = isset($inv['nama_ruangan']) && strtolower(trim($inv['nama_ruangan'])) === 'storage';
-                                    $isInSameRoom = isset($inv['nama_ruangan']) && isset($item['nama_ruangan']) &&
-                                                   strtolower(trim($inv['nama_ruangan'])) === strtolower(trim($item['nama_ruangan']));
-                                    if (
-                                        isset($inv['kondisi']) && strtolower(trim($inv['kondisi'])) === 'baik' &&
-                                        ($isInStorage || $isInSameRoom) &&
-                                        isset($inv['nama_barang']) &&
-                                        strtolower(trim($inv['nama_barang'])) === strtolower(trim($item['nama_barang']))
-                                    ) {
-                                        $hasReplacement = true;
-                                        break;
-                                    }
-                                }
-                                // Sudah diajukan ke kalab tapi belum ada pengganti
-                                $sudahDiajukan = !$hasReplacement && isset($item['sudah_diajukan']) && $item['sudah_diajukan'] > 0;
+                                $sudahDiajukan = isset($item['sudah_diajukan']) && $item['sudah_diajukan'] > 0;
                             @endphp
                             <tr class="hover:bg-gray-50/50 transition-colors">
                                 <td class="px-6 py-4 font-bold text-[#20394a] font-mono">{{ $item['nomor_label'] }}</td>
@@ -205,28 +207,28 @@
                                     {{ $item['tanggal_dilaporkan'] ? \Carbon\Carbon::parse($item['tanggal_dilaporkan'])->translatedFormat('d F Y') : 'Baru saja' }}
                                 </td>
                                 <td class="px-6 py-4 text-right">
-                                    @if($sudahDiajukan)
-                                    {{-- Sudah diajukan ke kalab tapi pengganti belum tersedia --}}
+                                    {{-- Tombol awal: Cek Ketersediaan / Cek Status. Setelah JS cek & tersedia, berubah jadi Ganti Unit --}}
                                     <button
-                                        onclick="openReplaceModal({{ $item['id_inventaris'] }}, '{{ addslashes($item['nomor_label']) }}', '{{ addslashes($item['nama_barang']) }}', '{{ addslashes($item['nama_ruangan'] ?? 'Tanpa Ruangan') }}')"
-                                        class="px-3 py-2 bg-amber-500 hover:bg-rose-600 text-white rounded-xl text-xs font-bold shadow-sm transition-all duration-200 inline-flex items-center gap-1.5"
-                                        title="Pengajuan sudah ada ke Kalab. Klik untuk cek atau ganti jika sudah tersedia.">
+                                        id="btn-action-{{ $item['id_inventaris'] }}"
+                                        data-id="{{ $item['id_inventaris'] }}"
+                                        data-label="{{ addslashes($item['nomor_label']) }}"
+                                        data-nama="{{ addslashes($item['nama_barang']) }}"
+                                        data-ruangan="{{ addslashes($item['nama_ruangan'] ?? 'Tanpa Ruangan') }}"
+                                        data-state="cek"
+                                        onclick="handleActionBtn(this)"
+                                        class="px-3 py-2 {{ $sudahDiajukan ? 'bg-amber-500 hover:bg-amber-600' : 'bg-[#6196aa] hover:bg-[#20394a]' }} text-white rounded-xl text-xs font-bold shadow-sm transition-all duration-200 inline-flex items-center gap-1.5">
+                                        @if($sudahDiajukan)
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
                                         </svg>
                                         Cek Status / Ganti
-                                    </button>
-                                    @else
-                                    {{-- Belum ada pengajuan, atau sudah ada pengganti tersedia --}}
-                                    <button
-                                        onclick="openReplaceModal({{ $item['id_inventaris'] }}, '{{ addslashes($item['nomor_label']) }}', '{{ addslashes($item['nama_barang']) }}', '{{ addslashes($item['nama_ruangan'] ?? 'Tanpa Ruangan') }}')"
-                                        class="px-3 py-2 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all duration-200 inline-flex items-center gap-1.5">
+                                        @else
                                         <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                                            <path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
                                         </svg>
-                                        Ganti Unit
+                                        Cek Ketersediaan
+                                        @endif
                                     </button>
-                                    @endif
                                 </td>
                             </tr>
                             @empty
@@ -249,49 +251,68 @@
     </main>
 
     <!-- ======================================================
-         MODAL: Ganti Inventaris (Replacement Modal)
+         MODAL: Konfirmasi Penggantian Unit (tanpa dropdown)
     ====================================================== -->
-    <div id="modal-replacement" class="fixed inset-0 z-50 bg-[#030706]/60 backdrop-blur-sm hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-lg rounded-2xl border border-[#c9ccc3]/40 shadow-2xl relative transform scale-95 transition-transform duration-300">
+    <div id="modal-confirm" class="fixed inset-0 z-50 bg-[#030706]/60 backdrop-blur-sm hidden items-center justify-center p-4">
+        <div class="bg-white w-full max-w-md rounded-2xl border border-[#c9ccc3]/40 shadow-2xl relative transform scale-95 transition-transform duration-300">
             <div class="px-6 py-4 border-b border-[#c9ccc3]/30 flex items-center justify-between">
                 <div>
-                    <h3 class="font-bold text-[#20394a] text-base">Ganti Unit Inventaris</h3>
-                    <p class="text-xs text-gray-400">Pilih unit baru/baik dari Storage untuk menggantikan unit ini</p>
+                    <h3 class="font-bold text-[#20394a] text-base">Konfirmasi Penggantian Unit</h3>
+                    <p class="text-xs text-gray-400">Pastikan informasi berikut sebelum melanjutkan</p>
                 </div>
-                <button onclick="closeReplaceModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-1">
+                <button onclick="closeConfirmModal()" class="text-gray-400 hover:text-gray-600 transition-colors p-1">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
             </div>
-            <form id="replacement-form" onsubmit="handleReplacementSubmit(event)" class="p-6 space-y-5">
-                <input type="hidden" id="r-rusak-id">
-                
+            <div class="p-6 space-y-4">
+                <!-- Unit yang Diganti -->
                 <div>
-                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Barang yang Diganti</label>
-                    <div class="bg-gray-50 border border-gray-200 rounded-xl p-4 flex flex-col gap-1">
-                        <span class="text-sm font-bold text-[#20394a]" id="r-rusak-name-display">–</span>
-                        <span class="text-xs text-gray-500">Label: <strong class="font-mono text-rose-600" id="r-rusak-label-display">–</strong> | Lokasi: <span id="r-rusak-room-display">–</span></span>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Unit yang Diganti (Rusak Berat)</label>
+                    <div class="bg-red-50 border border-red-100 rounded-xl p-4">
+                        <div class="font-bold text-gray-800" id="confirm-rusak-nama">–</div>
+                        <div class="text-xs text-gray-500 mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                            <span>Label: <strong class="font-mono text-rose-600" id="confirm-rusak-label">–</strong></span>
+                            <span>Ruangan: <strong id="confirm-rusak-ruangan">–</strong></span>
+                        </div>
                     </div>
                 </div>
-
-                <div>
-                    <label class="block text-xs font-bold text-[#20394a] uppercase tracking-wider mb-2">Pilih Unit Pengganti (Dari Storage/Stok Baik) <span class="text-rose-500">*</span></label>
-                    <select id="r-pengganti" required class="w-full border border-[#c9ccc3]/60 rounded-xl px-4 py-2.5 text-sm bg-white">
-                        <option value="">-- Pilih Unit Pengganti --</option>
-                    </select>
+                <!-- Panah -->
+                <div class="flex items-center justify-center gap-3">
+                    <div class="flex-1 h-px bg-gray-200"></div>
+                    <div class="flex items-center justify-center w-8 h-8 rounded-full bg-emerald-50 border border-emerald-200 shrink-0">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 text-emerald-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+                        </svg>
+                    </div>
+                    <div class="flex-1 h-px bg-gray-200"></div>
                 </div>
-
-                <div class="flex gap-3 pt-2">
-                    <button type="button" onclick="closeReplaceModal()" class="flex-1 py-3 bg-[#c9ccc3]/30 hover:bg-[#c9ccc3]/50 text-gray-700 rounded-xl text-sm font-semibold transition-all duration-200">
+                <!-- Unit Pengganti -->
+                <div>
+                    <label class="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Unit Pengganti (Kondisi: Baik ✓)</label>
+                    <div class="bg-emerald-50 border border-emerald-100 rounded-xl p-4">
+                        <div class="font-bold text-gray-800" id="confirm-pengganti-nama">–</div>
+                        <div class="text-xs text-gray-500 mt-1 flex flex-wrap gap-x-3 gap-y-0.5">
+                            <span>Label: <strong class="font-mono text-emerald-700" id="confirm-pengganti-label">–</strong></span>
+                            <span>Dari Ruangan: <strong id="confirm-pengganti-ruangan">–</strong></span>
+                        </div>
+                    </div>
+                </div>
+                <!-- Info -->
+                <p class="text-[11px] text-gray-400 bg-gray-50 rounded-lg p-3 leading-relaxed border border-gray-100">
+                    ⚠️ Setelah konfirmasi: unit pengganti mengambil alih <strong>nomor label</strong> &amp; <strong>ruangan</strong> unit rusak. Unit lama ditandai <strong>rusak berat</strong> tanpa label. Proses ini dicatat di Log Maintenance.
+                </p>
+                <div class="flex gap-3 pt-1">
+                    <button type="button" onclick="closeConfirmModal()" class="flex-1 py-3 bg-[#c9ccc3]/30 hover:bg-[#c9ccc3]/50 text-gray-700 rounded-xl text-sm font-semibold transition-all duration-200">
                         Batal
                     </button>
-                    <button type="submit" class="flex-1 py-3 bg-rose-600 hover:bg-rose-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2">
+                    <button type="button" id="btn-confirm-ganti" onclick="executeGantiUnit()" class="flex-1 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-sm font-semibold transition-all duration-200 flex items-center justify-center gap-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" />
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
                         </svg>
-                        Ganti Barang
+                        Konfirmasi Ganti
                     </button>
                 </div>
-            </form>
+            </div>
         </div>
     </div>
 
@@ -347,65 +368,196 @@
         updateDateTime();
 
         // ======================================================
-        // Inventaris & Storage Data
+        // Inventaris Data (semua unit berlabel dari backend)
         // ======================================================
         const rawInventarisData = {!! json_encode($inventarisData ?? []) !!};
 
-        // Modal Replacement Logic
-        function openReplaceModal(idInventaris, nomorLabel, namaBarang, namaRuangan) {
-            // Filter pengganti dari Storage atau ruangan yang sama yang dalam kondisi baik dan nama_barang-nya cocok
-            const replacementUnits = rawInventarisData.filter(item => 
-                item.kondisi === 'baik' && 
-                item.nama_barang && 
-                item.nama_barang.toLowerCase().trim() === namaBarang.toLowerCase().trim() &&
-                item.nama_ruangan && 
-                (item.nama_ruangan.toLowerCase().trim() === 'storage' || item.nama_ruangan.toLowerCase().trim() === namaRuangan.toLowerCase().trim())
-            );
+        // Data penggantian yang sedang menunggu konfirmasi
+        let currentGantiData = null;
 
-            if (replacementUnits.length === 0) {
-                document.getElementById('nf-barang-name').textContent = namaBarang;
-                
-                const btnAjukan = document.getElementById('btn-ajukan-kalab');
-                btnAjukan.onclick = () => submitPengajuanKalab(namaBarang, nomorLabel);
-                
-                const modalNf = document.getElementById('modal-not-found');
-                modalNf.classList.remove('hidden');
-                modalNf.classList.add('flex');
-                setTimeout(() => modalNf.querySelector('div').classList.replace('scale-95', 'scale-100'), 10);
-                return;
+        // ======================================================
+        // HANDLER UTAMA: dipanggil saat tombol diklik
+        // ======================================================
+        function handleActionBtn(btn) {
+            if (btn.dataset.state === 'ganti') {
+                // Sudah ada unit pengganti ditemukan, buka modal konfirmasi
+                openConfirmModal(btn);
+            } else {
+                // Belum dicek, jalankan pengecekan ketersediaan
+                cekKetersediaan(btn);
             }
-
-            document.getElementById('r-rusak-id').value = idInventaris;
-            document.getElementById('r-rusak-name-display').textContent = namaBarang;
-            document.getElementById('r-rusak-label-display').textContent = nomorLabel;
-            document.getElementById('r-rusak-room-display').textContent = namaRuangan;
-
-            const selectPengganti = document.getElementById('r-pengganti');
-            selectPengganti.innerHTML = '<option value="">-- Pilih Unit Pengganti --</option>';
-
-            replacementUnits.forEach(item => {
-                const opt = document.createElement('option');
-                opt.value = item.id_inventaris;
-                opt.textContent = `${item.nama_barang || 'Barang #' + item.id_inventaris} (Kondisi: Baik)`;
-                selectPengganti.appendChild(opt);
-            });
-
-            const modal = document.getElementById('modal-replacement');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-            setTimeout(() => modal.querySelector('div').classList.replace('scale-95', 'scale-100'), 10);
         }
 
-        function closeReplaceModal() {
-            const modal = document.getElementById('modal-replacement');
-            modal.querySelector('div').classList.replace('scale-100', 'scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 150);
+        // ======================================================
+        // CEK KETERSEDIAAN UNIT PENGGANTI
+        // Mengecek rawInventarisData untuk unit:
+        //   - nama_barang sama (case-insensitive)
+        //   - kondisi = 'baik'
+        //   - sudah berlabel (nomor_label tidak null)
+        //   - berada di Storage ATAU di ruangan yang sama dengan unit rusak
+        //     (kasus staf admin sudah mengalokasikan barang ke ruangan tsb)
+        // ======================================================
+        function cekKetersediaan(btn) {
+            const idInventaris = parseInt(btn.dataset.id);
+            const nomorLabel   = btn.dataset.label;
+            const namaBarang   = btn.dataset.nama;
+            const namaRuangan  = btn.dataset.ruangan;
+
+            // Tampilkan loading
+            btn.disabled = true;
+            const originalHTML = btn.innerHTML;
+            btn.innerHTML = `
+                <svg class="animate-spin h-3.5 w-3.5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Mengecek...`;
+
+            setTimeout(() => {
+                // Filter: berlabel, kondisi baik, nama sama, di storage atau ruangan yang sama
+                const replacements = rawInventarisData.filter(item =>
+                    item.kondisi === 'baik' &&
+                    item.nama_barang &&
+                    item.nama_barang.toLowerCase().trim() === namaBarang.toLowerCase().trim() &&
+                    item.nomor_label &&   // wajib sudah dilabeli
+                    item.nama_ruangan &&
+                    (
+                        item.nama_ruangan.toLowerCase().trim() === 'storage' ||
+                        item.nama_ruangan.toLowerCase().trim() === namaRuangan.toLowerCase().trim()
+                    )
+                );
+
+                btn.disabled = false;
+
+                if (replacements.length === 0) {
+                    // Cek apakah ada unit yang belum dilabeli (kondisi baik, nama sama)
+                    const adaBelumLabel = rawInventarisData.some(item =>
+                        item.kondisi === 'baik' &&
+                        item.nama_barang &&
+                        item.nama_barang.toLowerCase().trim() === namaBarang.toLowerCase().trim() &&
+                        !item.nomor_label
+                    );
+
+                    btn.innerHTML = originalHTML;
+
+                    if (adaBelumLabel) {
+                        // Ada unit tapi belum dilabeli staf admin
+                        showToast('Unit pengganti ada di storage namun belum dilabeli. Hubungi Staf Admin untuk pelabelan terlebih dahulu.', true);
+                    } else {
+                        // Tidak ada sama sekali, ajukan ke kalab
+                        document.getElementById('nf-barang-name').textContent = namaBarang;
+                        const btnAjukan = document.getElementById('btn-ajukan-kalab');
+                        btnAjukan.onclick = () => submitPengajuanKalab(namaBarang, nomorLabel);
+                        openModal('modal-not-found');
+                    }
+                    return;
+                }
+
+                // Unit ditemukan!
+                // Prioritas: unit di ruangan yang sama (alokasi staf admin) > unit di storage
+                const diRuanganSama = replacements.find(r =>
+                    r.nama_ruangan && r.nama_ruangan.toLowerCase().trim() === namaRuangan.toLowerCase().trim()
+                );
+                const selected = diRuanganSama || replacements[0];
+
+                // Update button menjadi "Ganti Unit" (hijau)
+                btn.className = 'px-3 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold shadow-sm transition-all duration-200 inline-flex items-center gap-1.5';
+                btn.dataset.state            = 'ganti';
+                btn.dataset.penggantiId      = selected.id_inventaris;
+                btn.dataset.penggantiLabel   = selected.nomor_label || '-';
+                btn.dataset.penggantiNama    = selected.nama_barang || namaBarang;
+                btn.dataset.penggantiRuangan = selected.nama_ruangan || 'Storage';
+                btn.innerHTML = `
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4"/>
+                    </svg>
+                    Ganti Unit`;
+
+                showToast(`Unit pengganti ditemukan! (${selected.nomor_label}) – Klik "Ganti Unit" untuk konfirmasi.`);
+            }, 600); // jeda singkat agar UX lebih natural
         }
 
+        // ======================================================
+        // MODAL KONFIRMASI
+        // ======================================================
+        function openConfirmModal(btn) {
+            const idRusak          = parseInt(btn.dataset.id);
+            const nomorLabelRusak  = btn.dataset.label;
+            const namaBarang       = btn.dataset.nama;
+            const namaRuangan      = btn.dataset.ruangan;
+            const idPengganti      = parseInt(btn.dataset.penggantiId);
+            const labelPengganti   = btn.dataset.penggantiLabel;
+            const namaPengganti    = btn.dataset.penggantiNama || namaBarang;
+            const ruanganPengganti = btn.dataset.penggantiRuangan;
+
+            currentGantiData = { idRusak, idPengganti };
+
+            document.getElementById('confirm-rusak-nama').textContent      = namaBarang;
+            document.getElementById('confirm-rusak-label').textContent     = nomorLabelRusak;
+            document.getElementById('confirm-rusak-ruangan').textContent   = namaRuangan;
+            document.getElementById('confirm-pengganti-nama').textContent  = namaPengganti;
+            document.getElementById('confirm-pengganti-label').textContent = labelPengganti;
+            document.getElementById('confirm-pengganti-ruangan').textContent = ruanganPengganti;
+
+            openModal('modal-confirm');
+        }
+
+        function closeConfirmModal() {
+            closeModal('modal-confirm');
+        }
+
+        // ======================================================
+        // EKSEKUSI PENGGANTIAN UNIT
+        // ======================================================
+        async function executeGantiUnit() {
+            if (!currentGantiData) return;
+
+            const { idRusak, idPengganti } = currentGantiData;
+            const btn = document.getElementById('btn-confirm-ganti');
+            btn.disabled = true;
+            btn.innerHTML = `
+                <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                    <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Memproses...`;
+
+            try {
+                const resp = await fetch('/staf-lab/maintenance/ganti', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
+                    },
+                    body: JSON.stringify({
+                        id_inventaris_rusak: idRusak,
+                        id_inventaris_pengganti: idPengganti
+                    })
+                });
+                const result = await resp.json();
+
+                if (result.success) {
+                    closeConfirmModal();
+                    showToast('Unit inventaris berhasil diganti! Status diperbarui menjadi Baik.');
+                    setTimeout(() => window.location.reload(), 1500);
+                } else {
+                    showToast(result.message || 'Gagal mengganti unit inventaris.', true);
+                    btn.disabled = false;
+                    btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Konfirmasi Ganti`;
+                }
+            } catch (err) {
+                console.error(err);
+                showToast('Gagal terhubung ke server.', true);
+                btn.disabled = false;
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg> Konfirmasi Ganti`;
+            }
+        }
+
+        // ======================================================
+        // MODAL NOT FOUND
+        // ======================================================
         function closeNotFoundModal() {
-            const modal = document.getElementById('modal-not-found');
-            modal.querySelector('div').classList.replace('scale-100', 'scale-95');
-            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 150);
+            closeModal('modal-not-found');
         }
 
         async function submitPengajuanKalab(namaBarang, nomorLabel) {
@@ -431,9 +583,7 @@
                 if (result.success) {
                     showToast('Pengajuan draf pengadaan berhasil dikirim ke Kalab!');
                     closeNotFoundModal();
-                    setTimeout(() => {
-                        window.location.reload();
-                    }, 1200);
+                    setTimeout(() => window.location.reload(), 1200);
                 } else {
                     showToast(result.message || 'Gagal mengajukan ke Kalab.', true);
                 }
@@ -442,58 +592,29 @@
                 showToast('Terjadi kesalahan koneksi.', true);
             } finally {
                 btn.disabled = false;
-                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" /></svg> Ajukan ke Kalab`;
+                btn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/></svg> Ajukan ke Kalab`;
             }
         }
 
-        async function handleReplacementSubmit(e) {
-            e.preventDefault();
-            const idRusak = parseInt(document.getElementById('r-rusak-id').value);
-            const idPengganti = parseInt(document.getElementById('r-pengganti').value);
-
-            if (!idRusak || !idPengganti) {
-                showToast('Pilih unit pengganti dari Storage terlebih dahulu!', true);
-                return;
-            }
-
-            const submitBtn = document.querySelector('#replacement-form [type=submit]');
-            submitBtn.disabled = true;
-            submitBtn.textContent = 'Memproses...';
-
-            try {
-                const resp = await fetch('/staf-lab/maintenance/ganti', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                        'X-CSRF-TOKEN': '{{ csrf_token() }}'
-                    },
-                    body: JSON.stringify({
-                        id_inventaris_rusak: idRusak,
-                        id_inventaris_pengganti: idPengganti
-                    })
-                });
-                const result = await resp.json();
-
-                if (!result.success) {
-                    showToast(result.message || 'Gagal mengganti unit inventaris.', true);
-                    return;
-                }
-
-                showToast('Unit inventaris berhasil diganti dan status diupdate menjadi Baik!');
-                closeReplaceModal();
-
-                setTimeout(() => {
-                    window.location.reload();
-                }, 1200);
-            } catch (err) {
-                console.error(err);
-                showToast('Gagal terhubung ke server.', true);
-            } finally {
-                submitBtn.disabled = false;
-                submitBtn.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4" /></svg> Ganti Barang`;
-            }
+        // ======================================================
+        // MODAL HELPERS
+        // ======================================================
+        function openModal(id) {
+            const modal = document.getElementById(id);
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+            setTimeout(() => modal.querySelector('div').classList.replace('scale-95', 'scale-100'), 10);
         }
 
+        function closeModal(id) {
+            const modal = document.getElementById(id);
+            modal.querySelector('div').classList.replace('scale-100', 'scale-95');
+            setTimeout(() => { modal.classList.add('hidden'); modal.classList.remove('flex'); }, 150);
+        }
+
+        // ======================================================
+        // TOAST
+        // ======================================================
         function showToast(message, isError = false) {
             const toast = document.getElementById('toast');
             const icon  = document.getElementById('toast-icon');
@@ -505,20 +626,15 @@
                 : `<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>`;
 
             toast.classList.remove('translate-y-[-120px]', 'opacity-0');
-            setTimeout(() => toast.classList.add('translate-y-[-120px]', 'opacity-0'), 3800);
+            setTimeout(() => toast.classList.add('translate-y-[-120px]', 'opacity-0'), 4000);
         }
 
-        // Close modal on overlay click
-        document.getElementById('modal-replacement').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeReplaceModal();
-            }
+        // Tutup modal saat klik overlay
+        document.getElementById('modal-confirm').addEventListener('click', function(e) {
+            if (e.target === this) closeConfirmModal();
         });
-
         document.getElementById('modal-not-found').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeNotFoundModal();
-            }
+            if (e.target === this) closeNotFoundModal();
         });
     </script>
 </body>

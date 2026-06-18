@@ -296,7 +296,7 @@
                                                             $colorClass = $statusColors[$item['status_pengadaan']] ?? 'bg-gray-100 text-gray-700';
                                                         @endphp
                                                         <select 
-                                                            onchange="handleStatusChange(this, {{ $item['id_detail'] }}, '{{ $item['nama_barang'] }}', {{ $item['jumlah'] - $item['jumlah_diterima'] }}, '{{ $item['status_pengadaan'] }}')" 
+                                                            onchange="handleStatusChange(this, {{ $item['id_detail'] }}, '{{ $item['nama_barang'] }}', {{ $item['jumlah'] - $item['jumlah_diterima'] }}, '{{ $item['status_pengadaan'] }}', '{{ $item['jenis_barang'] }}')" 
                                                             class="border border-gray-200 text-xs font-semibold rounded-lg focus:ring-[#6196aa] focus:border-[#6196aa] block w-full p-1.5 {{ $colorClass }}"
                                                             {{ ($item['status_pengadaan'] == 'telah_diterima' || $item['status_persetujuan'] != 'disetujui' || $draft['status_draft'] != 'disetujui') ? 'disabled' : '' }}>
                                                             <option value="menunggu_dipesan" {{ $item['status_pengadaan'] == 'menunggu_dipesan' ? 'selected' : '' }}>Menunggu Dipesan</option>
@@ -358,7 +358,7 @@
     <div id="receiveModal" class="fixed inset-0 z-50 hidden items-center justify-center bg-black/50 backdrop-blur-sm overflow-y-auto pt-10 pb-10">
         <div class="bg-white rounded-2xl shadow-xl w-full max-w-2xl mx-4 overflow-hidden flex flex-col max-h-full">
             <div class="p-6 border-b border-gray-100 flex justify-between items-center bg-[#f9f5ed]/50 shrink-0">
-                <h3 class="text-lg font-bold text-[#20394a]">Form Penerimaan Barang</h3>
+                <h3 class="text-lg font-bold text-[#20394a]" id="receiveModalTitle">Form Penerimaan Barang</h3>
                 <button onclick="closeReceiveModal()" class="text-gray-400 hover:text-red-500 transition-colors">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
                 </button>
@@ -367,11 +367,25 @@
                 <form id="receiveForm" action="/stafadmin/draf-pengadaan/terima" method="POST" onsubmit="return handleReceiveSubmit(event)">
                     @csrf
                     <input type="hidden" name="id_detail" id="modal_id_detail">
+                    <input type="hidden" name="is_bhp" id="modal_is_bhp" value="0">
                     
                     <div class="mb-4 p-4 bg-blue-50 rounded-xl border border-blue-100">
                         <span class="block text-xs text-blue-500 font-bold uppercase tracking-wider mb-1">Barang</span>
                         <div id="modal_nama_barang" class="font-bold text-[#20394a] text-lg"></div>
-                        <div class="text-sm text-blue-600 mt-1">Maksimal bisa diterima: <span id="modal_max_qty" class="font-bold"></span> unit</div>
+                        <div class="text-sm text-blue-600 mt-1">Jumlah akan diterima: <span id="modal_max_qty" class="font-bold"></span> unit</div>
+                    </div>
+
+                    {{-- Banner khusus BHP --}}
+                    <div id="bhp_info_banner" class="hidden mb-4 p-4 bg-teal-50 rounded-xl border border-teal-200">
+                        <div class="flex items-start gap-3">
+                            <div class="p-2 bg-teal-100 rounded-lg text-teal-600 shrink-0">
+                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </div>
+                            <div>
+                                <p class="text-sm font-bold text-teal-800">Barang Habis Pakai (BHP)</p>
+                                <p class="text-xs text-teal-700 mt-0.5">Stok BHP akan otomatis bertambah sejumlah unit yang diterima. Tidak perlu pelabelan atau alokasi ruangan.</p>
+                            </div>
+                        </div>
                     </div>
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
@@ -379,9 +393,10 @@
                             <label class="block text-sm font-medium text-gray-700 mb-1">Tanggal Penerimaan</label>
                             <input type="date" name="tanggal_penerimaan" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
                         </div>
-                        <div>
+                        {{-- Field ruangan: hanya tampil untuk Inventori, sembunyi untuk BHP --}}
+                        <div id="ruangan_field">
                             <label class="block text-sm font-medium text-gray-700 mb-1">Alokasi Ruangan (Tujuan Lab)</label>
-                            <select name="id_ruangan" id="ruangan_select" onchange="handleRoomSelection(this)" required class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
+                            <select name="id_ruangan" id="ruangan_select" onchange="handleRoomSelection(this)" class="w-full rounded-lg border-gray-300 shadow-sm focus:border-[#6196aa] focus:ring-[#6196aa] text-sm p-2.5 border">
                                 <option value="">-- Memuat Ruangan... --</option>
                             </select>
                         </div>
@@ -493,6 +508,7 @@
 
         let currentSelectElement = null;
         let originalStatusValue = null;
+        let currentIsBhp = false;
 
         function showErrorModal(msg) {
             document.getElementById('errorModalMessage').innerText = msg;
@@ -505,7 +521,7 @@
             document.getElementById('errorModal').classList.remove('flex');
         }
 
-        function handleStatusChange(selectElement, id, name, maxQty, oldStatus) {
+        function handleStatusChange(selectElement, id, name, maxQty, oldStatus, jenis) {
             const newStatus = selectElement.value;
             if (newStatus === 'telah_diterima') {
                 if (maxQty <= 0) {
@@ -515,7 +531,8 @@
                 }
                 currentSelectElement = selectElement;
                 originalStatusValue = oldStatus;
-                openReceiveModal(id, name, maxQty);
+                currentIsBhp = (jenis && jenis.trim().toUpperCase() === 'BHP');
+                openReceiveModal(id, name, maxQty, currentIsBhp);
             } else {
                 updateStatus(id, newStatus);
             }
@@ -547,39 +564,59 @@
         let recommendedLabsCache = null;
         let storageRoomCache = null;
 
-        async function openReceiveModal(id, name, maxQty) {
+        async function openReceiveModal(id, name, maxQty, isBhp) {
             document.getElementById('modal_id_detail').value = id;
             document.getElementById('modal_nama_barang').innerText = name;
             document.getElementById('modal_max_qty').innerText = maxQty;
+            document.getElementById('modal_is_bhp').value = isBhp ? '1' : '0';
             
             const qtyInput = document.getElementById('input_qty');
             qtyInput.max = maxQty;
-            qtyInput.value = maxQty; // auto fill max
+            qtyInput.value = maxQty;
             maxQtyAllowed = maxQty;
-            
-            // Fetch ruangan recommendations
-            const selectEl = document.getElementById('ruangan_select');
-            selectEl.innerHTML = '<option value="">-- Memuat Ruangan... --</option>';
-            try {
-                const response = await fetch(`http://localhost:3000/api/staf_admin/draf_pengadaan/ruangan-rekomendasi/${id}`);
-                const data = await response.json();
-                if (data.success) {
-                    recommendedLabsCache = data.recommended_labs;
-                    storageRoomCache = data.storage_room;
 
-                    selectEl.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
-                    
-                    if (data.storage_room) {
-                        selectEl.innerHTML += `<option value="${data.storage_room.id_ruangan}">${data.storage_room.nama_ruangan}</option>`;
+            const bhpBanner = document.getElementById('bhp_info_banner');
+            const ruanganField = document.getElementById('ruangan_field');
+            const ruanganSelect = document.getElementById('ruangan_select');
+
+            if (isBhp) {
+                // BHP: tampilkan banner, sembunyikan ruangan
+                bhpBanner.classList.remove('hidden');
+                ruanganField.classList.add('hidden');
+                ruanganSelect.removeAttribute('required');
+                ruanganSelect.value = '';
+                document.getElementById('receiveModalTitle').textContent = 'Konfirmasi Penerimaan BHP';
+            } else {
+                // Inventori: sembunyikan banner, tampilkan ruangan
+                bhpBanner.classList.add('hidden');
+                ruanganField.classList.remove('hidden');
+                ruanganSelect.setAttribute('required', 'required');
+                document.getElementById('receiveModalTitle').textContent = 'Form Penerimaan Barang';
+
+                // Fetch ruangan recommendations hanya untuk Inventori
+                const selectEl = ruanganSelect;
+                selectEl.innerHTML = '<option value="">-- Memuat Ruangan... --</option>';
+                try {
+                    const response = await fetch(`http://localhost:3000/api/staf_admin/draf_pengadaan/ruangan-rekomendasi/${id}`);
+                    const data = await response.json();
+                    if (data.success) {
+                        recommendedLabsCache = data.recommended_labs;
+                        storageRoomCache = data.storage_room;
+
+                        selectEl.innerHTML = '<option value="">-- Pilih Ruangan --</option>';
+                        
+                        if (data.storage_room) {
+                            selectEl.innerHTML += `<option value="${data.storage_room.id_ruangan}">${data.storage_room.nama_ruangan}</option>`;
+                        }
+                        
+                        data.labs_with_broken.forEach(lab => {
+                            selectEl.innerHTML += `<option value="${lab.id_ruangan}">${lab.nama_ruangan}</option>`;
+                        });
                     }
-                    
-                    data.labs_with_broken.forEach(lab => {
-                        selectEl.innerHTML += `<option value="${lab.id_ruangan}">${lab.nama_ruangan}</option>`;
-                    });
+                } catch (err) {
+                    console.error(err);
+                    selectEl.innerHTML = '<option value="">-- Gagal memuat ruangan --</option>';
                 }
-            } catch (err) {
-                console.error(err);
-                selectEl.innerHTML = '<option value="">-- Gagal memuat ruangan --</option>';
             }
 
             document.getElementById('receiveModal').classList.remove('hidden');
@@ -660,10 +697,21 @@
 
         async function handleReceiveSubmit(e) {
             e.preventDefault();
-            const qty = maxQtyAllowed; // because input is hidden and we just receive the max allowed
-            
+            const qty = maxQtyAllowed;
+            const isBhp = document.getElementById('modal_is_bhp').value === '1';
+
+            // Untuk BHP: tidak perlu validasi ruangan, langsung submit
+            if (isBhp) {
+                executeReceiveSubmit();
+                return false;
+            }
+
+            // Untuk Inventori: validasi ruangan seperti sebelumnya
             const selectedRoomId = parseInt(document.getElementById('ruangan_select').value);
-            if (!selectedRoomId) return false;
+            if (!selectedRoomId) {
+                showErrorModal('Silakan pilih ruangan tujuan terlebih dahulu.');
+                return false;
+            }
 
             if (recommendedLabsCache && storageRoomCache && selectedRoomId !== storageRoomCache.id_ruangan) {
                 const lab = recommendedLabsCache.find(r => r.id_ruangan === selectedRoomId);
