@@ -125,15 +125,9 @@ router.post('/terima', async (req, res) => {
                 [qtyDiterima, bhp.id_bhp]
             );
 
-            // Update status pengadaan
-            const [countExisting] = await connection.query(
-                'SELECT COALESCE(SUM(jumlah_penerimaan), 0) AS sudah FROM penerimaan_bhp WHERE id_detail = ?',
-                [id_detail]
-            );
-            // Catat penerimaan BHP di tabel penerimaan_bhp jika ada, atau langsung update status
-            // Cek apakah tabel penerimaan_bhp ada (opsional), jika tidak ada langsung update status
-            const sudahDiterima = (countExisting[0]?.sudah || 0) + qtyDiterima;
-            const newStatus = sudahDiterima >= jumlah_total ? 'telah_diterima' : 'penerimaan_sebagian';
+            // Update status pengadaan langsung ke telah_diterima
+            // (BHP diterima sekaligus sejumlah yang tercantum di draf)
+            const newStatus = qtyDiterima >= jumlah_total ? 'telah_diterima' : 'penerimaan_sebagian';
             await connection.query(
                 'UPDATE detail_pengadaan SET status_pengadaan = ? WHERE id_detail = ?',
                 [newStatus, id_detail]
